@@ -1,5 +1,5 @@
-// اختبار شامل في المتصفح: كل محاكاة × ثلاثة مقاسات شاشة × كل منزلق (أدنى/أعلى/عشوائي) + الأزرار
-// التشغيل: node tests/e2e.mjs [baseURL] [--shots]
+// اختبار شامل في المتصفح: كل محاكاة/تجربة (الرياضيات + الفيزياء) × ثلاثة مقاسات شاشة × كل منزلق (أدنى/أعلى/منتصف/صفر) + الأزرار والرسوم والأوضاع
+// التشغيل: node tests/e2e.mjs [baseURL] [--shots] [--only=id] [--subject=g10-physics]
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 let pw;
@@ -7,6 +7,7 @@ try { pw = require('playwright'); } catch { pw = require(process.env.PW_PATH || 
 const base = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'http://127.0.0.1:8765/index.html';
 const shots = process.argv.includes('--shots');
 const only = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
+const subj = (process.argv.find((a) => a.startsWith('--subject=')) || '').slice(10);
 
 const browser = await pw.chromium.launch({ executablePath: process.env.CHROME || undefined });
 const sizes = [{ name: 'phone', width: 375, height: 760 }, { name: 'tablet', width: 820, height: 1100 }, { name: 'desktop', width: 1440, height: 900 }];
@@ -20,18 +21,28 @@ for (const size of sizes) {
   page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g|ERR_|net::/.test(m.text())) errors.push('console: ' + m.text()); });
   await page.goto(base, { waitUntil: 'load' });
   await page.waitForSelector('.units');
-  const ids = await page.evaluate(() => ML.sims.map((s) => s.id));
-  console.log(`[${size.name}] ${ids.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
-  if (shots) await page.screenshot({ path: `tests/shots/home-${size.name}.png`, fullPage: false });
-  for (const id of ids) {
+  const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, href: ML.simHref(s) })));
+  console.log(`[${size.name}] ${sims.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
+  // صفحتا المادتين والتنقل بين التبويبات
+  for (const sl of ['math', 'physics']) {
+    await page.goto(base + '#/g10/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
+    const st = await page.evaluate(() => ({ n: document.querySelectorAll('.units a[href*="/sim/"]').length, on: (document.querySelector('.stab.on') || {}).textContent || '', g: (document.querySelector('.gtab.on') || {}).textContent || '' }));
+    if (!st.n || !st.g) fail(`home ${sl}: links=${st.n} gradeTab=${st.g}`);
+    const ov = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); if (ov > 1) fail(`home ${sl}: horizontal overflow ${ov}px`);
+    if (shots) await page.screenshot({ path: `tests/shots/home-${sl}-${size.name}.png`, fullPage: false });
+  }
+  for (const sm of sims) {
+    const id = sm.id;
     if (only && id !== only) continue;
+    if (subj && sm.subject !== subj) continue;
     errors.length = 0;
-    await page.goto(base + '#/sim/' + id); await page.waitForSelector('.sim-grid canvas');
+    await page.goto(base + sm.href); await page.waitForSelector('.sim-grid canvas');
     await page.waitForTimeout(150);
     // كل منزلق: أدنى، أعلى، قيمة عشوائية
-    const params = await page.evaluate(() => ML.current.sim.params.map((q) => ({ key: q.key, type: q.type || 'range', min: q.min, max: q.max, options: q.options ? q.options.map((o) => o[0]) : null })));
+    const params = await page.evaluate(() => ML.current.sim.params.map((q) => ({ key: q.key, type: q.type || 'range', min: q.min, max: q.max })));
     for (const q of params) {
-      const vals = q.type === 'select' ? q.options : q.type === 'toggle' ? [true, false] : [q.min, q.max, (q.min + q.max) / 2, q.min + (q.max - q.min) * 0.37];
+      const opts = q.type === 'select' ? await page.evaluate((k) => { const cur = ML.current; const qq = cur.sim.params.find((x) => x.key === k); return (typeof qq.options === 'function' ? qq.options(cur.p) : qq.options).map((o) => (isNaN(+o[0]) ? o[0] : +o[0])); }, q.key) : null;
+      const vals = q.type === 'select' ? opts : q.type === 'toggle' ? [true, false] : [q.min, q.max, (q.min + q.max) / 2, q.min + (q.max - q.min) * 0.37].concat(q.min < 0 && q.max > 0 ? [0] : []);
       for (const v of vals) {
         await page.evaluate(([k, v]) => { const cur = ML.current; const qq = cur.sim.params.find((x) => x.key === k); const vv = (qq.type ? v : cur.fixParam(qq, v)); cur.set(k, vv); }, [q.key, v]);
         const bad = await page.evaluate(() => {
@@ -43,7 +54,16 @@ for (const size of sizes) {
     }
     // الأزرار
     await page.click('[data-a=rand]'); await page.waitForTimeout(520);
-    if (await page.$('[data-a=play]')) { await page.click('[data-a=play]'); await page.waitForTimeout(400); await page.click('[data-a=play]'); }
+    if (await page.$('[data-a=play]')) {
+      await page.click('[data-a=play]'); await page.waitForTimeout(sm.subject === 'g10-physics' ? 1500 : 400);
+      if (await page.evaluate(() => ML.current.playing)) await page.click('[data-a=play]');
+      const bad = await page.evaluate(() => { const t = document.querySelector('.results').innerText + ' ' + document.querySelector('.live').innerText; return /NaN|undefined|Infinity(?!\))|\[object/.test(t) ? t.slice(0, 300) : null; });
+      if (bad) fail(`${id} after play: ${bad.replace(/\s+/g, ' ')}`);
+    }
+    // أنماط الرسم البياني الحي
+    const gm = await page.$$('.gmodes button');
+    for (const b of gm) { await b.click(); await page.waitForTimeout(60); const cap = await page.evaluate(() => (document.querySelector('.graph') || {}).innerText || ''); if (/NaN|undefined|\[object/.test(cap)) fail(`${id}: graph caption ${cap.slice(0, 200)}`); }
+    if (sm.subject === 'g10-physics') { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
     await page.click('[data-a=reset]'); await page.waitForTimeout(520);
     // الأوضاع
     for (const m of ['learn', 'challenge', 'explore']) { await page.click(`.modes [data-m=${m}]`); await page.waitForTimeout(80); }

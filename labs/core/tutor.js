@@ -1,4 +1,4 @@
-/* مساعد الرياضيات الذكي (AI Math Tutor)
+/* المساعد الذكي (مساعد الرياضيات / مساعد الفيزياء)
  * محرك محلي يعتمد على القواعد: يطابق سؤال الطالب مع قواعد كل محاكاة،
  * ويولّد الإجابة من القيم الحالية للمتغيرات — لا يخترع أرقاماً.
  */
@@ -16,7 +16,7 @@
   ML.normAr = norm;
 
   const GENERIC = [
-    { k: ['مجال', 'domain', 'مدي', 'range', 'المسموح'], kind: 'domain' },
+    { k: ['مجال', 'domain', 'مدي', 'range', 'المسموح', 'وحده', 'وحدات', 'unit'], kind: 'domain' },
     { k: ['خطوات', 'خطوه', 'حل', 'كيف احسب', 'كيف نحسب', 'steps'], kind: 'steps' },
     { k: ['ماذا حدث', 'لماذا تغير', 'ليش تغير', 'ماذا تغير', 'what happened'], kind: 'explain' },
     { k: ['اشرح', 'شرح', 'ما هو', 'ما هي', 'وضح', 'ابسط', 'بسط', 'فكره', 'explain'], kind: 'learn' },
@@ -53,7 +53,7 @@
     if (gen) {
       switch (gen.kind) {
         case 'domain':
-          return '**المتغيرات ومجالاتها في هذه المحاكاة:**\n' + sim.vars.map((v) => '• $' + v[0] + '$: ' + v[1] + ' — المجال: ' + v[2]).join('\n');
+          return '**المتغيرات ومجالاتها:**\n' + sim.vars.map((v) => '• $' + v[0] + '$: ' + v[1] + (v.length === 4 ? ' — الوحدة: $' + v[2] + '$ — الحدود: ' + v[3] : ' — المجال: ' + v[2])).join('\n');
         case 'steps': {
           const st = sim.steps ? sim.steps(p, d) : [];
           return st.length ? '**خطوات الحل بالقيم الحالية:**\n' + st.map((s, i) => (i + 1) + ') ' + s).join('\n') : 'لا توجد خطوات حسابية لهذه الحالة.';
@@ -62,10 +62,12 @@
           return state.lastExplain && state.lastExplain.length ? '**آخر تغيير:**\n' + state.lastExplain.join('\n') : 'لم تغيّر أي قيمة بعد. حرّك أحد المنزلقات ثم اسألني مرة أخرى.';
         case 'learn':
           return '**' + sim.titleAr + '**\n' + sim.summary + '\n' + (sim.learn || []).slice(0, 3).join('\n');
-        case 'source':
-          return 'المصدر: كتاب الرياضيات للصف العاشر (فلسطين، الطبعة الرابعة 2026) — ' + ML.unitName(sim.unit) + '، الدرس ' + sim.lesson + ': ' + sim.titleAr + '، صفحة ' + sim.page + '.';
+        case 'source': {
+          const sj = ML.subjects[sim.subject];
+          return 'المصدر: ' + sj.book + ' (' + sj.bookEd + ') — ' + ML.unitName(sim.subject, sim.unit) + '، الدرس ' + sim.lesson + ': ' + sim.lessonTitle + '، صفحة ' + sim.page + '.';
+        }
         case 'hello':
-          return 'أهلاً بك! أنا مساعد الرياضيات الذكي. أرى أنك في محاكاة «' + sim.titleAr + '». اسألني عن أي قيمة تراها أو عن سبب تغيّر الرسم.';
+          return 'أهلاً بك! أنا ' + ML.subjects[sim.subject].tutor + '. أرى أنك في «' + sim.titleAr + '». اسألني عن أي قيمة تراها أو عن سبب تغيّر النتيجة.';
         case 'challenge':
           return (sim.challenges && sim.challenges.length) ? 'جرّب وضع **تحدي** في أعلى الصفحة. مثال: ' + sim.challenges[0].q : 'لا توجد تحديات لهذه المحاكاة.';
       }

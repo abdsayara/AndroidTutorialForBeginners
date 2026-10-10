@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(dir, '..');
 const ctx = vm.createContext({ console, performance, BigInt });
-for (const f of ['core/math.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'sims/unit1.js', 'sims/unit2.js', 'sims/unit3.js', 'sims/unit4.js', 'sims/unit5.js', 'sims/unit6.js']) {
-  vm.runInContext(fs.readFileSync(path.join(root, 'js', f), 'utf8'), ctx, { filename: f });
+for (const f of ['core/math.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'subjects/g10-math/unit1.js', 'subjects/g10-math/unit2.js', 'subjects/g10-math/unit3.js', 'subjects/g10-math/unit4.js', 'subjects/g10-math/unit5.js', 'subjects/g10-math/unit6.js']) {
+  vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 }
 const ML = ctx.ML, M = ML.math;
 const sim = (id) => ML.sims.find((s) => s.id === id);

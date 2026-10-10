@@ -54,6 +54,17 @@ button, input, select { font: inherit; color: inherit; }
 .logo { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(135deg, var(--c1), var(--c5)); color: #fff; font-size: 22px; font-weight: 700; flex: none; }
 .back { white-space: nowrap; }
 
+/* تبويبات الصفوف والمواد */
+.tabs { max-width: 1400px; margin: 0 auto; padding: 12px 16px 0; display: grid; gap: 8px; }
+.grade-tabs, .subject-tabs { display: flex; gap: 6px; overflow-x: auto; }
+.gtab, .stab { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 700; }
+.gtab small, .stab small { color: var(--muted); font-weight: 500; font-size: 11px; }
+.gtab.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.gtab.on small { color: inherit; opacity: .75; }
+.stab.on { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.stab.on small { color: inherit; opacity: .8; }
+.subject-tabs { padding-inline-start: 14px; border-inline-start: 3px solid var(--border); }
+
 /* الرئيسية */
 .hero { max-width: 1100px; margin: 0 auto; padding: 36px 16px 18px; text-align: center; }
 .hero h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 44px); line-height: 1.2; background: linear-gradient(90deg, var(--c1), var(--c5)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -105,6 +116,16 @@ button, input, select { font: inherit; color: inherit; }
 .mode-panel { grid-area: mode; border-inline-start: 4px solid var(--primary); }
 .mode-panel.challenge { border-inline-start-color: var(--c4); }
 .learn-body p { margin: 0 0 10px; }
+.sim-grid.has-graph { grid-template-areas: "mode mode" "stage controls" "graph results" "why steps" "law law"; }
+.graph { grid-area: graph; }
+.graph-wrap { position: relative; width: 100%; height: clamp(220px, 34vh, 340px); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--plot-bg); }
+.graph-wrap canvas { display: block; width: 100%; height: 100%; }
+.gmodes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.gmodes button { border: 1px solid var(--border); background: var(--surface-2); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.gmodes button.on { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.assume { margin: 8px 4px 0; padding: 8px 12px; border-radius: 10px; font-size: 13.5px; background: color-mix(in srgb, var(--c4) 12%, transparent); border: 1px dashed color-mix(in srgb, var(--c4) 55%, transparent); }
+.assume-law { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.tbl { overflow-x: auto; }
 .stage { grid-area: stage; padding: 10px; position: sticky; top: 74px; }
 .controls { grid-area: controls; }
 .results { grid-area: results; }
@@ -176,13 +197,14 @@ button, input, select { font: inherit; color: inherit; }
   .sim-grid { grid-template-columns: minmax(0, 1fr) 320px; }
 }
 @media (max-width: 900px) {
-  .sim-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mode" "stage" "controls" "results" "why" "steps" "law"; }
+  .sim-grid, .sim-grid.has-graph { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mode" "stage" "controls" "graph" "results" "why" "steps" "law"; }
   .stage { position: static; }
   .canvas-wrap { height: clamp(300px, 56vh, 520px); }
   .sim-head { grid-template-columns: minmax(0, 1fr); }
 }
 @media (min-width: 640px) and (max-width: 900px) {
-  .sim-grid { grid-template-columns: 1fr 1fr; grid-template-areas: "mode mode" "stage stage" "controls results" "why steps" "law law"; }
+  .sim-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mode mode" "stage stage" "controls results" "why steps" "law law"; }
+  .sim-grid.has-graph { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mode mode" "stage stage" "controls graph" "results results" "why steps" "law law"; }
 }
 @media (max-width: 520px) {
   .brand small { display: none; }

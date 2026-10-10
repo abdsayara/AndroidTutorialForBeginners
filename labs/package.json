@@ -1,11 +1,11 @@
 {
-  "name": "math-lab",
+  "name": "interactive-labs",
   "version": "1.0.0",
   "private": true,
-  "description": "مختبر الرياضيات التفاعلي — Interactive Mathematics Simulation Lab (Grade 10, Palestine, 4th ed. 2026)",
+  "description": "المختبرات التفاعلية — Grade 10 Math & Physics Interactive Simulation Labs (Palestine curriculum)",
   "scripts": {
     "start": "python3 -m http.server 8765",
-    "test": "node --test tests/math.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "e2e": "node tests/e2e.mjs http://127.0.0.1:8765/index.html",
     "bundle": "python3 tools/bundle.py"
   },

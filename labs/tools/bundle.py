@@ -1,4 +1,4 @@
-"""يبني نسخة من ملف واحد (dist/math-lab.html) لمشاركتها: يدمج CSS و JS، ويحمّل KaTeX من cdnjs.
+"""يبني نسخة من ملف واحد (dist/labs.html) لمشاركتها: يدمج CSS و JS، ويحمّل KaTeX من cdnjs.
 الاستخدام: python3 tools/bundle.py
 """
 import pathlib, re
@@ -19,7 +19,7 @@ def inline(m):
     return '<script>\n' + code + '\n</script>'
 html = re.sub(r'<!--BUNDLE-START-->.*?<!--BUNDLE-END-->', inline, html, flags=re.S)
 
-out = root / 'dist' / 'math-lab.html'
+out = root / 'dist' / 'labs.html'
 out.parent.mkdir(exist_ok=True)
 out.write_text(html, encoding='utf-8')
 print(out, f'{out.stat().st_size / 1024:.0f} KB')
@@ -38,6 +38,6 @@ if '--artifact' in sys.argv:
     a = re.sub(r'<meta charset="utf-8">\s*<meta name="viewport"[^>]*>', '', a)
     a = a.replace('</head>', '').replace('<body>', '').replace('</body>', '').replace('</html>', '')
     a = a.replace('<div id="app"></div>', '<div id="app" dir="rtl" lang="ar"></div>')
-    o2 = root / 'dist' / 'math-lab-artifact.html'
+    o2 = root / 'dist' / 'labs-artifact.html'
     o2.write_text(a.strip() + '\n', encoding='utf-8')
     print(o2, f'{o2.stat().st_size / 1024:.0f} KB')
