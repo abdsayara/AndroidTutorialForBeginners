@@ -44,6 +44,9 @@
   }
   ML.el = el;
 
+  // اسم المطوّر (يظهر في الصفحة الرئيسية وكل محاكاة)
+  const CREDIT = '<p class="dev">تطوير: <a href="https://www.linkedin.com/in/abd-sayara" target="_blank" rel="noopener noreferrer">عبدالرحمن سياعره</a></p>';
+
   /* ---------- السمة ---------- */
   function initTheme() {
     let t = null; try { t = localStorage.getItem('ml-theme'); } catch (e) { /* ignore */ }
@@ -114,7 +117,7 @@
       if (!grid.children.length) grid.innerHTML = '<p class="empty">لا توجد نتائج مطابقة.</p>';
     };
     input.addEventListener('input', draw); draw();
-    app.appendChild(el('footer', { class: 'foot' }, 'جميع القوانين والأمثلة مأخوذة من كتاب الرياضيات للصف العاشر. أي إثراء بصري خارج الكتاب مُعلَّم بوضوح.'));
+    app.appendChild(el('footer', { class: 'foot' }, 'جميع القوانين والأمثلة مأخوذة من كتاب الرياضيات للصف العاشر. أي إثراء بصري خارج الكتاب مُعلَّم بوضوح.' + CREDIT));
   }
 
   /* ---------- صفحة المحاكاة ---------- */
@@ -187,6 +190,7 @@
         s.vars.map((v) => '<tr><td dir="ltr">' + ML.texHTML(v[0]) + '</td><td>' + ML.rich(v[1]) + '</td><td>' + ML.rich(v[2]) + '</td></tr>').join('') + '</tbody></table>';
       main.appendChild(law);
       app.appendChild(main);
+      app.appendChild(el('footer', { class: 'foot sim-foot' }, CREDIT));
 
       this.buildParams();
       // الرسم
