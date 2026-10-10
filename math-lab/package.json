@@ -1,0 +1,13 @@
+{
+  "name": "math-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "مختبر الرياضيات التفاعلي — Interactive Mathematics Simulation Lab (Grade 10, Palestine, 4th ed. 2026)",
+  "scripts": {
+    "start": "python3 -m http.server 8765",
+    "test": "node --test tests/math.test.mjs",
+    "e2e": "node tests/e2e.mjs http://127.0.0.1:8765/index.html",
+    "bundle": "python3 tools/bundle.py"
+  },
+  "license": "MIT"
+}
