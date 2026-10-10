@@ -453,6 +453,7 @@
   ML.SimPage = SimPage;
 
   ML.start = function () {
+    document.documentElement.setAttribute('dir', 'rtl'); document.documentElement.setAttribute('lang', 'ar');
     initTheme();
     ML.sims.sort((a, b) => a.unit - b.unit || a.order - b.order);
     root.addEventListener('hashchange', route);
