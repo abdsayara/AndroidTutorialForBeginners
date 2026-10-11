@@ -15,6 +15,11 @@ vm.runInContext(fs.readFileSync(path.join(root, 'vendor/katex/katex.min.js'), 'u
 const ML = ctx.ML, KX = ctx.katex;
 const PH = { subject: 'g10-physics' }, MA = { subject: 'g10-math' };
 const leftover = (tex) => tex.replace(/\\(begin|end)\{[^}]*\}/g, '').replace(/\\[A-Za-z]+/g, '').match(/[A-Za-z]+|[0-9]/g);
+// العلوم الحياتية: الرموز اللاتينية مسموحة (DNA ، G1 ، FSH)، والأرقام عربية إلا داخل كلمة لاتينية
+const LAT = /[0-9]*[A-Za-z][A-Za-z0-9′'’]*/g;
+const bioLeft = (tex) => tex.replace(/\\(begin|end)\{[^}]*\}/g, '').replace(/\\[A-Za-z]+/g, '').replace(LAT, '').match(/[0-9]/g);
+// في صيغ TeX للأحياء: كل كلمة لاتينية من أكثر من حرف داخل \text{} وإلا عكسها اتجاه المعادلة (n2 بدل 2n)
+const bareLatin = (tex) => tex.replace(/\\text\{[^{}]*\}/g, '').replace(/\\[A-Za-z]+/g, ' ').match(/[0-9]*[A-Za-z][A-Za-z0-9]+|[0-9]+[A-Za-z]/g);
 
 test('الوضع الافتراضي صيغة الكتاب العربية', () => { assert.equal(ML.notationMode(), 'ar'); });
 
@@ -53,10 +58,11 @@ test('كل محاكاة: الصيغ والنتائج والخطوات بلا ر�
     if (s.live) tex.push(s.live(p, d));
     s.results(p, d).forEach((r) => { if (r[2] !== false) tex.push(r[1]); });
     const rich = [...(s.steps ? s.steps(p, d) : []), ...(s.learn || []), s.summary, ...s.results(p, d).map((r) => ML.autoMath(r[0]))];
-    rich.forEach((x) => String(x).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g).forEach((part) => { if (part.startsWith('$')) tex.push(part.replace(/^\$+|\$+$/g, '')); else { const a = ML.loc(part); assert.ok(!/[0-9]/.test(a), s.id + ' plain digits: ' + a.slice(0, 80)); } }));
+    rich.forEach((x) => String(x).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g).forEach((part) => { if (part.startsWith('$')) tex.push(part.replace(/^\$+|\$+$/g, '')); else { const a = ML.loc(part); const chk = s.subject === 'g10-bio' ? a.replace(LAT, '') : a; assert.ok(!/[0-9]/.test(chk), s.id + ' plain digits: ' + a.slice(0, 80)); } }));
     for (const t of tex) {
       const a = ML.arTeX(String(t));
-      assert.equal(leftover(a), null, s.id + ': ' + t + ' → ' + a);
+      if (s.subject === 'g10-bio') { assert.equal(bioLeft(a), null, s.id + ': ' + t + ' → ' + a); assert.equal(bareLatin(String(t)), null, s.id + ' (Latin outside \\text): ' + t); }
+      else assert.equal(leftover(a), null, s.id + ': ' + t + ' → ' + a);
       assert.doesNotThrow(() => KX.renderToString(a, { throwOnError: true, strict: 'ignore' }), s.id + ': ' + a);
       n++;
     }
@@ -71,6 +77,15 @@ test('إحداثيات النقاط والسالب على يسار العدد ك
   assert.equal(ML.moveUnaryMinus('x = -3'), 'x = 3{-}'); assert.equal(ML.moveUnaryMinus('x - 2'), 'x - 2');
   assert.equal(ML.moveUnaryMinus('-(3x + 1)'), '(3x + 1){-}'); assert.equal(ML.moveUnaryMinus('(-4, 3)'), '(4{-}, 3)');
   assert.ok(/\u2066H₂\u2069/.test(ML.bidi('الهيدروجين H₂')));
+});
+
+test('العلوم الحياتية: الرموز اللاتينية تبقى والأرقام عربية خارجها', () => {
+  const BI = { subject: 'g10-bio' };
+  assert.equal(ML.loc('G1 مدتها 5 ساعات', BI), 'G1 مدتها ٥ ساعات');
+  assert.equal(ML.loc('2n = 46 و n = 23', BI), '2n = ٤٦ و n = ٢٣');
+  assert.equal(ML.loc('A–T و G–C', BI), 'A–T و G–C');
+  assert.equal(ML.arTeX('\\text{2n} = 46', BI), '\\text{\u20662n\u2069} = {\\text{٤٦}}');
+  assert.ok(/⁦Aleuria aurantia⁩/.test(ML.bidi(ML.loc('فطر قشر البرتقال Aleuria aurantia', BI))));
 });
 
 test('الوضع الدولي يعيد الصيغ كما هي', () => {

@@ -66,7 +66,14 @@
   ML.notation = { MATH, PHYS, UNITS, WORDS, FUNCS };
   WORDS.C = 'س'; WORDS.F = 'ف'; WORDS.K = 'كلفن'; UNITS.Hg = 'زئبق'; UNITS.pm = 'بيكومتر'; UNITS.Gm = 'جيجامتر'; UNITS.Mm = 'ميغامتر';
 
+  // العلوم الحياتية: الرموز اللاتينية تبقى كما في الكتاب (A، T، G، C، U، DNA، G1، FSH…)، والأرقام المستقلة عربية
+  const isBio = (sim) => (sim ? sim.subject === 'g10-bio' : ML.curSubject === 'g10-bio');
+  ML.isBio = isBio;
+  const LAT_TOK = /[0-9]*[A-Za-z][A-Za-z0-9′'’]*/g;
+  // أرقام عربية خارج الكلمات اللاتينية (G1 ، 2n ، X400 تبقى كما هي)
+  const bioDigits = (t) => { let out = '', k = 0; String(t).replace(LAT_TOK, (m, i) => { out += toAD(t.slice(k, i).replace(/(\d)\.(\d)/g, '$1,$2')) + m; k = i + m.length; return m; }); return out + toAD(t.slice(k).replace(/(\d)\.(\d)/g, '$1,$2')); };
   function varMap(sim) {
+    if (isBio(sim)) return { base: {}, greek: {}, own: (sim && sim.ar) || {}, bio: true };
     const subj = sim && sim.subject === 'g10-physics' ? 'p' : 'm';
     return { base: subj === 'p' ? PHYS : MATH, greek: subj === 'p' ? GREEK_PHYS : GREEK_MATH, own: (sim && sim.ar) || {} };
   }
@@ -114,7 +121,8 @@
     det: 'المحدد', undefined: 'غير معرّف', True: 'ص', False: 'خ', T: 'ص', F: 'خ', where: 'حيث', when: 'عندما', is: '', the: '', on: 'على', in: 'في', with: 'مع', by: 'بـ'
   };
   ML.notation.TWORDS = TWORDS; Object.assign(TWORDS, { inner: 'الداخلي', form: 'الصورة', exterior: 'الخارجية', arc: 'القوس', length: 'الطول', period: 'الدورة', amplitude: 'السعة', identity: 'المتطابقة', L: 'الطرف الأيمن', R: 'الطرف الأيسر', trig: 'اقتران' }); Object.assign(WORDS, { trig: 'اقتران', rad: 'دائري' }); TWORDS.tool = 'الأداة'; TWORDS.ecliptic = 'دائرة البروج';
-  function textArabic(t) { // داخل \text{...}: أرقام عربية وترجمة الكلمات الإنجليزية
+  function textArabic(t, bio) { // داخل \text{...}: أرقام عربية وترجمة الكلمات الإنجليزية
+    if (bio) return bioDigits(t).replace(/[0-9]+[A-Za-z][A-Za-z0-9]*|[A-Za-z]+[0-9][A-Za-z0-9]*/g, (m) => '\u2066' + m + '\u2069'); // 2n ، G1 تبقى متماسكة داخل النص العربي
     PHRASES.forEach((ph) => { t = t.split(ph[0]).join(ph[1]); });
     t = t.replace(/[A-Za-z]+/g, (w) => (TWORDS[w] !== undefined ? TWORDS[w] : (UNITS[w] || w)));
     return toAD(t.replace(/(\d)\.(\d)/g, '$1,$2'));
@@ -164,6 +172,8 @@
     return out;
   }
   ML.moveUnaryMinus = moveUnaryMinus;
+  // حرف لاتيني قبل الموضع i ليس جزءاً من أمر TeX (مثل \\times)
+  function latinBefore(s, i) { let k = i - 1; if (!/[A-Za-z]/.test(s[k] || '')) return false; while (k >= 0 && /[A-Za-z]/.test(s[k])) k--; return s[k] !== '\\'; }
   ML.arTeX = function (tex, sim) {
     if (!ML.isAr()) return tex;
     sim = sim === undefined ? ML.curSim : sim;
@@ -179,7 +189,7 @@
         const cmd = s.slice(i + 1, j);
         if (/^(frac|tfrac|dfrac|binom)$/.test(cmd) && s[j] !== '{') { out += '\\' + cmd; i = j; argN = 2; continue; }
         if (cmd === 'sqrt' && s[j] !== '{' && s[j] !== '[') { out += '\\' + cmd; i = j; argN = 1; continue; }
-        if ((cmd === 'text' || cmd === 'textrm' || cmd === 'textbf') && s[j] === '{') { const [g, e] = readGroup(s, j); out += '\\' + cmd + '{' + textArabic(g) + '}'; i = e; prevLetter = false; continue; }
+        if ((cmd === 'text' || cmd === 'textrm' || cmd === 'textbf') && s[j] === '{') { const [g, e] = readGroup(s, j); out += '\\' + cmd + '{' + textArabic(g, vm.bio) + '}'; i = e; prevLetter = false; continue; }
         if ((cmd === 'mathrm' || cmd === 'mathrm' || cmd === 'operatorname') && s[j] === '{') { const [g, e] = readGroup(s, j); out += unitTeX(g); i = e; prevLetter = false; continue; }
         if (cmd === 'mathbb' && s[j] === '{') { const [g, e] = readGroup(s, j); out += T({ R: 'ح', Z: 'ص', N: 'ط', Q: 'ن' }[g] || g); i = e; prevLetter = false; continue; }
         if ((cmd === 'begin' || cmd === 'end') && s[j] === '{') { const [g, e] = readGroup(s, j); out += '\\' + cmd + '{' + g + '}'; i = e; continue; }
@@ -204,6 +214,7 @@
         }
         // كلمة في دليل سفلي
         const inSub = out.endsWith('_{') || out.endsWith('_');
+        if (vm.bio) { out += w; i = j; prevLetter = true; continue; }
         if (w.length > 1 && WORDS[w] !== undefined && (inSub || w.length > 2)) { out += WORDS[w] ? T(WORDS[w]) : ''; i = j; prevLetter = false; continue; }
         if (inSub && vm.own['_' + w] !== undefined) { out += T(vm.own['_' + w]); i = j; continue; }
         if (inSub && w.length === 1 && WORDS[w] !== undefined && !vm.own[w]) { out += T(WORDS[w]); i = j; continue; }
@@ -211,6 +222,7 @@
         out += (prevLetter ? '\\,' : '') + parts.join('\\,'); i = j; prevLetter = true; continue;
       }
       if (/[0-9]/.test(ch) && argN > 0) { out += '{' + numTeX(ch) + '}'; i++; argN--; continue; }
+      if (vm.bio && /[0-9]/.test(ch) && (latinBefore(s, i) || /[A-Za-z]/.test(s[i + 1] || '') || (/[0-9]/.test(s[i - 1] || '') && /[A-Za-z]/.test(out.slice(-1))))) { out += ch; i++; continue; }
       if ((ch === '^' || ch === '_') && /[0-9]/.test(s[i + 1] || '')) { out += ch + '{' + numTeX(s[i + 1]) + '}'; i += 2; continue; }
       if (/[0-9]/.test(ch)) {
         let j = i; while (j < s.length && (/[0-9]/.test(s[j]) || (s[j] === '.' && /[0-9]/.test(s[j + 1] || '')))) j++;
@@ -240,6 +252,7 @@
   ML.loc = function (str, sim) {
     if (!ML.isAr() || str === null || str === undefined) return str;
     sim = sim === undefined ? ML.curSim : sim;
+    if (isBio(sim)) return isoNeg(bioDigits(String(str)).replace(/(?<![٠-٩]),|,(?![٠-٩])/g, '،'));
     let s = String(str);
     s = s.replace(UNIT_RE, (m0, pre, u) => (pre === '(' ? pre : pre.replace(/\s+$/, '') + ' ') + UNIT_MAP[u]);
     // رموز لاتينية مفردة (مع دليل سفلي اختياري): F, F₁, a_c, PV/T
@@ -270,7 +283,8 @@
     return isoNeg(toAD(s));
   };
   // أرقام فقط (لعقد النص في الصفحة)
-  ML.locDigits = (s) => (ML.isAr() ? toAD(String(s).replace(/(\d)\.(\d)/g, '$1,$2')) : s);
+  ML.locDigits = (s) => (ML.isAr() ? (isBio() ? bioDigits(String(s)) : toAD(String(s).replace(/(\d)\.(\d)/g, '$1,$2'))) : s);
+  ML.bioDigits = bioDigits;
   ML.supDigits = SUPD;
 
   // كل نص يُرسم على Canvas يمر بالتعريب (الأرقام والرموز والوحدات)
@@ -297,7 +311,7 @@
     function getComputedDir(ctx) { return ctx.direction === 'rtl'; }
     // صيغة الكتاب: النص المعرّب يُرسم من اليمين لليسار؛ فقط المقاطع اللاتينية (H₂ …) تُعزل
     const ARX = /[\u0600-\u06FF]/;
-    const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[A-Za-z][A-Za-z0-9₀-₉]*/g, (m) => '\u2066' + m + '\u2069');
+    const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[0-9]*[A-Za-z][A-Za-z0-9₀-₉′'’]*(?:[ –\-/]+[A-Za-z][A-Za-z0-9₀-₉′'’]*)*/g, (m) => '\u2066' + m + '\u2069');
     function draw(fn, ctx, t, a) {
       t = L(String(t));
       if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);

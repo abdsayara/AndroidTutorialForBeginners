@@ -4,12 +4,25 @@
   const ML = root.ML = root.ML || {};
   const M = ML.math;
   ML.sims = ML.sims || [];
-  ML.register = (s) => { s.subject = s.subject || 'g10-math'; ML.sims.push(s); };
+  ML.register = (s) => {
+    s.subject = s.subject || 'g10-math';
+    // مراحل (stage): قيمة صحيحة هي رقم المرحلة في قائمة أسماء المراحل
+    (s.params || []).forEach((q) => { if (q.type === 'stage') { q.min = 0; q.max = (typeof q.stages === 'function' ? q.stages({}) : q.stages).length - 1; q.step = 1; q.int = true; } });
+    ML.sims.push(s);
+  };
+  // اختبار النقر: آخر منطقة مرسومة تحت المؤشر (مستطيل {x,y,w,h} أو دائرة {cx,cy,r})
+  ML.hitTest = function (hits, x, y) {
+    for (let i = (hits || []).length - 1; i >= 0; i--) {
+      const h = hits[i];
+      if (h.r !== undefined ? Math.hypot(x - h.cx, y - h.cy) <= h.r : x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return h;
+    }
+    return null;
+  };
   const ORD = ['', 'الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة'];
   ML.ORD = ORD;
 
   /* ---------- الصفوف والمواد ---------- */
-  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics'] }];
+  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio'] }];
   ML.subjects = {
     'g10-math': {
       id: 'g10-math', grade: 'g10', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '∫',
@@ -43,6 +56,27 @@
         { n: 6, unitAr: 'الوحدة الثالثة: الحرارة', ar: 'الحرارة وأثرها على المواد', en: 'Heat and its Effect on Materials', icon: '🌡', pages: '85–106', color: 'u6' },
         { n: 7, unitAr: 'الوحدة الثالثة: الحرارة', ar: 'الديناميكا الحرارية', en: 'Thermodynamics', icon: '♨', pages: '107–125', color: 'u1' },
         { n: 8, unitAr: 'الوحدة الرابعة', ar: 'الفلك', en: 'Astronomy', icon: '✦', pages: '126–151', color: 'u2' }
+      ]
+    },
+    'g10-bio': {
+      id: 'g10-bio', grade: 'g10', slug: 'biology', name: 'العلوم الحياتية', en: 'Life Sciences', icon: '🧬',
+      title: 'مختبر العلوم الحياتية التفاعلي', titleEn: 'Interactive Life Sciences Simulation Lab',
+      book: 'كتاب العلوم الحياتية — الصف العاشر', bookEd: 'دولة فلسطين، الطبعة الثالثة 2020م / 1441هـ',
+      lead: 'شاهد ما يجري داخل الخلية والجسم: كبّر، قارن، انتقل بين المراحل، واسحب وأفلت — بمصطلحات الكتاب نفسها.',
+      search: 'ابحث عن درس أو مفهوم… (مثال: المجهر، DNA، الانقسام المنصف، النفرون)',
+      tutor: 'مساعد العلوم الحياتية الذكي', tutorEn: 'AI Life Sciences Tutor', idle: 'غيّر أي أداة تحكم أو انتقل إلى المرحلة التالية، وسأشرح لك هنا ماذا حدث ولماذا — بمصطلحات الكتاب.',
+      units: [
+        { n: 1, unitAr: 'الوحدة الأولى: الخلية - تركيب ووظائف', ar: 'المجاهر وأنواعها', en: 'Microscopes and Their Types', icon: '🔬', pages: '4–9', color: 'u1' },
+        { n: 2, unitAr: 'الوحدة الأولى: الخلية - تركيب ووظائف', ar: 'الخلايا: التركيب ووظائف الأجزاء', en: 'Cells: Structure and Function', icon: '🦠', pages: '10–18', color: 'u2' },
+        { n: 3, unitAr: 'الوحدة الأولى: الخلية - تركيب ووظائف', ar: 'المادة الوراثية', en: 'The Genetic Material', icon: '🧬', pages: '19–28', color: 'u3' },
+        { n: 4, unitAr: 'الوحدة الثانية: دورة الخلية والانقسام الخلوي', ar: 'دورة الخلية', en: 'The Cell Cycle', icon: '🔄', pages: '34–42', color: 'u4' },
+        { n: 5, unitAr: 'الوحدة الثانية: دورة الخلية والانقسام الخلوي', ar: 'الانقسام المنصف وتكوين الغاميتات', en: 'Meiosis and Gametogenesis', icon: '➗', pages: '43–52', color: 'u5' },
+        { n: 6, unitAr: 'الوحدة الثالثة: أجهزة جسم الإنسان', ar: 'أنسجة جسم الإنسان', en: 'Human Body Tissues', icon: '🧫', pages: '58–67', color: 'u6' },
+        { n: 7, unitAr: 'الوحدة الثالثة: أجهزة جسم الإنسان', ar: 'الجهازان التناسليان والتكاثر', en: 'Reproductive Systems and Reproduction', icon: '🫄', pages: '68–83', color: 'u1' },
+        { n: 8, unitAr: 'الوحدة الثالثة: أجهزة جسم الإنسان', ar: 'الجهاز البولي', en: 'The Urinary System', icon: '🫘', pages: '84–93', color: 'u2' },
+        { n: 9, unitAr: 'الوحدة الرابعة: تصنيف الكائنات الحية', ar: 'الكائنات الحية وتصنيفها', en: 'Living Organisms and Their Taxonomy', icon: '🌳', pages: '98–102', color: 'u3' },
+        { n: 10, unitAr: 'الوحدة الرابعة: تصنيف الكائنات الحية', ar: 'مملكة الطلائعيات', en: 'Kingdom Protista', icon: '🦠', pages: '103–112', color: 'u4' },
+        { n: 11, unitAr: 'الوحدة الرابعة: تصنيف الكائنات الحية', ar: 'مملكة الفطريات', en: 'Kingdom Fungi', icon: '🍄', pages: '113–120', color: 'u5' }
       ]
     }
   };
@@ -138,6 +172,7 @@
     m = h.match(/^#\/(\w+)\/(\w+)/);
     let subj = m && subjectFromSlug(m[1], m[2]);
     if (!subj) subj = SUBJ(ML.subjects[lastSubject] ? lastSubject : 'g10-math');
+    ML.curSubject = subj.id;
     lastSubject = subj.id; try { localStorage.setItem('ml-subject', subj.id); } catch (e) { /* ignore */ }
     renderHome(app, subj);
   }
@@ -171,7 +206,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id === 'g10-physics' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id !== 'g10-math' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -207,7 +242,7 @@
       this.prev = null; this.lastExplain = []; this.playing = false; this.chIdx = 0; this.solved = false;
       this.raf = null; this.tw = null;
       this.subj = SUBJ(sim.subject);
-      ML.curSim = sim;
+      ML.curSim = sim; ML.curSubject = sim.subject;
       document.title = sim.titleAr + ' — ' + this.subj.title;
       this.st = sim.initState ? sim.initState(this.p) : null;
       this.build();
@@ -229,7 +264,7 @@
         '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>الفصل:</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>الدرس:</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
         '<div class="modes" role="tablist">' +
         '<button role="tab" data-m="learn">📘 تعلّم <small>Learn</small></button>' +
-        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject === 'g10-physics' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
+        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
         '<button role="tab" data-m="challenge">🎯 تحدٍّ <small>Challenge</small></button></div>';
       app.appendChild(head);
       head.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => this.setMode(b.dataset.m)));
@@ -293,7 +328,7 @@
 
       this.buildParams();
       // الرسم
-      if (s.custom) { this.ctx = this.canvas.getContext('2d'); this.plot = null; }
+      if (s.custom) { this.ctx = this.canvas.getContext('2d'); this.plot = null; if (s.onPointer) this.bindPointer(); }
       else {
         this.plot = new ML.Plot(this.canvas, Object.assign({}, s.plot || {}));
         this.plot.onChange = () => this.redraw();
@@ -307,6 +342,23 @@
       if (this.gCanvas) this.ro.observe(this.gCanvas.parentElement);
       this.layout(true);
       this.buildTutor();
+    }
+    // النقر والسحب على الرسم (فأرة ولمس): sim.onPointer(type, x, y, p, st, api)
+    bindPointer() {
+      const cv = this.canvas; const s = this.sim;
+      const pos = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+      const api = { set: (k, v) => this.set(k, v), refresh: () => this.update(), hit: (x, y) => ML.hitTest(this.d && this.d.hits, x, y), hits: () => (this.d && this.d.hits) || [], say: (ex) => { this.lastExplain = ex; this.renderWhy(); }, W: () => this.cW, H: () => this.cH };
+      const fire = (type, e) => {
+        const [x, y] = pos(e); const r = s.onPointer(type, x, y, this.p, this.st, api);
+        // 'redraw' = إعادة رسم فقط (أثناء السحب)، وأي قيمة صحيحة أخرى = تحديث كامل
+        if (r === 'redraw') this.redraw(); else if (r) { if (this.d) this.d.st = this.st; this.update(); if (this.mode === 'challenge') this.checkChallenge(); }
+        if (type === 'move' && !this.dragging) cv.style.cursor = api.hit(x, y) ? 'pointer' : '';
+        return r;
+      };
+      cv.addEventListener('pointerdown', (e) => { this.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { /* */ } fire('down', e); });
+      cv.addEventListener('pointermove', (e) => fire('move', e));
+      const up = (e) => { if (!this.dragging) return; this.dragging = false; fire('up', e); };
+      cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
     }
     homeView() { const v = this.sim.plot && this.sim.plot.view; return typeof v === 'function' ? v(this.p, this.d) : Object.assign({}, v || { xmin: -10, xmax: 10, ymin: -10, ymax: 10 }); }
     layout(first) {
@@ -333,6 +385,24 @@
           const sel = row.querySelector('select'); sel.value = this.p[q.key];
           sel.addEventListener('change', () => { this.set(q.key, isNaN(+sel.value) || sel.value === '' ? sel.value : +sel.value); });
           this.inputs[q.key] = { sel: sel };
+        } else if (q.type === 'stage') {
+          row.classList.add('stage-param');
+          row.innerHTML = lab + '<div class="stage-ctl"><button type="button" class="btn icon" data-s="prev" aria-label="المرحلة السابقة">→</button><input type="range" min="0" max="' + q.max + '" step="1" aria-label="المرحلة"><button type="button" class="btn icon" data-s="next" aria-label="المرحلة التالية">←</button></div><div class="stage-name" aria-live="polite"></div>';
+          const r = row.querySelector('input');
+          r.addEventListener('input', () => this.set(q.key, +r.value));
+          row.querySelector('[data-s=prev]').addEventListener('click', () => this.set(q.key, Math.max(0, this.p[q.key] - 1)));
+          row.querySelector('[data-s=next]').addEventListener('click', () => this.set(q.key, Math.min(q.max, this.p[q.key] + 1)));
+          this.inputs[q.key] = { stage: r, name: row.querySelector('.stage-name'), q: q };
+        } else if (q.type === 'text') {
+          row.innerHTML = lab + '<input type="text" class="seq" dir="ltr" lang="en" autocomplete="off" spellcheck="false" aria-label="' + esc(q.desc || q.key) + '"' + (q.maxLength ? ' maxlength="' + q.maxLength + '"' : '') + '><p class="field-err" role="alert" hidden></p>';
+          const t = row.querySelector('input'), er = row.querySelector('.field-err');
+          t.addEventListener('input', () => {
+            const v = q.normalize ? q.normalize(t.value) : t.value;
+            const msg = q.validate ? q.validate(v, this.p) : null;
+            t.classList.toggle('bad', !!msg); er.hidden = !msg; if (msg) { er.innerHTML = ML.rich(msg); return; }
+            this.set(q.key, v);
+          });
+          this.inputs[q.key] = { text: t, err: er };
         } else if (q.type === 'toggle') {
           row.innerHTML = lab + '<button class="toggle" role="switch"></button>';
           const b = row.querySelector('button');
@@ -375,6 +445,8 @@
           if (typeof q.options === 'function') { const html = q.options(this.p).map((o) => '<option value="' + o[0] + '">' + o[1] + '</option>').join(''); if (inp.sel._h !== html) { inp.sel.innerHTML = html; inp.sel._h = html; } }
           inp.sel.value = v;
         }
+        else if (inp.stage) { const names = typeof inp.q.stages === 'function' ? inp.q.stages(this.p) : inp.q.stages; inp.stage.value = v; inp.name.innerHTML = '<b>' + (v + 1) + ' / ' + names.length + '</b> ' + ML.rich(names[v]); }
+        else if (inp.text) { if (document.activeElement !== inp.text) { inp.text.value = v; inp.text.classList.remove('bad'); inp.err.hidden = true; } }
         else if (inp.tog) { inp.tog.classList.toggle('on', !!v); inp.tog.setAttribute('aria-checked', !!v); inp.tog.textContent = v ? (q.on || 'مفعّل') : (q.off || 'متوقف'); }
         else { inp.r.value = v; if (document.activeElement !== inp.n) inp.n.value = ML.fmtInput(M.round(v, 4)); }
       });
@@ -400,7 +472,7 @@
     }
     genericExplain(a, b) {
       const out = [];
-      this.sim.params.forEach((q) => { if (a[q.key] !== b[q.key] && q.type !== 'select' && q.type !== 'toggle') out.push('تغيّر $' + q.label + '$ من $' + M.tex(a[q.key]) + '$ إلى $' + M.tex(b[q.key]) + '$.'); });
+      this.sim.params.forEach((q) => { if (a[q.key] !== b[q.key] && !q.type) out.push('تغيّر $' + q.label + '$ من $' + M.tex(a[q.key]) + '$ إلى $' + M.tex(b[q.key]) + '$.'); });
       return out;
     }
     update(first) {
@@ -431,7 +503,7 @@
         try { s.draw(P, this.p, this.d); } catch (e) { console.error(e); }
       } else if (this.ctx) {
         const c = this.ctx; const cols = ML.Plot.prototype.colors.call({});
-        c.clearRect(0, 0, this.cW, this.cH); c.fillStyle = cols.bg; c.fillRect(0, 0, this.cW, this.cH);
+        this.d.hits = []; c.clearRect(0, 0, this.cW, this.cH); c.fillStyle = cols.bg; c.fillRect(0, 0, this.cW, this.cH);
         try { s.drawCustom(c, this.cW, this.cH, this.p, this.d, cols); } catch (e) { console.error(e); }
       }
       this.redrawGraph();
@@ -463,7 +535,7 @@
       else {
         tgt = {};
         s.params.forEach((q) => {
-          if (q.type === 'select' || q.type === 'toggle' || q.noRandom) return;
+          if (q.type === 'select' || q.type === 'toggle' || q.type === 'text' || q.noRandom) return;
           const lo = q.rmin !== undefined ? q.rmin : q.min, hi = q.rmax !== undefined ? q.rmax : q.max;
           const stp = q.rstep || q.step;
           let v; let guard = 0;
@@ -503,13 +575,32 @@
       const s = this.sim; if (!s.play) return; this.playing = true;
       this.playBtn.textContent = '⏸ إيقاف'; this.playBtn.classList.add('on');
       let last = performance.now();
+      if (s.play.mode === 'stage') {
+        // تشغيل المراحل تلقائياً: الانتقال إلى المرحلة التالية كل فترة
+        const q = s.params.find((x) => x.key === s.play.key);
+        if (this.p[q.key] >= q.max) this.set(q.key, 0, true);
+        let acc = 0;
+        const loopS = (now) => {
+          if (!this.playing) return;
+          const dt = Math.min(0.1, Math.max(0, (now - last) / 1000)); last = now; acc += dt;
+          if (this.st && s.tick) s.tick(this.st, this.p, this.d, dt);
+          if (acc >= (s.play.interval || 1.8)) {
+            acc = 0;
+            if (this.p[q.key] >= q.max) { this.stopPlay(); this.update(); return; }
+            this.set(q.key, this.p[q.key] + 1);
+          } else this.redraw();
+          this.raf = requestAnimationFrame(loopS);
+        };
+        this.raf = requestAnimationFrame(loopS);
+        return;
+      }
       if (s.play.mode === 'time') {
         // محاكاة زمنية حقيقية: tick يحدّث الحالة؛ نعيد رسم Canvas كل إطار والنصوص ~8 مرات/ث
         if (s.isDone && s.isDone(this.st, this.p, this.d)) this.resetState();
         let lastText = 0;
         const loopT = (now) => {
           if (!this.playing) return;
-          const dt = Math.min(0.05, (now - last) / 1000) * (s.play.speed || 1); last = now;
+          const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)) * (s.play.speed || 1); last = now;
           const sub = 8; for (let i = 0; i < sub; i++) s.tick(this.st, this.p, this.d, dt / sub);
           const done = s.isDone && s.isDone(this.st, this.p, this.d);
           if (now - lastText > 120 || done) { lastText = now; this.update(); } else this.redraw();
@@ -521,7 +612,7 @@
       }
       const loop = (now) => {
         if (!this.playing) return;
-        const dt = Math.min(0.05, (now - last) / 1000); last = now;
+        const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
         const pl = s.play; const q = s.params.find((x) => x.key === pl.key);
         let v = this.p[pl.key] + pl.speed * dt;
         if (v > q.max) v = pl.bounce ? q.max : q.min + (v - q.max);

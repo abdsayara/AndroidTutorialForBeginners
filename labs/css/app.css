@@ -149,12 +149,20 @@ button, input, select { font: inherit; color: inherit; }
 .param label small { color: var(--muted); font-weight: 400; font-size: 12px; }
 .rng { display: grid; grid-template-columns: 1fr 86px; gap: 8px; align-items: center; }
 .rng input[type=range] { width: 100%; direction: ltr; accent-color: var(--primary); height: 28px; }
-.rng input[type=number] { width: 100%; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); direction: ltr; text-align: center; }
+.rng input[type=number], .rng input[type=text] { width: 100%; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); direction: ltr; text-align: center; }
 .param select { width: 100%; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); }
 .toggle { width: 100%; min-height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; font-weight: 600; color: var(--muted); }
 .toggle.on { background: color-mix(in srgb, var(--ok) 14%, transparent); border-color: var(--ok); color: var(--ok); }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .actions .btn { flex: 1 1 auto; }
+.stage-ctl { display: grid; grid-template-columns: 40px 1fr 40px; gap: 8px; align-items: center; }
+.stage-ctl input[type=range] { width: 100%; direction: rtl; accent-color: var(--primary); height: 28px; }
+.stage-ctl .btn { min-height: 40px; font-size: 18px; }
+.stage-name { margin-top: 6px; padding: 7px 10px; border-radius: 10px; background: var(--surface-2); font-size: 14px; line-height: 1.5; }
+.stage-name b { color: var(--primary); margin-left: 6px; }
+.param input.seq { width: 100%; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); font: 600 17px ui-monospace, Menlo, Consolas, monospace; letter-spacing: 3px; text-transform: uppercase; }
+.param input.seq.bad { border-color: var(--warn); outline: 2px solid color-mix(in srgb, var(--warn) 35%, transparent); }
+.field-err { margin: 6px 0 0; color: var(--warn); font-size: 13px; }
 .warn { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); font-size: 14px; }
 
 .results dl { margin: 0; display: grid; gap: 6px; }
