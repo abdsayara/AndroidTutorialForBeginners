@@ -2,7 +2,7 @@ import type { Challenge, Match, MatchTargetType, Prisma, Project } from "@prisma
 import type { z } from "zod";
 import { db, toVectorLiteral } from "@/lib/db";
 import { embed, generateStructured, recordFeedback } from "@/lib/ai";
-import { conceptsOf } from "@/lib/ai/text";
+import { CONCEPT_LABEL_AR, conceptsOf } from "@/lib/ai/text";
 import { AppError, assertAllowed, invalidTransition, notFound } from "@/lib/api/errors";
 import { audit } from "@/lib/audit";
 import { enqueue } from "@/lib/jobs";
@@ -159,7 +159,7 @@ export function mockRerank(challenge: { title: string; text: string; category?: 
         need_fit: clamp5(ratio * 5),
       };
       const label = k.type === "project" ? `المشروع «${k.title}»${k.trl ? ` (TRL ${k.trl})` : ""}` : k.type === "researcher" ? `الباحث ${k.title}` : `مختبر «${k.title}»`;
-      const shared = overlap.length ? `في مجالات مشتركة: ${overlap.join("، ")}` : "بصلة دلالية عامة";
+      const shared = overlap.length ? `في مجالات مشتركة: ${overlap.map((o) => CONCEPT_LABEL_AR[o] ?? o).join("، ")}` : "بصلة دلالية عامة";
       const fieldNote = k.type === "researcher" && k.tags.length ? ` وخبراته المعلنة (${k.tags.slice(0, 3).join("، ")})` : k.type === "lab" && k.tags.length ? ` وتجهيزاته (${k.tags.slice(0, 3).join("، ")})` : "";
       return {
         ref: `${k.type}:${k.id}`,

@@ -52,6 +52,13 @@ export const CONCEPTS: Record<string, string[]> = {
   logistics: ["توزيع", "شحن", "مخزون", "سلسل", "logistic", "supply", "تسويق"],
 };
 
+/** Arabic labels for concepts (used by the offline mock outputs). */
+export const CONCEPT_LABEL_AR: Record<string, string> = {
+  water: "معالجة المياه", waste: "إدارة المخلفات", recycle: "إعادة التدوير", stone: "الحجر والرخام", construction: "مواد البناء",
+  energy: "كفاءة الطاقة", food: "الصناعات الغذائية", pharma: "الصناعات الدوائية", plastic: "البلاستيك", software: "التحول الرقمي",
+  quality: "ضبط الجودة", logistics: "سلاسل الإمداد",
+};
+
 export function conceptsOf(text: string): string[] {
   const norm = normalizeArabic(text);
   const toks = tokens(text);

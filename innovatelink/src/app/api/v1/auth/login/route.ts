@@ -10,4 +10,4 @@ export const POST = route(async ({ req, ip }) => {
   const res = NextResponse.json({ user });
   res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
   return res;
-}, { rateLimit: { bucket: "auth", perMinute: 10 } });
+}, { rateLimit: { bucket: "auth", perMinute: Number(process.env.AUTH_RATE_LIMIT_PER_MIN ?? 10) } });

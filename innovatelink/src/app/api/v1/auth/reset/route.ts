@@ -6,4 +6,4 @@ export const POST = route(async ({ req }) => {
   const { token, password } = await body(req, resetSchema);
   await resetPassword(token, password);
   return { ok: true };
-}, { rateLimit: { bucket: "auth", perMinute: 10 } });
+}, { rateLimit: { bucket: "auth", perMinute: Number(process.env.AUTH_RATE_LIMIT_PER_MIN ?? 10) } });

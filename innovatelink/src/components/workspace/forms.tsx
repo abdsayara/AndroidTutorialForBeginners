@@ -80,6 +80,7 @@ export function TasksBoard({ wsId, milestones, members, editable }: { wsId: stri
   const [view, setView] = useState<"list" | "kanban">("list");
   const [ms, setMs] = useState({ title: "", due_date: "" });
   const [task, setTask] = useState({ milestone_id: milestones[0]?.id ?? "", title: "", assignee_id: "" });
+  const msId = task.milestone_id || milestones[0]?.id || "";
   const all = milestones.flatMap((m) => m.tasks.map((x) => ({ ...x, milestone: m.title })));
   const name = (id: string | null) => members.find((m) => m.id === id)?.name ?? "—";
   const move = (id: string, status: string) => r.run(() => api(`/workspaces/${wsId}/tasks/${id}`, { method: "PATCH", json: { status } }));
@@ -131,10 +132,10 @@ export function TasksBoard({ wsId, milestones, members, editable }: { wsId: stri
           </Card>
           <Card className="space-y-2">
             <h3 className="font-semibold">{t("new_task")}</h3>
-            <Select aria-label={t("milestone")} value={task.milestone_id} onChange={(e) => setTask({ ...task, milestone_id: e.target.value })}>{milestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}</Select>
+            <Select aria-label={t("milestone")} value={msId} onChange={(e) => setTask({ ...task, milestone_id: e.target.value })}>{milestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}</Select>
             <Input aria-label={t("title")} placeholder={t("title")} value={task.title} onChange={(e) => setTask({ ...task, title: e.target.value })} />
             <Select aria-label={t("assignee")} value={task.assignee_id} onChange={(e) => setTask({ ...task, assignee_id: e.target.value })}><option value="">{t("unassigned")}</option>{members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</Select>
-            <Button size="sm" disabled={r.pending || !task.milestone_id || task.title.length < 2} onClick={() => r.run(() => api(`/workspaces/${wsId}/tasks`, { json: { milestone_id: task.milestone_id, title: task.title, assignee_id: task.assignee_id || null } }), () => setTask({ ...task, title: "" }))}>{t("add")}</Button>
+            <Button size="sm" disabled={r.pending || !msId || task.title.length < 2} onClick={() => r.run(() => api(`/workspaces/${wsId}/tasks`, { json: { milestone_id: msId, title: task.title, assignee_id: task.assignee_id || null } }), () => setTask({ ...task, title: "" }))}>{t("add")}</Button>
           </Card>
         </div>
       )}

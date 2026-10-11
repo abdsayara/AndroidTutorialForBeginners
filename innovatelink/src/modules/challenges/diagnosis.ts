@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { aiConfig, generateStructured } from "@/lib/ai";
-import { conceptsOf } from "@/lib/ai/text";
+import { CONCEPT_LABEL_AR, conceptsOf } from "@/lib/ai/text";
 import { AppError, assertAllowed, notFound } from "@/lib/api/errors";
 import type { Actor } from "@/modules/auth/policy";
 import { canDiagnoseChallenge } from "./policy";
@@ -27,11 +27,6 @@ export type Diagnosis = z.infer<typeof diagnosisSchema>;
 const CONCEPT_CATEGORY: Record<string, (typeof CATEGORIES)[number]> = {
   water: "energy_water_waste", waste: "energy_water_waste", recycle: "energy_water_waste", energy: "energy_water_waste",
   quality: "quality_manufacturing", software: "digital_automation", logistics: "market_logistics",
-};
-const CONCEPT_TAG_AR: Record<string, string> = {
-  water: "معالجة المياه", waste: "إدارة المخلفات", recycle: "إعادة التدوير", stone: "الحجر والرخام", construction: "مواد البناء",
-  energy: "كفاءة الطاقة", food: "الصناعات الغذائية", pharma: "الصناعات الدوائية", plastic: "البلاستيك", software: "التحول الرقمي",
-  quality: "ضبط الجودة", logistics: "سلاسل الإمداد",
 };
 const CATEGORY_AR: Record<(typeof CATEGORIES)[number], string> = {
   operations: "تحسين العمليات", product_dev: "تطوير المنتجات", digital_automation: "الأتمتة والتحول الرقمي",
@@ -66,7 +61,7 @@ export function mockDiagnosis(i: DiagnosisInput): Diagnosis {
       : `Problem: ${i.problem_statement ?? i.title}${i.current_situation ? `\nCurrent situation: ${i.current_situation}` : ""}${i.desired_outcome ? `\nDesired outcome: ${i.desired_outcome}` : ""}`,
     missing_info_questions: q.slice(0, 6),
     suggested_category: category,
-    suggested_tags: concepts.map((c) => (ar ? CONCEPT_TAG_AR[c]! : c)).slice(0, 6),
+    suggested_tags: concepts.map((c) => (ar ? CONCEPT_LABEL_AR[c]! : c)).slice(0, 6),
     impact_estimate: {
       type: impactType,
       reasoning: ar

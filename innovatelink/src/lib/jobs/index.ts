@@ -44,6 +44,8 @@ export async function enqueue<N extends JobName>(name: N, data: JobPayloads[N]):
     testQueue.push({ name, data });
     return;
   }
+  // Seeding and maintenance scripts run handlers inline and must not send mail.
+  if (process.env.JOBS_DISABLED === "1") return;
   try {
     const b = await getBoss();
     await b.createQueue(name).catch(() => undefined);
