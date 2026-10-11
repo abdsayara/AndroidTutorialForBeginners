@@ -116,7 +116,7 @@
   /* ======================= 2-2 قانون أفوجادرو ومعادلة الغاز المثالي ======================= */
   const GAS = { H2: ['الهيدروجين H₂', 2], He: ['الهيليوم He', 4], N2: ['النيتروجين N₂', 28], O2: ['الأكسجين O₂', 32], Ar: ['الأرغون Ar', 40], CO2: ['ثاني أكسيد الكربون CO₂', 44] };
   ML.register({
-    subject: S, id: 'ideal-gas', unit: U, order: 2, lesson: '2-2', lessonTitle: 'قانون أفوجادرو ومعادلة الغاز المثالي', page: 110,
+    subject: S, id: 'ideal-gas', ar: { M: 'م', N: 'ع', N_A: 'ع_أ' }, unit: U, order: 2, lesson: '2-2', lessonTitle: 'قانون أفوجادرو ومعادلة الغاز المثالي', page: 110,
     titleAr: 'المول وعدد أفوجادرو ومعادلة الغاز المثالي', titleEn: "Moles, Avogadro's Number & the Ideal Gas Equation", tags: 'مول افوجادرو غاز مثالي ثابت عام عدد الجزيئات كتله موليه',
     formula: 'n = \\frac{m}{M},\\qquad N = n\\,N_A,\\qquad PV = nRT',
     book: 'ن = ك / م (ص 111) ؛ عدد الجزيئات = ن × 6.02 × 10²³ ؛ ض ح = ن أ د ، أ = 8.314 جول/كلفن.مول (ص 116)',
@@ -167,7 +167,7 @@
 
   /* ======================= 2-5 القانون الأول في الديناميكا الحرارية ======================= */
   ML.register({
-    subject: S, id: 'first-law', unit: U, order: 3, lesson: '2-5', lessonTitle: 'قوانين الديناميكا الحرارية', page: 120,
+    subject: S, id: 'first-law', ar: { W: 'ش' }, unit: U, order: 3, lesson: '2-5', lessonTitle: 'قوانين الديناميكا الحرارية', page: 120,
     titleAr: 'القانون الأول في الديناميكا الحرارية', titleEn: 'First Law of Thermodynamics', tags: 'القانون الاول ديناميكا حراريه طاقه داخليه شغل حراره نظام',
     formula: '\\Delta U = Q - W, \\qquad W = P\\,\\Delta V\\ (\\text{at constant } P)',
     book: 'Δطد = كح − ش ، ش = ض × Δح ؛ كح موجبة إذا اكتسب النظام حرارة، ش موجب إذا بذل النظام شغلاً (ص 120–121)',

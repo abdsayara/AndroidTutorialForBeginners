@@ -40,7 +40,7 @@
 
   /* ======================= 6-1 مبدأ العد والمضروب ======================= */
   ML.register({
-    id: 'counting', unit: U, order: 1, lesson: '6-1', lessonTitle: 'مبدأ العد', page: 178,
+    id: 'counting', ar: { N: 'ع' }, unit: U, order: 1, lesson: '6-1', lessonTitle: 'مبدأ العد', page: 178,
     titleAr: 'مبدأ العد الأساسي والمضروب', titleEn: 'Fundamental Counting Principle & Factorial', tags: 'مبدا العد مضروب شجره',
     formula: 'N = n_1 \\times n_2 \\times \\dots \\times n_k,\\qquad n! = n(n-1)(n-2)\\cdots 2 \\cdot 1,\\ 0! = 1',
     book: 'عدد الطرق الكلية = م1 × م2 × … × مك ؛ ن! = ن(ن−1)(ن−2)…×3×2×1',
@@ -99,7 +99,7 @@
 
   /* ======================= 6-2 التباديل ======================= */
   ML.register({
-    id: 'permutations', unit: U, order: 2, lesson: '6-2', lessonTitle: 'التباديل', page: 182,
+    id: 'permutations', ar: { P: 'ل', r: 'ر' }, unit: U, order: 2, lesson: '6-2', lessonTitle: 'التباديل', page: 182,
     titleAr: 'التباديل', titleEn: 'Permutations', tags: 'تباديل ترتيب ل(ن،ر)',
     formula: 'P(n, r) = \\frac{n!}{(n - r)!} = n(n-1)\\cdots(n - r + 1)',
     book: 'ل(ن ، ر) = ن! ÷ (ن − ر)! ؛ ل(ن ، ن) = ن!',
@@ -142,7 +142,7 @@
 
   /* ======================= 6-3 التوافيق ======================= */
   ML.register({
-    id: 'combinations', unit: U, order: 3, lesson: '6-3', lessonTitle: 'التوافيق', page: 185,
+    id: 'combinations', ar: { r: 'ر' }, unit: U, order: 3, lesson: '6-3', lessonTitle: 'التوافيق', page: 185,
     titleAr: 'التوافيق', titleEn: 'Combinations', tags: 'توافيق اختيار مجموعات لجنه',
     formula: '\\binom{n}{r} = \\frac{n!}{r!\\,(n - r)!},\\quad 0 \\le r \\le n',
     book: '(ن ر) = ن! ÷ (ر! (ن − ر)!) ؛ (ن 0) = 1 ، (ن ن) = 1 ، (ن ر) = (ن ن−ر)',
@@ -180,7 +180,7 @@
 
   /* ======================= 6-4 نظرية ذات الحدين ======================= */
   ML.register({
-    id: 'binomial', unit: U, order: 4, lesson: '6-4', lessonTitle: 'نظرية ذات الحدين', page: 188,
+    id: 'binomial', ar: { r: 'ر', T: 'ح' }, unit: U, order: 4, lesson: '6-4', lessonTitle: 'نظرية ذات الحدين', page: 188,
     titleAr: 'نظرية ذات الحدين', titleEn: 'The Binomial Theorem', tags: 'ذات الحدين مفكوك باسكال حد عام',
     formula: '(a + b)^n = \\sum_{r=0}^{n} \\binom{n}{r} a^{n-r} b^{r},\\qquad T_{r+1} = \\binom{n}{r} a^{n-r} b^{r}',
     book: '(أ + ب)ن = Σ (ن ر) أ^(ن−ر) ب^ر ، ر = 0 … ن',

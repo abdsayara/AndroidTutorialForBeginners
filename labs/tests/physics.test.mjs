@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(dir, '..');
 const ctx = vm.createContext({ console, performance, Math });
-const FILES = ['core/math.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'core/phys.js',
+const FILES = ['core/math.js', 'core/notation.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'core/phys.js',
   'subjects/g10-physics/u1-measure-vectors.js', 'subjects/g10-physics/u1-kinematics.js', 'subjects/g10-physics/u1-newton.js',
   'subjects/g10-physics/u2-fluids.js', 'subjects/g10-physics/u3-heat.js', 'subjects/g10-physics/u3-thermo.js', 'subjects/g10-physics/u4-astro.js'];
 for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });

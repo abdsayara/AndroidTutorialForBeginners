@@ -118,7 +118,7 @@
 
   /* ======================= 4-2 القانون الأول لنيوتن — القصور الذاتي ======================= */
   ML.register({
-    subject: S, id: 'newton1', unit: U, order: 2, lesson: '4-2', lessonTitle: 'القانون الأول لنيوتن', page: 49,
+    subject: S, id: 'newton1', ar: { _b: 'كبح', a_b: 'ت_كبح' }, unit: U, order: 2, lesson: '4-2', lessonTitle: 'القانون الأول لنيوتن', page: 49,
     titleAr: 'القانون الأول لنيوتن (القصور الذاتي)', titleEn: "Newton's First Law (Inertia)", tags: 'قانون نيوتن الاول قصور ذاتي حزام الامان',
     formula: '\\sum \\vec F = 0 \\iff \\vec v = \\text{const}',
     book: 'الجسم الساكن يبقى ساكناً والمتحرك بسرعة ثابتة وفي خط مستقيم يبقى كذلك ما لم تؤثر عليه محصلة قوى خارجية',
@@ -189,7 +189,7 @@
 
   /* ======================= 4-1 قانون هوك (النابض) ======================= */
   ML.register({
-    subject: S, id: 'hooke', unit: U, order: 3, lesson: '4-1', lessonTitle: 'القوة (قوة الشد في النابض)', page: 46,
+    subject: S, id: 'hooke', ar: { x: 'س' }, unit: U, order: 3, lesson: '4-1', lessonTitle: 'القوة (قوة الشد في النابض)', page: 46,
     titleAr: 'قوة الاسترجاع في النابض', titleEn: "Spring Restoring Force (Hooke's Law)", tags: 'نابض ثابت المرونه قوه الاسترجاع استطاله هوك',
     formula: 'F = -k\\,x',
     book: 'ق = − أ س ، حيث أ: ثابت المرونة للنابض ، والإشارة السالبة تعني أن القوة تعاكس الإزاحة',
@@ -234,7 +234,7 @@
 
   /* ======================= 4-1 الحركة الدائرية المنتظمة ======================= */
   ML.register({
-    subject: S, id: 'circular', unit: U, order: 4, lesson: '4-1', lessonTitle: 'القوة (القوة المركزية)', page: 47,
+    subject: S, id: 'circular', ar: { T: 'ن', n: 'د', f: 'تر' }, unit: U, order: 4, lesson: '4-1', lessonTitle: 'القوة (القوة المركزية)', page: 47,
     titleAr: 'الحركة الدائرية والتسارع المركزي', titleEn: 'Uniform Circular Motion & Centripetal Acceleration', tags: 'حركه دائريه تسارع مركزي قوه مركزيه زمن دوري تردد',
     formula: 'v = \\frac{2\\pi r}{T},\\qquad a_c = \\frac{v^2}{r},\\qquad F_c = m\\,\\frac{v^2}{r}',
     book: 'ت م = ع² / نق ، ق المركزية = ك × ع² / نق ، الزمن الدوري ن = 2π نق / ع',

@@ -35,6 +35,15 @@ button, input, select { font: inherit; color: inherit; }
 .m, .math-block, .katex { unicode-bidi: isolate; }
 .katex { font-size: 1.05em; }
 .math-block { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+/* صيغة الكتاب: المعادلة من اليمين لليسار — نعكس البنية ونعيد الحروف والأرقام */
+.ar-math { display: inline-block; transform: scaleX(-1); }
+.ar-math .um { display: inline-block; transform: scaleX(-1); }
+.ar-math .katex { font-size: 1.08em; }
+.ar-math .katex .text, .ar-math .katex .textrm { font-family: 'Tajawal', system-ui, sans-serif; }
+.math-block .ar-math { display: inline-block; }
+.notation { gap: 2px; padding: 4px 6px; font-weight: 700; min-width: 0; }
+.notation span { padding: 2px 7px; border-radius: 8px; color: var(--muted); }
+.notation span.on { background: var(--primary); color: var(--primary-ink); }
 
 /* أزرار */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; transition: background .15s, border-color .15s, transform .05s; }

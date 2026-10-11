@@ -11,6 +11,7 @@
     o = o || {}; ctx.save();
     ctx.font = (o.w || '600') + ' ' + (o.size || 13) + 'px system-ui, Tajawal, sans-serif';
     ctx.fillStyle = o.color; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle';
+    s = ML.loc ? ML.loc(String(s)) : String(s);
     const ar = /[\u0600-\u06FF]/.test(s); ctx.direction = ar ? 'rtl' : 'ltr';
     if (o.halo) { ctx.lineWidth = 3.5; ctx.strokeStyle = o.halo; ctx.strokeText(ar ? ML.bidi(s) : s, x, y); }
     ctx.fillText(ar ? ML.bidi(s) : s, x, y); ctx.restore();
@@ -264,7 +265,7 @@
 
   /* ======================= 2-3 جمع المتجهات بيانياً ======================= */
   ML.register({
-    subject: S, id: 'vector-graphical', unit: 2, order: 1, lesson: '2-3', lessonTitle: 'جمع المتجهات بيانياً', page: 18,
+    subject: S, id: 'vector-graphical', ar: { R: 'م', x: 'س', y: 'ص' }, unit: 2, order: 1, lesson: '2-3', lessonTitle: 'جمع المتجهات بيانياً', page: 18,
     titleAr: 'جمع المتجهات بيانياً (متوازي الأضلاع)', titleEn: 'Graphical Vector Addition (Parallelogram)', tags: 'متجه محصله متوازي الاضلاع راس ذيل',
     formula: '\\vec{R} = \\vec{A} + \\vec{B}',
     book: 'المحصلة ح = أ + ب : قطر متوازي الأضلاع الممتد من ذيل المتجهين',
@@ -332,7 +333,7 @@
 
   /* ======================= 2-4 جمع المتجهات حسابياً ======================= */
   ML.register({
-    subject: S, id: 'vector-arithmetic', unit: 2, order: 2, lesson: '2-4', lessonTitle: 'جمع المتجهات حسابياً', page: 21,
+    subject: S, id: 'vector-arithmetic', ar: { R: 'م', x: 'س', y: 'ص' }, unit: 2, order: 2, lesson: '2-4', lessonTitle: 'جمع المتجهات حسابياً', page: 21,
     titleAr: 'جمع المتجهات حسابياً (متوازية ومتعامدة)', titleEn: 'Arithmetic Vector Addition', tags: 'متجهات متوازيه متعاكسه متعامده فيثاغورس شد الحبل',
     formula: 'R = A + B\\ (\\uparrow\\uparrow),\\quad R = |A - B|\\ (\\uparrow\\downarrow),\\quad R = \\sqrt{A^2 + B^2}\\ (\\perp)',
     book: 'متجهان بالاتجاه نفسه: ح = أ + ب ؛ متعاكسان: ح = أ − ب باتجاه الأكبر ؛ متعامدان: ح = √(أ² + ب²)',

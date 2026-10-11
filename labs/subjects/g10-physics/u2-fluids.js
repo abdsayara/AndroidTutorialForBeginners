@@ -66,7 +66,7 @@
 
   /* ======================= 1-2 ضغط السائل والضغط المطلق (السد) ======================= */
   ML.register({
-    subject: S, id: 'liquid-pressure', unit: U, order: 2, lesson: '1-2', lessonTitle: 'ضغط السائل', page: 69,
+    subject: S, id: 'liquid-pressure', ar: { L: 'ط' }, unit: U, order: 2, lesson: '1-2', lessonTitle: 'ضغط السائل', page: 69,
     titleAr: 'ضغط السائل والضغط المطلق (السد)', titleEn: 'Liquid Pressure & Absolute Pressure (Dam)', tags: 'ضغط سائل عمق كثافه ضغط مطلق سد ضغط جوي بارومتر زئبق',
     formula: 'P_{abs} = P_0 + \\rho\\,g\\,h',
     book: 'ض م = ض0 + ث ل جـ ، حيث ث كثافة السائل، ل العمق، جـ تسارع الجاذبية (ص 69–70)',
@@ -213,7 +213,7 @@
 
   /* ======================= 1-4 / 1-5 قاعدة أرخميدس: الطفو ======================= */
   ML.register({
-    subject: S, id: 'archimedes', unit: U, order: 4, lesson: '1-4', lessonTitle: 'قاعدة أرخميدس والجسم الطافي', page: 75,
+    subject: S, id: 'archimedes', ar: { F_b: 'ق_د', V_b: 'ح_ج', rho_b: 'ث_ج', _b: 'ج', V_sub: 'ح_س' }, unit: U, order: 4, lesson: '1-4', lessonTitle: 'قاعدة أرخميدس والجسم الطافي', page: 75,
     titleAr: 'قاعدة أرخميدس: قوة الطفو', titleEn: "Archimedes' Principle: Buoyant Force", tags: 'ارخميدس طفو قوه دفع غوص كثافه حجم مغمور سفينه',
     formula: 'F_b = \\rho_{l}\\,V_{sub}\\,g, \\qquad \\text{floating: } \\rho_{b} V_{b} = \\rho_{l} V_{sub}',
     book: 'ق د = ح ث جـ (وزن السائل المزاح) ؛ قد = وح − وظ ؛ للجسم الطافي: حج × ثج = حس × ثس (ص 76–78)',

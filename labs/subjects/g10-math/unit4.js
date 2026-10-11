@@ -79,7 +79,7 @@
 
   /* ======================= 4-2 قياس الزوايا ======================= */
   ML.register({
-    id: 'radian', unit: U, order: 2, lesson: '4-2', lessonTitle: 'قياس الزوايا', page: 106,
+    id: 'radian', ar: { s: 'ل' }, unit: U, order: 2, lesson: '4-2', lessonTitle: 'قياس الزوايا', page: 106,
     titleAr: 'قياس الزوايا: الستيني والدائري (الراديان)', titleEn: 'Angle Measures: Degrees & Radians', tags: 'راديان ستيني دائري تحويل دقيقه ثانيه',
     formula: '\\theta_{rad} = \\theta^{\\circ} \\times \\frac{\\pi}{180^{\\circ}},\\qquad \\theta_{rad} = \\frac{\\text{arc length}}{r}',
     book: 'الدورة الكاملة 360° يقابلها 2π د ، π د يقابلها 180° ، 1د ≈ 57.3°',

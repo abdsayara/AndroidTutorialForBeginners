@@ -59,7 +59,14 @@
   /* ---------- عرض الرياضيات ---------- */
   ML.texHTML = function (tex, display) {
     try {
-      if (root.katex) return root.katex.renderToString(tex, { throwOnError: false, displayMode: !!display, output: 'html', strict: 'ignore' });
+      if (root.katex) {
+        if (ML.isAr && ML.isAr()) {
+          // صيغة الكتاب: رموز وأرقام عربية، والمعادلة من اليمين لليسار
+          const h = root.katex.renderToString(ML.arTeX(tex), { throwOnError: false, displayMode: !!display, output: 'html', strict: 'ignore' });
+          return '<span class="ar-math" role="math" aria-label="' + esc(tex) + '">' + ML.mirrorKaTeX(h) + '</span>';
+        }
+        return root.katex.renderToString(tex, { throwOnError: false, displayMode: !!display, output: 'html', strict: 'ignore' });
+      }
     } catch (e) { /* fallthrough */ }
     return '<code dir="ltr">' + esc(tex) + '</code>';
   };
@@ -71,10 +78,13 @@
     return parts.map((p) => {
       if (p.startsWith('$$')) return '<div class="math-block" dir="ltr">' + ML.texHTML(p.slice(2, -2), true) + '</div>';
       if (p.startsWith('$') && p.length > 1) return '<span class="m" dir="ltr">' + ML.texHTML(p.slice(1, -1)) + '</span>';
-      return esc(p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      return esc(ML.loc ? ML.loc(p) : p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     }).join('');
   };
 
+  // تسمية فيها TeX بلا علامات $: نص عربي في البداية ثم صيغة
+  function autoMath(t) { t = String(t); if (t.indexOf('$') >= 0 || !/\\[A-Za-z]|[\^_]/.test(t)) return t; const m = /^([؀-ۿ\s()،:]*)([\s\S]*)$/.exec(t); return m[1] + '$' + m[2] + '$'; }
+  ML.autoMath = autoMath;
   function el(tag, attrs, html) {
     const e = document.createElement(tag);
     if (attrs) for (const k in attrs) { if (k === 'class') e.className = attrs[k]; else if (k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); }
@@ -103,8 +113,17 @@
   let lastSubject = 'g10-math';
   try { lastSubject = localStorage.getItem('ml-subject') || lastSubject; } catch (e) { /* ignore */ }
   function subjectFromSlug(grade, slug) { return Object.values(ML.subjects).find((x) => x.grade === grade && x.slug === slug); }
+  // إعادة الرسم مع الحفاظ على قيم المحاكاة الحالية
+  function rerender() {
+    const cur = ML.current; const keep = cur ? { p: Object.assign({}, cur.p), mode: cur.mode, gIdx: cur.gIdx } : null;
+    route();
+    if (keep && ML.current) { Object.assign(ML.current.p, keep.p); ML.current.gIdx = keep.gIdx; ML.current.update(true); if (keep.mode !== 'explore') ML.current.setMode(keep.mode); }
+  }
+  ML.rerender = rerender;
   function route() {
     if (ML.current) { ML.current.destroy(); ML.current = null; }
+    ML.curSim = null;
+    document.documentElement.classList.toggle('notation-ar', ML.isAr());
     const h = location.hash || '';
     const app = document.getElementById('app');
     app.innerHTML = '';
@@ -128,8 +147,10 @@
     const bar = el('header', { class: 'topbar' });
     bar.innerHTML = (back ? '<a class="btn ghost back" href="#/' + subj.grade + '/' + subj.slug + '" aria-label="رجوع إلى الفصول">→ الفصول</a>' : '') +
       '<a class="brand" href="#/' + subj.grade + '/' + subj.slug + '"><span class="logo" aria-hidden="true">' + subj.icon + '</span><span><b>' + subj.title + '</b><small>' + subj.titleEn + '</small></span></a>' +
+      '<button class="btn ghost notation" aria-label="تبديل الرموز بين صيغة الكتاب العربية والصيغة الدولية" title="الرموز: صيغة الكتاب العربية ↔ الدولية"><span class="' + (ML.isAr() ? 'on' : '') + '">ع</span><span class="' + (ML.isAr() ? '' : 'on') + '" lang="en">x</span></button>' +
       '<button class="btn ghost icon theme" aria-label="تبديل الوضع الليلي" title="الوضع الليلي/النهاري">🌓</button>';
     bar.querySelector('.theme').addEventListener('click', toggleTheme);
+    bar.querySelector('.notation').addEventListener('click', () => { ML.setNotation(ML.isAr() ? 'intl' : 'ar'); rerender(); });
     return bar;
   }
   // تبويبات الصفوف ثم تبويبات المواد
@@ -187,6 +208,7 @@
       this.prev = null; this.lastExplain = []; this.playing = false; this.chIdx = 0; this.solved = false;
       this.raf = null; this.tw = null;
       this.subj = SUBJ(sim.subject);
+      ML.curSim = sim;
       document.title = sim.titleAr + ' — ' + this.subj.title;
       this.st = sim.initState ? sim.initState(this.p) : null;
       this.build();
@@ -319,10 +341,10 @@
           b.addEventListener('click', () => this.set(q.key, !this.p[q.key]));
           this.inputs[q.key] = { tog: b };
         } else {
-          row.innerHTML = lab + '<div class="rng"><input type="range" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '"><input type="number" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '" inputmode="decimal"></div>';
-          const r = row.querySelector('input[type=range]'), n = row.querySelector('input[type=number]');
+          row.innerHTML = lab + '<div class="rng"><input type="range" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '"><input type="text" inputmode="decimal" dir="ltr" aria-label="' + esc(q.desc || q.key) + '"></div>';
+          const r = row.querySelector('input[type=range]'), n = row.querySelector('input[type=text]');
           r.addEventListener('input', () => this.set(q.key, this.fixParam(q, +r.value)));
-          n.addEventListener('change', () => { let v = +n.value; if (!Number.isFinite(v)) v = this.p[q.key]; this.set(q.key, this.fixParam(q, M.clamp(v, q.min, q.max), true)); });
+          n.addEventListener('change', () => { let v = ML.parseNum(n.value); if (!Number.isFinite(v)) v = this.p[q.key]; this.set(q.key, this.fixParam(q, M.clamp(v, q.min, q.max), true)); });
           this.inputs[q.key] = { r: r, n: n };
         }
         this.paramsEl.appendChild(row);
@@ -356,7 +378,7 @@
           inp.sel.value = v;
         }
         else if (inp.tog) { inp.tog.classList.toggle('on', !!v); inp.tog.setAttribute('aria-checked', !!v); inp.tog.textContent = v ? (q.on || 'مفعّل') : (q.off || 'متوقف'); }
-        else { inp.r.value = v; if (document.activeElement !== inp.n) inp.n.value = M.round(v, 4); }
+        else { inp.r.value = v; if (document.activeElement !== inp.n) inp.n.value = ML.fmtInput(M.round(v, 4)); }
       });
     }
     set(key, v, silent) {
@@ -391,7 +413,7 @@
       this.liveEl.innerHTML = s.live ? ML.texHTML(s.live(this.p, this.d), true) : '';
       // النتائج
       const res = s.results ? s.results(this.p, this.d) : [];
-      this.resEl.innerHTML = '<h3>النتائج الرقمية <small>Results</small></h3><dl>' + res.map((r) => '<div class="r' + (r[3] ? ' ' + r[3] : '') + '"><dt>' + ML.rich(r[0]) + '</dt><dd>' + (r[2] === false ? ML.rich(r[1]) : '<span dir="ltr">' + ML.texHTML(r[1]) + '</span>') + '</dd></div>').join('') + '</dl>';
+      this.resEl.innerHTML = '<h3>النتائج الرقمية <small>Results</small></h3><dl>' + res.map((r) => '<div class="r' + (r[3] ? ' ' + r[3] : '') + '"><dt>' + ML.rich(autoMath(r[0])) + '</dt><dd>' + (r[2] === false ? ML.rich(r[1]) : '<span dir="ltr">' + ML.texHTML(r[1]) + '</span>') + '</dd></div>').join('') + '</dl>';
       const st = s.steps ? s.steps(this.p, this.d) : [];
       this.stepsEl.innerHTML = '<h3>الخطوات الأساسية <small>Steps</small></h3>' + (st.length ? '<ol>' + st.map((x) => '<li>' + ML.rich(x) + '</li>').join('') + '</ol>' : '<p class="muted">—</p>');
       if (first) this.renderWhy();
@@ -578,8 +600,27 @@
   }
   ML.SimPage = SimPage;
 
+  // تعريب النصوص الظاهرة: الأرقام والرموز المفردة والوحدات (عدا الصيغ المعروضة بـ KaTeX والنصوص الإنجليزية)
+  const SKIP = /^(SCRIPT|STYLE|INPUT|TEXTAREA|CODE|CANVAS)$/;
+  function locNode(n) {
+    if (!ML.isAr()) return;
+    if (n.nodeType === 3) {
+      const t = n.nodeValue; if (!/[0-9A-Za-z]/.test(t)) return;
+      let e = n.parentElement;
+      for (let k = 0; e && k < 12; k++, e = e.parentElement) { if (SKIP.test(e.tagName) || e.classList.contains('katex') || e.classList.contains('ar-math') || e.getAttribute('lang') === 'en' || e.classList.contains('en')) return; }
+      if (/[A-Za-z]/.test(t) && !/[\u0600-\u06FF]/.test(t)) { if (/[A-Za-z]{2}/.test(t)) return; } // نص إنجليزي خالص
+      const r = ML.loc(t); if (r !== t) n.nodeValue = r;
+      return;
+    }
+    if (n.nodeType !== 1 || SKIP.test(n.tagName) || n.classList.contains('katex') || n.classList.contains('ar-math') || n.getAttribute('lang') === 'en') return;
+    if (n.tagName === 'SELECT') { [...n.options].forEach((o) => { const r = ML.loc(o.textContent); if (r !== o.textContent) o.textContent = r; }); return; }
+    for (let c = n.firstChild; c; c = c.nextSibling) locNode(c);
+  }
+  ML.locNode = locNode;
+
   ML.start = function () {
     document.documentElement.setAttribute('dir', 'rtl'); document.documentElement.setAttribute('lang', 'ar');
+    if (root.MutationObserver) new MutationObserver((ms) => { if (!ML.isAr()) return; ms.forEach((m) => m.addedNodes.forEach(locNode)); }).observe(document.body, { childList: true, subtree: true });
     initTheme();
     ML.sims.sort((a, b) => (a.subject < b.subject ? -1 : a.subject > b.subject ? 1 : 0) || a.unit - b.unit || a.order - b.order);
     root.addEventListener('hashchange', route);

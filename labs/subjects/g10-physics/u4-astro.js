@@ -66,7 +66,7 @@
 
   /* ======================= 1-2 / 1-3 الكرة السماوية ومعالمها ======================= */
   ML.register({
-    subject: S, id: 'celestial-sphere', unit: U, order: 1, lesson: '1-3', lessonTitle: 'معالم الكرة السماوية', page: 131,
+    subject: S, id: 'celestial-sphere', ar: { '\\alpha': 'α', '\\delta': 'δ', '\\varphi': 'φ', h: 'ع', H: 'س' }, unit: U, order: 1, lesson: '1-3', lessonTitle: 'معالم الكرة السماوية', page: 131,
     titleAr: 'الكرة السماوية ومعالمها', titleEn: 'The Celestial Sphere & its Landmarks', tags: 'كره سماويه قبه سماويه سمت الراس النظير الافق دائره الاستواء السماوي قطب سماوي دائره الزوال البروج',
     formula: 'h_{\\text{NCP}} = \\varphi, \\qquad \\delta_{\\text{zenith}} = \\varphi, \\qquad \\angle(\\text{equator}, \\text{horizon}) = 90^\\circ - |\\varphi|',
     book: 'الميل الاستوائي لسمت رأس الراصد يساوي دائرة عرضه (ص 135) ؛ دائرة الاستواء السماوي تبعد 90° عن القطبين (ص 133) ؛ سمت الرأس والنظير يبعدان 90° عن الأفق (ص 133)',
@@ -116,7 +116,7 @@
 
   /* ======================= 1-4 الإحداثيات السماوية الاستوائية ======================= */
   ML.register({
-    subject: S, id: 'equatorial-coords', unit: U, order: 2, lesson: '1-4', lessonTitle: 'الإحداثيات السماوية الاستوائية', page: 134,
+    subject: S, id: 'equatorial-coords', ar: { '\\alpha': 'α', '\\delta': 'δ', '\\varphi': 'φ', h: 'ع', H: 'س' }, unit: U, order: 2, lesson: '1-4', lessonTitle: 'الإحداثيات السماوية الاستوائية', page: 134,
     titleAr: 'الإحداثيات الاستوائية: الميل الاستوائي والمطلع المستقيم', titleEn: 'Equatorial Coordinates: Declination & Right Ascension', tags: 'احداثيات سماويه ميل استوائي مطلع مستقيم دائره الساعه الاعتدال الربيعي',
     formula: '(\\alpha,\\ \\delta), \\qquad 1\\ \\mathrm{h} = 15^\\circ,\\qquad H = \\text{LST} - \\alpha',
     book: 'الميل الاستوائي: البعد الزاوي عن دائرة استواء السماء شمالاً (+) أو جنوباً (−) ؛ المطلع المستقيم: البعد الزاوي من نقطة الاعتدال الربيعي شرقاً ويقاس بالساعات (ص 135–136)',
@@ -182,7 +182,7 @@
   const sunLam = (n) => ((n - 79) * 360 / 365.25 + 360) % 360;
   const sunDec = (n) => Math.asin(Math.sin(EPS * R) * Math.sin(sunLam(n) * R)) / R;
   ML.register({
-    subject: S, id: 'seasons', unit: U, order: 3, lesson: '1-5', lessonTitle: 'الظواهر الفلكية: حركة الشمس والفصول', page: 137,
+    subject: S, id: 'seasons', ar: { '\\delta': 'δ', '\\varphi': 'φ', '\\lambda': 'λ', h: 'ع', n: 'ن' }, unit: U, order: 3, lesson: '1-5', lessonTitle: 'الظواهر الفلكية: حركة الشمس والفصول', page: 137,
     titleAr: 'حركة الشمس الظاهرية والفصول الأربعة', titleEn: "Sun's Apparent Motion & the Seasons", tags: 'فصول اربعه ميلان محور الارض 23.5 انقلاب صيفي شتوي اعتدال ربيعي خريفي دائره البروج ارتفاع الشمس',
     formula: '\\sin\\delta_\\odot = \\sin 23.5^\\circ\\,\\sin\\lambda_\\odot, \\qquad h_{noon} = 90^\\circ - |\\varphi - \\delta_\\odot|',
     book: 'سبب الفصول ميلان محور الأرض؛ في الصيف يميل النصف الشمالي نحو الشمس فتبدو في أعلى أوضاعها، وفي الشتاء في أدناها، وفي الاعتدالين بينهما (ص 137–138) ؛ تقطع الشمس على دائرة البروج ≈ 1° يومياً (ص 134)',
@@ -259,7 +259,7 @@
   const PHASES = ['محاق', 'هلال أول', 'تربيع أول', 'أحدب أول', 'بدر', 'أحدب ثانٍ', 'تربيع ثانٍ', 'هلال ثانٍ'];
   function phaseName(age) { const i = Math.floor(((age / SYN) * 8 + 0.5)) % 8; return PHASES[i]; }
   ML.register({
-    subject: S, id: 'moon-phases', unit: U, order: 4, lesson: '1-5', lessonTitle: 'الظواهر الفلكية: حركة القمر والخسوف والكسوف', page: 140,
+    subject: S, id: 'moon-phases', ar: { '\\beta': 'β', k: 'ك', t: 'ز' }, unit: U, order: 4, lesson: '1-5', lessonTitle: 'الظواهر الفلكية: حركة القمر والخسوف والكسوف', page: 140,
     titleAr: 'أطوار القمر وخسوف القمر وكسوف الشمس', titleEn: 'Moon Phases, Lunar & Solar Eclipses', tags: 'قمر اطوار محاق هلال تربيع احدب بدر خسوف كسوف ظل شبه ظل حلقي',
     formula: 'k = \\frac{1 - \\cos\\theta}{2},\\qquad \\theta = 360^\\circ \\times \\frac{t}{29.5\\ \\text{day}}',
     book: 'أطوار القمر الثمانية (ص 140) ؛ الخسوف عندما تقع الأرض بين الشمس والقمر على استقامة واحدة ويكون القمر بدراً (ص 142) ؛ الكسوف عندما يقع القمر بين الشمس والأرض في بداية أو نهاية الشهر القمري (ص 143)',
@@ -344,7 +344,7 @@
 
   /* ======================= 1-6 النجوم أبدية الظهور ======================= */
   ML.register({
-    subject: S, id: 'circumpolar', unit: U, order: 5, lesson: '1-6', lessonTitle: 'النجوم أبدية الظهور', page: 145,
+    subject: S, id: 'circumpolar', ar: { '\\delta': 'δ', '\\varphi': 'φ', h: 'ع' }, unit: U, order: 5, lesson: '1-6', lessonTitle: 'النجوم أبدية الظهور', page: 145,
     titleAr: 'النجوم أبدية الظهور', titleEn: 'Circumpolar Stars', tags: 'نجوم ابديه الظهور القطب نجم القطب دائره عرض شروق غروب',
     formula: '\\delta > 90^\\circ - \\varphi \\;\\Rightarrow\\; \\text{circumpolar}, \\qquad \\delta < \\varphi - 90^\\circ \\;\\Rightarrow\\; \\text{never rises}',
     book: 'النجوم التي ميلها أكبر من (90 − دائرة العرض) أبدية الظهور، وتدور حول القطب الشمالي دون أن تغيب (ص 146–147)',

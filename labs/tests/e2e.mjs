@@ -8,6 +8,8 @@ const base = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv
 const shots = process.argv.includes('--shots');
 const only = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 const subj = (process.argv.find((a) => a.startsWith('--subject=')) || '').slice(10);
+const intl = process.argv.includes('--intl'); // الوضع الدولي؛ الافتراضي صيغة الكتاب العربية
+const Q = intl ? '?n=intl' : '?n=ar';
 
 const browser = await pw.chromium.launch({ executablePath: process.env.CHROME || undefined });
 const sizes = [{ name: 'phone', width: 375, height: 760 }, { name: 'tablet', width: 820, height: 1100 }, { name: 'desktop', width: 1440, height: 900 }];
@@ -19,13 +21,14 @@ for (const size of sizes) {
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g|ERR_|net::/.test(m.text())) errors.push('console: ' + m.text()); });
-  await page.goto(base, { waitUntil: 'load' });
+  await page.addInitScript(() => { window.__ft = []; const o = CanvasRenderingContext2D.prototype.fillText; CanvasRenderingContext2D.prototype.fillText = function (t, ...a) { if (window.__ft.length < 4000) window.__ft.push(String(t)); return o.call(this, t, ...a); }; });
+  await page.goto(base + Q, { waitUntil: 'load' });
   await page.waitForSelector('.units');
   const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, href: ML.simHref(s) })));
   console.log(`[${size.name}] ${sims.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
   // صفحتا المادتين والتنقل بين التبويبات
   for (const sl of ['math', 'physics']) {
-    await page.goto(base + '#/g10/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
+    await page.goto(base + Q + '#/g10/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
     const st = await page.evaluate(() => ({ n: document.querySelectorAll('.units a[href*="/sim/"]').length, on: (document.querySelector('.stab.on') || {}).textContent || '', g: (document.querySelector('.gtab.on') || {}).textContent || '' }));
     if (!st.n || !st.g) fail(`home ${sl}: links=${st.n} gradeTab=${st.g}`);
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); if (ov > 1) fail(`home ${sl}: horizontal overflow ${ov}px`);
@@ -36,7 +39,7 @@ for (const size of sizes) {
     if (only && id !== only) continue;
     if (subj && sm.subject !== subj) continue;
     errors.length = 0;
-    await page.goto(base + sm.href); await page.waitForSelector('.sim-grid canvas');
+    await page.goto(base + Q + sm.href); await page.waitForSelector('.sim-grid canvas');
     await page.waitForTimeout(150);
     // كل منزلق: أدنى، أعلى، قيمة عشوائية
     const params = await page.evaluate(() => ML.current.sim.params.map((q) => ({ key: q.key, type: q.type || 'range', min: q.min, max: q.max })));
@@ -74,6 +77,16 @@ for (const size of sizes) {
       await page.waitForTimeout(520);
       const solved = await page.evaluate(() => document.querySelector('.ch-status').classList.contains('ok'));
       if (solved) fail(`${id}: challenge ${i + 1} is already solved by its init state`);
+    }
+    // صيغة الكتاب: لا أرقام إنجليزية في النصوص الظاهرة ولا على الرسوم (Canvas)
+    if (!intl) {
+      const asc = await page.evaluate(() => {
+        const out = [];
+        document.querySelectorAll('.results, .live, .steps, .law, .why, .controls .param label, .graph .gcap, .assume, .sim-head .src').forEach((e) => { const t = e.innerText; if (/[0-9]/.test(t)) out.push(t.match(/.{0,30}[0-9].{0,20}/)[0]); });
+        const cv = window.__ft.map((t) => t.replace(/[\u2066-\u2069]/g, '').replace(/\b[HNOC]₂/g, '')).filter((t) => /[0-9]/.test(t) || /(^|[^A-Za-z])[A-Za-z]($|[^A-Za-z])/.test(t));
+        window.__ft.length = 0; return out.concat(cv.map((t) => 'canvas: ' + t)).slice(0, 5);
+      });
+      if (asc.length) fail(`${id}: western digits/latin symbols → ${asc.join(' | ')}`);
     }
     // المساعد
     await page.click('.tutor .fab');

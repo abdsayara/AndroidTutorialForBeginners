@@ -7,7 +7,7 @@
   const ML = root.ML = root.ML || {};
 
   function norm(s) {
-    return String(s || '')
+    return String(s || '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
       .replace(/[ً-ٰٟـ]/g, '') // التشكيل والتطويل
       .replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
       .replace(/[؟?!،,.:؛]/g, ' ')

@@ -17,7 +17,7 @@
 
   /* ======================= 3-1 معادلة الدائرة ======================= */
   ML.register({
-    id: 'circle-eq', unit: U, order: 1, lesson: '3-1', lessonTitle: 'الدائرة', page: 81,
+    id: 'circle-eq', ar: { h: 'هـ' }, unit: U, order: 1, lesson: '3-1', lessonTitle: 'الدائرة', page: 81,
     titleAr: 'معادلة الدائرة', titleEn: 'Equation of a Circle', tags: 'دائره مركز نصف قطر معادله قياسيه عامه',
     formula: '(x - d)^2 + (y - h)^2 = r^2 \\iff x^2 + y^2 + 2Lx + 2Ky + C = 0',
     book: '(س − د)² + (ص − هـ)² = نق² ؛ الصورة القياسية: س² + ص² + 2ل س + 2ك ص + جـ = 0 ، المركز (−ل ، −ك) ، نق = √(ل² + ك² − جـ)',

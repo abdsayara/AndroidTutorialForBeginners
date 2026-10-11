@@ -32,7 +32,7 @@
   /* ======================= 5-1/5-2 المصفوفة والعمليات عليها ======================= */
   const OPS = { add: ['A + B', 'جمع'], sub: ['A - B', 'طرح'], scale: ['kA', 'ضرب بعدد ثابت'], comm: ['B + A', 'التحقق من الإبدال'] };
   ML.register({
-    id: 'matrix-ops', unit: U, order: 1, lesson: '5-1، 5-2', lessonTitle: 'المصفوفة والعمليات على المصفوفات', page: 143,
+    id: 'matrix-ops', ar: { I: 'م' }, unit: U, order: 1, lesson: '5-1، 5-2', lessonTitle: 'المصفوفة والعمليات على المصفوفات', page: 143,
     titleAr: 'المصفوفة والعمليات عليها', titleEn: 'Matrices: Addition, Subtraction & Scalar Multiplication', tags: 'مصفوفه مدخله رتبه جمع طرح ضرب بعدد',
     formula: 'c_{ij} = a_{ij} \\pm b_{ij},\\qquad (kA)_{ij} = k\\,a_{ij}',
     book: 'المدخلة أي هـ : الصف ي والعمود هـ ؛ أ ± ب تُجمع/تُطرح المدخلات المتناظرة (نفس الرتبة) ؛ جـ.أ = (جـ أي هـ)',
@@ -104,7 +104,7 @@
   const PRESETS = { custom: null, I: [[1, 0], [0, 1]], rx: [[1, 0], [0, -1]], ry: [[-1, 0], [0, 1]], s2: [[2, 0], [0, 2]] };
   const VERT = [[1, -1, 2], [2, -3, -5]]; // رؤوس المثلث من نشاط 1 ص 31 (أعمدة)
   ML.register({
-    id: 'matrix-mult', unit: U, order: 2, lesson: '5-3', lessonTitle: 'ضرب المصفوفات', page: 158,
+    id: 'matrix-mult', ar: { I: 'م' }, unit: U, order: 2, lesson: '5-3', lessonTitle: 'ضرب المصفوفات', page: 158,
     titleAr: 'ضرب المصفوفات', titleEn: 'Matrix Multiplication', tags: 'ضرب مصفوفات صف عمود ليست تبديليه محايده تحويل',
     formula: 'c_{ij} = a_{i1}b_{1j} + a_{i2}b_{2j} + \\dots + a_{in}b_{nj}',
     book: 'إذا كانت أ من الرتبة م×ن و ب من الرتبة ن×هـ فإن أ.ب = جـ من الرتبة م×هـ ، جـ ي هـ = أي1 ب1هـ + أي2 ب2هـ + … + أي ن ب ن هـ',
@@ -183,7 +183,7 @@
 
   /* ======================= 5-4 المحدد والنظير الضربي ======================= */
   ML.register({
-    id: 'determinant', unit: U, order: 3, lesson: '5-4', lessonTitle: 'النظير الضربي للمصفوفة المربعة من الرتبة الثانية', page: 163,
+    id: 'determinant', ar: { I: 'م' }, unit: U, order: 3, lesson: '5-4', lessonTitle: 'النظير الضربي للمصفوفة المربعة من الرتبة الثانية', page: 163,
     titleAr: 'المحدد والنظير الضربي للمصفوفة', titleEn: 'Determinant & Inverse of a 2×2 Matrix', tags: 'محدد نظير ضربي منفرده معكوس',
     formula: '|A| = a_{11}a_{22} - a_{12}a_{21},\\qquad A^{-1} = \\frac{1}{|A|}\\begin{bmatrix} a_{22} & -a_{12} \\\\ -a_{21} & a_{11} \\end{bmatrix}',
     book: '|أ| = أ11 أ22 − أ12 أ21 ؛ المصفوفة التي محددها صفر منفردة وليس لها نظير ضربي ؛ |ك أ| = ك² |أ|',
@@ -245,7 +245,7 @@
 
   /* ======================= 5-5 قاعدة كريمر ======================= */
   ML.register({
-    id: 'cramer', unit: U, order: 4, lesson: '5-5', lessonTitle: 'حل نظام من معادلتين خطيتين باستخدام قاعدة كريمر', page: 169,
+    id: 'cramer', ar: { I: 'م' }, unit: U, order: 4, lesson: '5-5', lessonTitle: 'حل نظام من معادلتين خطيتين باستخدام قاعدة كريمر', page: 169,
     titleAr: 'حل نظام معادلتين خطيتين بقاعدة كريمر', titleEn: "Solving 2×2 Linear Systems with Cramer's Rule", tags: 'كريمر نظام معادلات خطيه محددات تقاطع مستقيمات',
     formula: 'x = \\frac{|A_x|}{|A|},\\quad y = \\frac{|A_y|}{|A|},\\quad |A| \\neq 0',
     book: 'أ.ع = جـ ؛ س = |أس| ÷ |أ| ، ص = |أص| ÷ |أ| حيث |أ| ≠ صفر',

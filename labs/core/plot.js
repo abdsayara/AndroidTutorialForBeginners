@@ -107,15 +107,15 @@
       const ly = oy + 4 > this.H - 14 ? oy - 16 : oy + 4;
       for (let x = Math.ceil(v.xmin / xs) * xs; x <= v.xmax; x += xs) {
         if (Math.abs(x) < xs / 2) continue;
-        ctx.fillText(pi ? piLabel(x) : fmtTick(x, xs), this.X(x), ly);
+        ctx.fillText(LD(pi ? piLabel(x) : fmtTick(x, xs)), this.X(x), ly);
       }
       ctx.textAlign = ox + 6 > this.W - 30 ? 'right' : 'left'; ctx.textBaseline = 'middle';
       const lx = ox + 6 > this.W - 30 ? ox - 6 : ox + 6;
       for (let y = Math.ceil(v.ymin / ys) * ys; y <= v.ymax; y += ys) {
         if (Math.abs(y) < ys / 2) continue;
-        ctx.fillText(fmtTick(y, ys), lx, this.Y(y));
+        ctx.fillText(LD(fmtTick(y, ys)), lx, this.Y(y));
       }
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('0', ox + 4, oy + 3);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(LD('0'), ox + 4, oy + 3);
     }
     _style(st) {
       const ctx = this.ctx; st = st || {};
@@ -189,6 +189,7 @@
       st = st || {}; const ctx = this.ctx;
       ctx.font = (st.bold ? '600 ' : '') + (st.size || 12) + 'px system-ui, "Tajawal", sans-serif';
       ctx.fillStyle = st.color || this.colors().text; ctx.textAlign = st.align || 'left'; ctx.textBaseline = st.baseline || 'middle';
+      if (ML.loc) s = ML.loc(s);
       const ar = /[\u0600-\u06FF]/.test(s);
       if (ar) s = ML.bidi(s);
       ctx.direction = ar ? 'rtl' : 'ltr';
@@ -289,6 +290,7 @@
     return String(s).replace(/[A-Za-z0-9\u0660-\u0669\u00B2\u00B3\u00B9\u2070-\u209F\u0391-\u03C9(\[{][A-Za-z0-9\u0660-\u0669\u00B2\u00B3\u00B9\u2070-\u209F\u0391-\u03C9\-+.,=()\[\]{}'\/ π°θ≈·×√:|<>~∧∨→↔−]*[A-Za-z0-9\u0660-\u0669\u00B2\u00B3\u00B9\u2070-\u209F\u0391-\u03C9)\]}°']|[A-Za-z0-9\u0391-\u03C9]/g, (m) => '\u2066' + m + '\u2069')
       .replace(/(^|\s)([-−])\u2066/g, '$1\u2066$2');
   };
+  const LD = (s) => (ML.locDigits ? ML.locDigits(s) : s);
   function M_clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
   function fmtTick(x, step) {
     const d = Math.max(0, -Math.floor(Math.log10(step)) + 1);

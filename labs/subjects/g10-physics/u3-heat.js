@@ -148,7 +148,7 @@
   function stateAt(d, Q) { let acc = 0; for (const s of d.stages) { if (Q <= acc + s.Q + 1e-9) { const f = s.Q > 0 ? (Q - acc) / s.Q : 1; return { T: s.T0 + (s.T1 - s.T0) * f, stage: s.name, f: f }; } acc += s.Q; } const last = d.stages[d.stages.length - 1]; return { T: last ? last.T1 : 0, stage: last ? last.name : '', f: 1 }; }
   /* ======================= 1-4 الحرارة الكامنة: منحنى التسخين ======================= */
   ML.register({
-    subject: S, id: 'latent-heat', unit: U, order: 3, lesson: '1-4', lessonTitle: 'الحرارة الكامنة', page: 94,
+    subject: S, id: 'latent-heat', ar: { L: 'ح_ك', L_f: 'ح_انصهار', L_v: 'ح_تبخر' }, unit: U, order: 3, lesson: '1-4', lessonTitle: 'الحرارة الكامنة', page: 94,
     titleAr: 'الحرارة الكامنة ومنحنى التسخين', titleEn: 'Latent Heat & Heating Curve of Water', tags: 'حراره كامنه انصهار تبخر غليان جليد منحنى التسخين تغير الحاله',
     formula: 'Q = m\\,L, \\qquad Q_{total} = m c_{ice} \\Delta T_1 + m L_f + m c_w \\Delta T_2 \\;(+\\, m L_v)',
     book: 'كح = ك × ح كامنة ؛ ح انصهار الجليد = 3.33 × 10⁵ جول/كغم ، ح تبخر الماء = 2.26 × 10⁶ جول/كغم (ص 95–96)',
@@ -291,7 +291,7 @@
 
   /* ======================= 1-6 موازين الحرارة والتدريجات ======================= */
   ML.register({
-    subject: S, id: 'temp-scales', unit: U, order: 5, lesson: '1-6', lessonTitle: 'موازين الحرارة', page: 104,
+    subject: S, id: 'temp-scales', ar: { T_C: 'س', T_F: 'ف', T_K: 'ط' }, unit: U, order: 5, lesson: '1-6', lessonTitle: 'موازين الحرارة', page: 104,
     titleAr: 'تدريجات درجة الحرارة: سيلسيوس وفهرنهايت وكلفن', titleEn: 'Temperature Scales: Celsius, Fahrenheit, Kelvin', tags: 'سيلسيوس فهرنهايت كلفن مطلق صفر مطلق تحويل ميزان حراره',
     formula: 'T_F = \\tfrac{9}{5} T_C + 32, \\qquad T_K = T_C + 273',
     book: '°ف = 9/5 °س + 32 ، ط = °س + 273 (ص 105)',
