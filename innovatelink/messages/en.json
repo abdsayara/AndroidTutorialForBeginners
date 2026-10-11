@@ -3,33 +3,112 @@
     "open": "Open in platform",
     "footer": "InnovateLink Palestine — Bara'a Association. You can manage email notifications in Settings.",
     "statuses": {
-      "draft": "Draft", "submitted": "Under review", "needs_info": "Needs information", "published": "Published",
-      "matched": "Matched", "in_progress": "In progress", "solved": "Solved", "closed": "Closed",
-      "pending_approval": "Pending approval", "in_collaboration": "In collaboration", "commercializing": "Commercializing", "archived": "Archived",
-      "shortlisted": "Shortlisted", "accepted_by_company": "Accepted by company", "accepted_by_academic": "Accepted by academic", "confirmed": "Confirmed", "rejected": "Rejected",
-      "approved": "Approved", "declined": "Declined", "accepted": "Accepted"
+      "draft": "Draft",
+      "submitted": "Under review",
+      "needs_info": "Needs information",
+      "published": "Published",
+      "matched": "Matched",
+      "in_progress": "In progress",
+      "solved": "Solved",
+      "closed": "Closed",
+      "pending_approval": "Pending approval",
+      "in_collaboration": "In collaboration",
+      "commercializing": "Commercializing",
+      "archived": "Archived",
+      "shortlisted": "Shortlisted",
+      "accepted_by_company": "Accepted by company",
+      "accepted_by_academic": "Accepted by academic",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected",
+      "approved": "Approved",
+      "declined": "Declined",
+      "accepted": "Accepted"
     },
     "types": {
-      "challenge_status": { "title": "Challenge update: {subject}", "body": "Challenge “{subject}” is now: {status}." },
-      "project_status": { "title": "Project update: {subject}", "body": "Project “{subject}” is now: {status}." },
-      "new_match": { "title": "New match", "body": "A new match about “{subject}” is waiting for your review." },
-      "match_update": { "title": "Match update", "body": "The match about “{subject}” is now: {status}." },
-      "contact_request": { "title": "New contact request", "body": "You received a contact request about “{subject}”." },
-      "contact_response": { "title": "Contact request answered", "body": "Your contact request about “{subject}” was {status}." },
-      "task_assigned": { "title": "New task assigned", "body": "You were assigned the task “{subject}”." },
-      "milestone_due": { "title": "Milestone due soon", "body": "Milestone “{subject}” is due soon." },
-      "access_granted": { "title": "Access granted", "body": "You were granted access to “{subject}”." },
-      "access_revoked": { "title": "Access revoked", "body": "Your access to “{subject}” was revoked after a confidentiality change." },
-      "access_requested": { "title": "New access request", "body": "A user requested access to “{subject}”." },
-      "account_approved": { "title": "Your account is approved", "body": "“{subject}” has been approved. You now have full access." },
-      "review_needed": { "title": "Item awaiting review", "body": "“{subject}” is waiting for your review." },
-      "progress_update": { "title": "New progress update", "body": "A new progress update was posted in “{subject}”." },
-      "no_matches": { "title": "Challenge without matches", "body": "No candidate passed the match threshold for “{subject}”." }
+      "challenge_status": {
+        "title": "Challenge update: {subject}",
+        "body": "Challenge “{subject}” is now: {status}."
+      },
+      "project_status": {
+        "title": "Project update: {subject}",
+        "body": "Project “{subject}” is now: {status}."
+      },
+      "new_match": {
+        "title": "New match",
+        "body": "A new match about “{subject}” is waiting for your review."
+      },
+      "match_update": {
+        "title": "Match update",
+        "body": "The match about “{subject}” is now: {status}."
+      },
+      "contact_request": {
+        "title": "New contact request",
+        "body": "You received a contact request about “{subject}”."
+      },
+      "contact_response": {
+        "title": "Contact request answered",
+        "body": "Your contact request about “{subject}” was {status}."
+      },
+      "task_assigned": {
+        "title": "New task assigned",
+        "body": "You were assigned the task “{subject}”."
+      },
+      "milestone_due": {
+        "title": "Milestone due soon",
+        "body": "Milestone “{subject}” is due soon."
+      },
+      "access_granted": {
+        "title": "Access granted",
+        "body": "You were granted access to “{subject}”."
+      },
+      "access_revoked": {
+        "title": "Access revoked",
+        "body": "Your access to “{subject}” was revoked after a confidentiality change."
+      },
+      "access_requested": {
+        "title": "New access request",
+        "body": "A user requested access to “{subject}”."
+      },
+      "account_approved": {
+        "title": "Your account is approved",
+        "body": "“{subject}” has been approved. You now have full access."
+      },
+      "review_needed": {
+        "title": "Item awaiting review",
+        "body": "“{subject}” is waiting for your review."
+      },
+      "progress_update": {
+        "title": "New progress update",
+        "body": "A new progress update was posted in “{subject}”."
+      },
+      "no_matches": {
+        "title": "Challenge without matches",
+        "body": "No candidate passed the match threshold for “{subject}”."
+      }
     }
   },
   "emails": {
     "footer": "InnovateLink Palestine — Bara'a Association",
-    "verify": { "title": "Confirm your email", "body": "Welcome to InnovateLink Palestine. Click the button below to confirm your email. The link expires in 48 hours.", "cta": "Confirm email" },
-    "reset": { "title": "Reset your password", "body": "You asked to reset your password. Use the button below within one hour. If this wasn't you, ignore this message.", "cta": "Set a new password" }
+    "verify": {
+      "title": "Confirm your email",
+      "body": "Welcome to InnovateLink Palestine. Click the button below to confirm your email. The link expires in 48 hours.",
+      "cta": "Confirm email"
+    },
+    "reset": {
+      "title": "Reset your password",
+      "body": "You asked to reset your password. Use the button below within one hour. If this wasn't you, ignore this message.",
+      "cta": "Set a new password"
+    }
+  },
+  "challenges": {
+    "categories": {
+      "operations": "Operations improvement",
+      "product_dev": "Product development",
+      "digital_automation": "Digital & automation",
+      "energy_water_waste": "Energy, water & waste",
+      "quality_manufacturing": "Quality & manufacturing",
+      "market_logistics": "Market & logistics",
+      "research_tech": "Research & technology"
+    }
   }
 }

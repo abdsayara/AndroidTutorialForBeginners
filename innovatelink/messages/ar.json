@@ -3,33 +3,112 @@
     "open": "فتح في المنصة",
     "footer": "InnovateLink Palestine — جمعية براعة. يمكنك ضبط إشعارات البريد من صفحة الإعدادات.",
     "statuses": {
-      "draft": "مسودة", "submitted": "قيد المراجعة", "needs_info": "بحاجة لمعلومات", "published": "منشور",
-      "matched": "تمت المطابقة", "in_progress": "قيد التنفيذ", "solved": "تم الحل", "closed": "مغلق",
-      "pending_approval": "بانتظار الاعتماد", "in_collaboration": "قيد التعاون", "commercializing": "في مسار التسويق", "archived": "مؤرشف",
-      "shortlisted": "مرشحة", "accepted_by_company": "قبلتها الشركة", "accepted_by_academic": "قبلها الطرف الأكاديمي", "confirmed": "مؤكدة", "rejected": "مرفوضة",
-      "approved": "مقبول", "declined": "مرفوض", "accepted": "مقبول"
+      "draft": "مسودة",
+      "submitted": "قيد المراجعة",
+      "needs_info": "بحاجة لمعلومات",
+      "published": "منشور",
+      "matched": "تمت المطابقة",
+      "in_progress": "قيد التنفيذ",
+      "solved": "تم الحل",
+      "closed": "مغلق",
+      "pending_approval": "بانتظار الاعتماد",
+      "in_collaboration": "قيد التعاون",
+      "commercializing": "في مسار التسويق",
+      "archived": "مؤرشف",
+      "shortlisted": "مرشحة",
+      "accepted_by_company": "قبلتها الشركة",
+      "accepted_by_academic": "قبلها الطرف الأكاديمي",
+      "confirmed": "مؤكدة",
+      "rejected": "مرفوضة",
+      "approved": "مقبول",
+      "declined": "مرفوض",
+      "accepted": "مقبول"
     },
     "types": {
-      "challenge_status": { "title": "تحديث على التحدي: {subject}", "body": "تغيّرت حالة التحدي «{subject}» إلى: {status}." },
-      "project_status": { "title": "تحديث على المشروع: {subject}", "body": "تغيّرت حالة المشروع «{subject}» إلى: {status}." },
-      "new_match": { "title": "مطابقة جديدة", "body": "هناك مطابقة جديدة بانتظار مراجعتك تتعلق بـ «{subject}»." },
-      "match_update": { "title": "تحديث على مطابقة", "body": "تغيّرت حالة المطابقة المتعلقة بـ «{subject}» إلى: {status}." },
-      "contact_request": { "title": "طلب تواصل جديد", "body": "وصلك طلب تواصل بخصوص «{subject}»." },
-      "contact_response": { "title": "رد على طلب تواصل", "body": "تم الرد على طلب التواصل بخصوص «{subject}»: {status}." },
-      "task_assigned": { "title": "مهمة جديدة مسندة إليك", "body": "أُسندت إليك المهمة «{subject}»." },
-      "milestone_due": { "title": "موعد مرحلة يقترب", "body": "يقترب موعد استحقاق المرحلة «{subject}»." },
-      "access_granted": { "title": "تم منحك وصولاً", "body": "مُنحت وصولاً لتفاصيل «{subject}»." },
-      "access_revoked": { "title": "تم سحب وصول", "body": "سُحب وصولك إلى «{subject}» بعد تغيير مستوى السرية." },
-      "access_requested": { "title": "طلب وصول جديد", "body": "طلب أحد المستخدمين الوصول إلى «{subject}»." },
-      "account_approved": { "title": "تم اعتماد حسابك", "body": "تم اعتماد «{subject}». يمكنك الآن استخدام المنصة بالكامل." },
-      "review_needed": { "title": "عنصر بانتظار المراجعة", "body": "«{subject}» بانتظار مراجعتك." },
-      "progress_update": { "title": "تحديث تقدم جديد", "body": "نُشر تحديث تقدم جديد في مساحة «{subject}»." },
-      "no_matches": { "title": "تحدٍّ بلا مطابقات", "body": "لم يتجاوز أي مرشح عتبة المطابقة للتحدي «{subject}»." }
+      "challenge_status": {
+        "title": "تحديث على التحدي: {subject}",
+        "body": "تغيّرت حالة التحدي «{subject}» إلى: {status}."
+      },
+      "project_status": {
+        "title": "تحديث على المشروع: {subject}",
+        "body": "تغيّرت حالة المشروع «{subject}» إلى: {status}."
+      },
+      "new_match": {
+        "title": "مطابقة جديدة",
+        "body": "هناك مطابقة جديدة بانتظار مراجعتك تتعلق بـ «{subject}»."
+      },
+      "match_update": {
+        "title": "تحديث على مطابقة",
+        "body": "تغيّرت حالة المطابقة المتعلقة بـ «{subject}» إلى: {status}."
+      },
+      "contact_request": {
+        "title": "طلب تواصل جديد",
+        "body": "وصلك طلب تواصل بخصوص «{subject}»."
+      },
+      "contact_response": {
+        "title": "رد على طلب تواصل",
+        "body": "تم الرد على طلب التواصل بخصوص «{subject}»: {status}."
+      },
+      "task_assigned": {
+        "title": "مهمة جديدة مسندة إليك",
+        "body": "أُسندت إليك المهمة «{subject}»."
+      },
+      "milestone_due": {
+        "title": "موعد مرحلة يقترب",
+        "body": "يقترب موعد استحقاق المرحلة «{subject}»."
+      },
+      "access_granted": {
+        "title": "تم منحك وصولاً",
+        "body": "مُنحت وصولاً لتفاصيل «{subject}»."
+      },
+      "access_revoked": {
+        "title": "تم سحب وصول",
+        "body": "سُحب وصولك إلى «{subject}» بعد تغيير مستوى السرية."
+      },
+      "access_requested": {
+        "title": "طلب وصول جديد",
+        "body": "طلب أحد المستخدمين الوصول إلى «{subject}»."
+      },
+      "account_approved": {
+        "title": "تم اعتماد حسابك",
+        "body": "تم اعتماد «{subject}». يمكنك الآن استخدام المنصة بالكامل."
+      },
+      "review_needed": {
+        "title": "عنصر بانتظار المراجعة",
+        "body": "«{subject}» بانتظار مراجعتك."
+      },
+      "progress_update": {
+        "title": "تحديث تقدم جديد",
+        "body": "نُشر تحديث تقدم جديد في مساحة «{subject}»."
+      },
+      "no_matches": {
+        "title": "تحدٍّ بلا مطابقات",
+        "body": "لم يتجاوز أي مرشح عتبة المطابقة للتحدي «{subject}»."
+      }
     }
   },
   "emails": {
     "footer": "InnovateLink Palestine — جمعية براعة",
-    "verify": { "title": "أكّد بريدك الإلكتروني", "body": "مرحباً بك في InnovateLink Palestine. اضغط الزر أدناه لتأكيد بريدك الإلكتروني. ينتهي الرابط خلال 48 ساعة.", "cta": "تأكيد البريد" },
-    "reset": { "title": "استعادة كلمة المرور", "body": "طلبت إعادة تعيين كلمة المرور. اضغط الزر أدناه خلال ساعة لتعيين كلمة جديدة. إن لم تطلب ذلك فتجاهل الرسالة.", "cta": "تعيين كلمة مرور جديدة" }
+    "verify": {
+      "title": "أكّد بريدك الإلكتروني",
+      "body": "مرحباً بك في InnovateLink Palestine. اضغط الزر أدناه لتأكيد بريدك الإلكتروني. ينتهي الرابط خلال 48 ساعة.",
+      "cta": "تأكيد البريد"
+    },
+    "reset": {
+      "title": "استعادة كلمة المرور",
+      "body": "طلبت إعادة تعيين كلمة المرور. اضغط الزر أدناه خلال ساعة لتعيين كلمة جديدة. إن لم تطلب ذلك فتجاهل الرسالة.",
+      "cta": "تعيين كلمة مرور جديدة"
+    }
+  },
+  "challenges": {
+    "categories": {
+      "operations": "تحسين العمليات",
+      "product_dev": "تطوير المنتجات",
+      "digital_automation": "الأتمتة والتحول الرقمي",
+      "energy_water_waste": "الطاقة والمياه والمخلفات",
+      "quality_manufacturing": "الجودة والتصنيع",
+      "market_logistics": "السوق والخدمات اللوجستية",
+      "research_tech": "البحث والتكنولوجيا"
+    }
   }
 }

@@ -13,7 +13,7 @@ export default defineConfig({
     hookTimeout: 60000,
     env: {
       DATABASE_URL: process.env.TEST_DATABASE_URL ?? "postgresql://innovate:innovate@localhost:5432/innovatelink_test",
-      NODE_ENV: "test", LLM_PROVIDER: "mock", EMBEDDING_DIM: "64", AI_ALLOW_CONFIDENTIAL: "false" },
+      NODE_ENV: "test", LLM_PROVIDER: "mock", EMBEDDING_DIM: "256", AI_ALLOW_CONFIDENTIAL: "false" },
     coverage: {
       provider: "v8",
       include: ["src/modules/*/service.ts", "src/modules/*/policy.ts"],
