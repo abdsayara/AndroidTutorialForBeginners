@@ -64,6 +64,12 @@ test('كل محاكاة: الصيغ والنتائج والخطوات بلا ر�
   assert.ok(n > 1000);
 });
 
+test('إحداثيات النقاط على الرسوم: لا عزل للأرقام العربية فتبقى الأقواس متطابقة، واللاتيني فقط يُعزل', () => {
+  const t = ML.bidi(ML.loc("B(-4, 3)", MA));
+  assert.equal(t, 'ب(-٤، ٣)'); assert.ok(!/[\u2066-\u2069]/.test(t));
+  assert.ok(/\u2066H₂\u2069/.test(ML.bidi('الهيدروجين H₂')));
+});
+
 test('الوضع الدولي يعيد الصيغ كما هي', () => {
   ML.setNotation('intl');
   try { assert.equal(ML.arTeX('F = ma', PH), 'F = ma'); assert.equal(ML.loc('F = 20 N', PH), 'F = 20 N'); }

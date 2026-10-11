@@ -243,13 +243,23 @@
       const al = ctx.textAlign; const rtl = getComputedDir(ctx);
       let x0 = al === 'center' ? x - total / 2 : (al === 'right' || (al === 'start' && rtl) || (al === 'end' && !rtl)) ? x - total : x;
       ctx.textAlign = 'left';
-      parts.forEach((q, k) => { ctx.font = q[1]; ctx.direction = q[3]; fn.call(ctx, q[0], x0, y + q[2]); x0 += ws[k]; });
+      parts.forEach((q, k) => { ctx.font = q[1]; ctx.direction = 'rtl'; fn.call(ctx, q[3] === 'rtl' ? rtlText(q[0]) : q[0], x0, y + q[2]); x0 += ws[k]; });
       ctx.restore(); return true;
     }
     function getComputedDir(ctx) { return ctx.direction === 'rtl'; }
-    proto.fillText = function (t, ...a) { t = L(String(t)); if (mode === 'ar' && /[⁰¹²³⁴-⁹]/.test(t) && sciDraw(ft, this, t, a[0], a[1])) return; return ft.call(this, t, ...a); };
-    proto.strokeText = function (t, ...a) { t = L(String(t)); if (mode === 'ar' && /[⁰¹²³⁴-⁹]/.test(t) && sciDraw(st, this, t, a[0], a[1])) return; return st.call(this, t, ...a); };
-    proto.measureText = function (t) { return mt.call(this, L(String(t))); };
+    // صيغة الكتاب: النص المعرّب يُرسم من اليمين لليسار؛ فقط المقاطع اللاتينية (H₂ …) تُعزل
+    const ARX = /[\u0600-\u06FF]/;
+    const rtlText = (t) => t.replace(/[\u2066-\u2069]/g, '').replace(/[A-Za-z][A-Za-z0-9₀-₉]*/g, (m) => '\u2066' + m + '\u2069');
+    function draw(fn, ctx, t, a) {
+      t = L(String(t));
+      if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);
+      if (/[⁰¹²³⁴-⁹]/.test(t) && sciDraw(fn, ctx, t, a[0], a[1])) return undefined;
+      const d = ctx.direction; ctx.direction = 'rtl';
+      const r = fn.call(ctx, rtlText(t), ...a); ctx.direction = d; return r;
+    }
+    proto.fillText = function (t, ...a) { return draw(ft, this, t, a); };
+    proto.strokeText = function (t, ...a) { return draw(st, this, t, a); };
+    proto.measureText = function (t) { t = L(String(t)); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, rtlText(t)); this.direction = d; return r; };
     proto.__mlLoc = true;
   }
 
