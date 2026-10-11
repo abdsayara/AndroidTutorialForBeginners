@@ -11,7 +11,7 @@ const join = (...parts: (string | null | undefined | string[])[]) =>
  * confidential challenges contribute only public_title + category (PRD §7.4).
  */
 export function challengeText(c: Pick<Challenge, "title" | "public_title" | "category" | "visibility" | "problem_statement" | "current_situation" | "desired_outcome" | "constraints" | "tags">): string {
-  const category = c.category ? serverT("ar", "challenges.categories")(c.category) : "";
+  const category = c.category ? serverT("ar", "enums.category")(c.category) : "";
   if (c.visibility === "confidential" && !aiConfig().allowConfidential) return join(c.public_title, category);
   return join(c.title, category, c.tags, c.problem_statement, c.current_situation, c.desired_outcome, c.constraints);
 }
