@@ -1,9 +1,11 @@
-import { hash, verify, Algorithm } from "@node-rs/argon2";
+import { hash, verify } from "@node-rs/argon2";
+
+const ARGON2ID = 2; // Algorithm.Argon2id (const enum, not importable under isolatedModules)
 import { createHash, randomBytes } from "node:crypto";
 
 /** argon2id (PRD §9). */
 export async function hashPassword(pw: string): Promise<string> {
-  return hash(pw, { algorithm: Algorithm.Argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 });
+  return hash(pw, { algorithm: ARGON2ID, memoryCost: 19456, timeCost: 2, parallelism: 1 });
 }
 
 export async function verifyPassword(stored: string, pw: string): Promise<boolean> {

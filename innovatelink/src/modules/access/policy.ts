@@ -40,3 +40,13 @@ export function isNarrowing(from: Visibility, to: Visibility, fromOrgs: string[]
   if (from === "selected_orgs" && to === "selected_orgs") return fromOrgs.some((o) => !toOrgs.includes(o));
   return false;
 }
+
+/** FR-0.6: only the owner of the entity approves access requests. */
+export function canDecideAccess(isOwner: boolean, actor: MaybeActor): boolean {
+  return isActive(actor) && isOwner;
+}
+
+/** FR-0.6: NDA can only be accepted against an approved request by the requester. */
+export function canAcceptNda(actor: MaybeActor, req: { user_id: string; status: string }): boolean {
+  return isActive(actor) && req.user_id === actor.id && req.status === "approved";
+}

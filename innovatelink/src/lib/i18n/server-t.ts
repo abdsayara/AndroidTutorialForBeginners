@@ -6,6 +6,8 @@ import type { Locale } from "./config";
 const MESSAGES = { ar, en } as const;
 
 /** Translator usable outside React (emails, worker, CSV export headers). */
-export function serverT(locale: Locale, namespace?: string) {
-  return createTranslator({ locale, messages: MESSAGES[locale], namespace: namespace as never });
+export type LooseT = (key: string, values?: Record<string, string | number>) => string;
+
+export function serverT(locale: Locale, namespace?: string): LooseT {
+  return createTranslator({ locale, messages: MESSAGES[locale], namespace: namespace as never }) as unknown as LooseT;
 }

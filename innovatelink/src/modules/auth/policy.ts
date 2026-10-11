@@ -10,6 +10,8 @@ export interface Actor {
 }
 
 export type MaybeActor = Actor | null;
+/** Narrowed type for type guards: the false branch still admits inactive actors. */
+export type ActiveActor = Actor & { status: "active" };
 
 export const COMPANY_ROLES: readonly Role[] = ["company_admin", "company_member"];
 export const ACADEMIC_ROLES: readonly Role[] = ["student", "researcher"];
@@ -35,23 +37,23 @@ export const ROLE_ORG_TYPE: Record<Role, OrgType> = {
   platform_admin: "platform",
 };
 
-export function isActive(a: MaybeActor): a is Actor {
+export function isActive(a: MaybeActor): a is ActiveActor {
   return !!a && a.status === "active";
 }
 
-export function isPlatformStaff(a: MaybeActor): a is Actor {
+export function isPlatformStaff(a: MaybeActor): a is ActiveActor {
   return isActive(a) && PLATFORM_ROLES.includes(a.role);
 }
 
-export function isPlatformAdmin(a: MaybeActor): a is Actor {
+export function isPlatformAdmin(a: MaybeActor): a is ActiveActor {
   return isActive(a) && a.role === "platform_admin";
 }
 
-export function isCompanyUser(a: MaybeActor): a is Actor {
+export function isCompanyUser(a: MaybeActor): a is ActiveActor {
   return isActive(a) && COMPANY_ROLES.includes(a.role);
 }
 
-export function isAcademic(a: MaybeActor): a is Actor {
+export function isAcademic(a: MaybeActor): a is ActiveActor {
   return isActive(a) && ACADEMIC_ROLES.includes(a.role);
 }
 

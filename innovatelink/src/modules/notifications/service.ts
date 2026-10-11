@@ -52,9 +52,9 @@ export async function notify(userIds: string[], type: NotificationType, payload:
     const prefs = (u.email_prefs ?? {}) as Record<string, boolean>;
     if (prefs[type] === false) continue;
     const t = serverT(u.locale, "notifications");
-    const vars = { subject: payload.subject ?? "", status: payload.status ? t(`statuses.${payload.status}` as never) : "" };
-    const title = t(`types.${type}.title` as never, vars as never);
-    const bodyText = t(`types.${type}.body` as never, vars as never);
+    const vars = { subject: payload.subject ?? "", status: payload.status ? t(`statuses.${payload.status}`) : "" };
+    const title = t(`types.${type}.title`, vars);
+    const bodyText = t(`types.${type}.body`, vars);
     const url = payload.url ? `${process.env.APP_URL ?? ""}/${u.locale}${payload.url}` : undefined;
     const { html, text } = renderEmail({
       locale: u.locale,

@@ -1,7 +1,7 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import { log } from "@/lib/log";
 
-let transport: nodemailer.Transporter | null = null;
+let transport: Transporter | null = null;
 
 function getTransport() {
   transport ??= nodemailer.createTransport({
