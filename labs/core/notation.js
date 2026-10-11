@@ -119,10 +119,55 @@
     t = t.replace(/[A-Za-z]+/g, (w) => (TWORDS[w] !== undefined ? TWORDS[w] : (UNITS[w] || w)));
     return toAD(t.replace(/(\d)\.(\d)/g, '$1,$2'));
   }
+  // إشارة السالب على يسار العدد كما في الكتاب (−٤): في المعادلة المعكوسة نضع السالب بعد معامله
+  const UNARY_OPS = /^(le|ge|leq|geq|lt|gt|times|cdot|div|quad|qquad|Rightarrow|Leftarrow|rightarrow|leftarrow|to|approx|ne|neq|iff|implies|in|pm|mp|left|right|equiv|sim|lim|sum|frac|dfrac|tfrac|sqrt|mid|colon|land|lor|wedge|vee|neg|,|;|!)$/;
+  function groupEnd(s, i) { let d = 0; for (let j = i; j < s.length; j++) { if (s[j] === '\\') { j++; continue; } if (s[j] === '{') d++; else if (s[j] === '}') { d--; if (!d) return j + 1; } } return s.length; }
+  function scriptsEnd(s, j) { while (s[j] === '^' || s[j] === '_') { j++; if (s[j] === '{') j = groupEnd(s, j); else if (s[j] === '\\') { j++; while (/[A-Za-z]/.test(s[j] || '')) j++; } else j++; } return j; }
+  function operandEnd(s, i) {
+    const c = s[i];
+    if (/[0-9]/.test(c || '')) { let j = i; while (/[0-9.]/.test(s[j] || '')) j++; return scriptsEnd(s, j); }
+    if (/[A-Za-z]/.test(c || '')) return scriptsEnd(s, i + 1);
+    if (c === '{') return scriptsEnd(s, groupEnd(s, i));
+    if (c === '(') { let d = 0; for (let j = i; j < s.length; j++) { if (s[j] === '(') d++; else if (s[j] === ')') { d--; if (!d) return scriptsEnd(s, j + 1); } } return -1; }
+    if (c === '\\') {
+      let j = i + 1; while (/[A-Za-z]/.test(s[j] || '')) j++; const cmd = s.slice(i + 1, j);
+      if (/^(frac|dfrac|tfrac|binom)$/.test(cmd) && s[j] === '{') { j = groupEnd(s, j); if (s[j] === '{') j = groupEnd(s, j); return scriptsEnd(s, j); }
+      if (cmd === 'sqrt' && s[j] === '{') return scriptsEnd(s, groupEnd(s, j));
+      if (cmd === 'left') { let d = 0; for (let k = i; k < s.length; k++) { if (s.startsWith('\\left', k)) { d++; k += 4; } else if (s.startsWith('\\right', k)) { d--; k += 5; if (!d) { let e = k + 1; if (s[e] === '\\') { e++; while (/[A-Za-z]/.test(s[e] || '')) e++; } else e++; return scriptsEnd(s, e); } } } return -1; }
+      if (/^(text|mathrm|vec|bar|hat)$/.test(cmd) && s[j] === '{') return scriptsEnd(s, groupEnd(s, j));
+      if (/^(pi|infty|theta|alpha|beta|delta|varphi|phi|lambda|rho|omega|mu|Delta|circ)$/.test(cmd)) return scriptsEnd(s, j);
+      return -1;
+    }
+    return -1;
+  }
+  function isUnaryAt(s, i) {
+    let k = i - 1; while (k >= 0 && s[k] === ' ') k--;
+    if (k < 0) return true;
+    const p = s[k];
+    if ('([{=,+-−<>:;&|'.indexOf(p) >= 0) return !(p === '|' && /[A-Za-z0-9)]/.test(s[k - 1] || '')) && !(p === '{' && s[k - 1] === '\\' && false);
+    if (/[A-Za-z]/.test(p)) { let b = k; while (b >= 0 && /[A-Za-z]/.test(s[b])) b--; if (s[b] === '\\') return UNARY_OPS.test(s.slice(b + 1, k + 1)); }
+    if (p === '\\') return false;
+    return false;
+  }
+  function moveUnaryMinus(s) {
+    let out = '', i = 0;
+    while (i < s.length) {
+      const c = s[i];
+      if (c === '\\') { let j = i + 1; if (/[A-Za-z]/.test(s[j] || '')) { while (/[A-Za-z]/.test(s[j] || '')) j++; } else j++; out += s.slice(i, j); i = j; continue; }
+      if ((c === '-' || c === '−') && isUnaryAt(s, i)) {
+        let j = i + 1; while (s[j] === ' ') j++;
+        const e = operandEnd(s, j);
+        if (e > j) { out += moveUnaryMinus(s.slice(j, e)) + '{-}'; i = e; continue; }
+      }
+      out += c; i++;
+    }
+    return out;
+  }
+  ML.moveUnaryMinus = moveUnaryMinus;
   ML.arTeX = function (tex, sim) {
     if (!ML.isAr()) return tex;
     sim = sim === undefined ? ML.curSim : sim;
-    const vm = varMap(sim); const s = String(tex); let out = ''; let i = 0; let prevLetter = false; let argN = 0; // معاملات بلا أقواس: \\tfrac12 ، x^2
+    const vm = varMap(sim); const s = moveUnaryMinus(String(tex)); let out = ''; let i = 0; let prevLetter = false; let argN = 0; // معاملات بلا أقواس: \\tfrac12 ، x^2
     const mapLetter = (c) => vm.own[c] || vm.base[c] || c;
     while (i < s.length) {
       const ch = s[i];
@@ -189,6 +234,9 @@
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const UNIT_RE = new RegExp('(\\d[\\d.,⁰-⁹⁻×\\s]*|\\()\\s?(' + UNIT_TXT.map((u) => escRe(u[0])).join('|') + ')(?![A-Za-z²³])', 'g');
   const UNIT_MAP = Object.fromEntries(UNIT_TXT);
+  // في النص العادي: السالب ملاصق للعدد على يساره (−٤) داخل النص العربي
+  const isoNeg = (s) => String(s).replace(/(^|[^٠-٩A-Za-z0-9)\]⁦])([-−])([٠-٩][٠-٩,]*)/g, '$1⁦$2$3⁩');
+  ML.isoNeg = isoNeg;
   ML.loc = function (str, sim) {
     if (!ML.isAr() || str === null || str === undefined) return str;
     sim = sim === undefined ? ML.curSim : sim;
@@ -219,7 +267,7 @@
     s = s.replace(/[θφαβδλρωμ]/g, (c) => { const k = { 'θ': 'theta', 'φ': 'varphi', 'α': 'alpha', 'β': 'beta', 'δ': 'delta', 'λ': 'lambda', 'ρ': 'rho', 'ω': 'omega', 'μ': 'mu' }[c]; const r = vm.own['\\' + k] || vm.greek[k]; return r && /[\u0600-\u06FF]/.test(r) ? r.replace('_', ' ') : c; });
     s = s.replace(/[₀-₉]/g, (c) => SUBD[c]);
     s = s.replace(/(?<![٠-٩]),|,(?![٠-٩])/g, '،').replace(/(\d)\.(\d)/g, '$1,$2');
-    return toAD(s);
+    return isoNeg(toAD(s));
   };
   // أرقام فقط (لعقد النص في الصفحة)
   ML.locDigits = (s) => (ML.isAr() ? toAD(String(s).replace(/(\d)\.(\d)/g, '$1,$2')) : s);
@@ -249,7 +297,7 @@
     function getComputedDir(ctx) { return ctx.direction === 'rtl'; }
     // صيغة الكتاب: النص المعرّب يُرسم من اليمين لليسار؛ فقط المقاطع اللاتينية (H₂ …) تُعزل
     const ARX = /[\u0600-\u06FF]/;
-    const rtlText = (t) => t.replace(/[\u2066-\u2069]/g, '').replace(/[A-Za-z][A-Za-z0-9₀-₉]*/g, (m) => '\u2066' + m + '\u2069');
+    const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[A-Za-z][A-Za-z0-9₀-₉]*/g, (m) => '\u2066' + m + '\u2069');
     function draw(fn, ctx, t, a) {
       t = L(String(t));
       if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);

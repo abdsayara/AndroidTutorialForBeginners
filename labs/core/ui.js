@@ -94,7 +94,6 @@
   ML.el = el;
 
   // اسم المطوّر (يظهر في الصفحة الرئيسية وكل محاكاة)
-  const CREDIT = '<p class="dev">تطوير: <a href="https://www.linkedin.com/in/abd-sayara" target="_blank" rel="noopener noreferrer">عبدالرحمن سياعره</a></p>';
 
   /* ---------- السمة ---------- */
   function initTheme() {
@@ -197,7 +196,7 @@
       if (!grid.children.length) grid.innerHTML = '<p class="empty">لا توجد نتائج مطابقة.</p>';
     };
     input.addEventListener('input', draw); draw();
-    app.appendChild(el('footer', { class: 'foot' }, 'جميع القوانين والأمثلة مأخوذة من ' + subj.book + '. أي إثراء بصري خارج الكتاب مُعلَّم بوضوح.' + CREDIT));
+    app.appendChild(el('footer', { class: 'foot' }, 'جميع القوانين والأمثلة مأخوذة من ' + subj.book + '. أي إثراء بصري خارج الكتاب مُعلَّم بوضوح.'));
   }
 
   /* ---------- صفحة المحاكاة ---------- */
@@ -291,7 +290,6 @@
         (s.assumptions && s.assumptions.length ? '<p class="assume-law"><b>الافتراضات:</b> ' + s.assumptions.map((x) => ML.rich(x)).join('، ') + '</p>' : '');
       main.appendChild(law);
       app.appendChild(main);
-      app.appendChild(el('footer', { class: 'foot sim-foot' }, CREDIT));
 
       this.buildParams();
       // الرسم
@@ -341,7 +339,7 @@
           b.addEventListener('click', () => this.set(q.key, !this.p[q.key]));
           this.inputs[q.key] = { tog: b };
         } else {
-          row.innerHTML = lab + '<div class="rng"><input type="range" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '"><input type="text" inputmode="decimal" dir="' + (ML.isAr() ? 'rtl' : 'ltr') + '" aria-label="' + esc(q.desc || q.key) + '"></div>';
+          row.innerHTML = lab + '<div class="rng"><input type="range" min="' + q.min + '" max="' + q.max + '" step="' + q.step + '"><input type="text" inputmode="decimal" dir="ltr" aria-label="' + esc(q.desc || q.key) + '"></div>';
           const r = row.querySelector('input[type=range]'), n = row.querySelector('input[type=text]');
           r.addEventListener('input', () => this.set(q.key, this.fixParam(q, +r.value)));
           n.addEventListener('change', () => { let v = ML.parseNum(n.value); if (!Number.isFinite(v)) v = this.p[q.key]; this.set(q.key, this.fixParam(q, M.clamp(v, q.min, q.max), true)); });

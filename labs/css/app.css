@@ -99,10 +99,6 @@ button, input, select { font: inherit; color: inherit; }
 .lessons .pg { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .empty { text-align: center; color: var(--muted); grid-column: 1 / -1; }
 .foot { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 30px; }
-.foot .dev { margin: 8px 0 0; font-size: 14px; }
-.foot .dev a { color: var(--primary); font-weight: 700; }
-.foot .dev a:hover { text-decoration: underline; }
-.sim-foot { margin-top: -86px; padding-bottom: 90px; }
 
 /* صفحة المحاكاة */
 .sim-head { max-width: 1400px; margin: 0 auto; padding: 18px 16px 8px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 20px; align-items: start; }

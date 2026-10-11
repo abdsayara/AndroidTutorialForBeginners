@@ -64,9 +64,12 @@ test('كل محاكاة: الصيغ والنتائج والخطوات بلا ر�
   assert.ok(n > 1000);
 });
 
-test('إحداثيات النقاط على الرسوم: لا عزل للأرقام العربية فتبقى الأقواس متطابقة، واللاتيني فقط يُعزل', () => {
+test('إحداثيات النقاط والسالب على يسار العدد كما في الكتاب، واللاتيني فقط يُعزل', () => {
   const t = ML.bidi(ML.loc("B(-4, 3)", MA));
-  assert.equal(t, 'ب(-٤، ٣)'); assert.ok(!/[\u2066-\u2069]/.test(t));
+  // السالب ملاصق للعدد على يساره (−٤)، ولا عزل لبقية الأرقام والأقواس
+  assert.equal(t, 'ب(\u2066-٤\u2069، ٣)');
+  assert.equal(ML.moveUnaryMinus('x = -3'), 'x = 3{-}'); assert.equal(ML.moveUnaryMinus('x - 2'), 'x - 2');
+  assert.equal(ML.moveUnaryMinus('-(3x + 1)'), '(3x + 1){-}'); assert.equal(ML.moveUnaryMinus('(-4, 3)'), '(4{-}, 3)');
   assert.ok(/\u2066H₂\u2069/.test(ML.bidi('الهيدروجين H₂')));
 });
 
