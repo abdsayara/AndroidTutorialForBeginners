@@ -274,4 +274,53 @@
       { q: 'ما الفرق بين التوائم المتطابقة وغير المتطابقة؟', k: ['توائم', 'متطابقه'], a: () => 'المتطابقة: من بويضة واحدة وحيوان منوي واحد، متشابهة في الجنس والشكل والتركيب الوراثي. غير المتطابقة: من خليتين بيضيتين أو أكثر أُخصبت كل منها بحيوان منوي مستقل (ص 79).' }
     ]
   });
+  /* ======================= 4-2 التوائم ======================= */
+  const TWINS = {
+    id: { name: 'التوائم المتطابقة', eggs: 1, split: true, joined: false, text: 'ينتج التوأم من بويضة واحدة أُخصبت بحيوان منوي واحد، ثم تنقسم البويضة المخصبة إلى خليتين منفصلتين تنمو كل منهما جنيناً مستقلاً.', same: 'متشابهة في الجنس والشكل الخارجي والتركيب الوراثي.' },
+    non: { name: 'التوائم غير المتطابقة', eggs: 2, split: false, joined: false, text: 'ينتج التوأم من خليتين بيضيتين ثانويتين أو أكثر نضجت في الفترة نفسها، وأُخصبت كل منها بحيوان منوي مستقل.', same: 'قد تكون متشابهة أو مختلفة في الجنس والشكل الخارجي.' },
+    sia: { name: 'التوائم السيامية', eggs: 1, split: true, joined: true, text: 'تنقسم البويضة المخصبة أحياناً إلى خليتين لا تنفصلان تماماً، وتبقيان متصلتين في موقع معين؛ نسبة إلى دولة سيام (الاسم القديم لتايلاند).', same: 'تبقيان متصلتين في موقع معين.' }
+  };
+  const TW_ST = ['خروج الخلية البيضية الثانوية', 'الإخصاب', 'البويضة المخصبة', 'النتيجة'];
+  reg({
+    id: 'twins', order: 4, lesson: '4-2', lessonTitle: 'الإخصاب ومراحل تطور الجنين (التوائم)', page: 79,
+    titleAr: 'التوائم: المتطابقة وغير المتطابقة والسيامية', titleEn: 'Twins: Identical, Non-identical and Conjoined', tags: 'توائم متطابقه غير متطابقه سياميه بويضه مخصبه',
+    formula: '\\text{بويضة واحدة} \\to \\text{متطابقة} \\qquad \\text{بويضتان أو أكثر} \\to \\text{غير متطابقة}',
+    book: 'التوائم (ص 79–80): المتطابقة (الشكل 15)، غير المتطابقة (الشكل 16)، السيامية (الشكل 17).',
+    summary: 'اختر نوع التوائم وتتبع ما يحدث من خروج الخلية البيضية الثانوية حتى النتيجة، ولاحظ لماذا تتشابه التوائم المتطابقة في التركيب الوراثي.',
+    vars: [['\\text{نوع التوائم}', 'متطابقة / غير متطابقة / سيامية', '—', '3 أنواع'], ['\\text{عدد الخلايا البيضية}', 'التي تخرج', '—', '1 أو أكثر']],
+    assumptions: ['الرسم تخطيطي بالخلايا فقط (نموذج مبسّط لأغراض التعليم) بحسب الأشكال 15–17.'],
+    params: [{ key: 'type', label: '\\text{نوع التوائم}', type: 'select', options: Object.keys(TWINS).map((k) => [k, TWINS[k].name]), value: 'id' }, { key: 'k', label: '\\text{المرحلة}', type: 'stage', stages: TW_ST, value: 0 }],
+    onSet(p, key) { if (key === 'type') p.k = 0; },
+    play: { mode: 'stage', key: 'k', interval: 2 },
+    randomize(p) { const o = Object.keys(TWINS).filter((k) => k !== p.type); return { type: o[Math.floor(Math.random() * o.length)], k: 3 }; },
+    compute(p) { return { T: TWINS[p.type] }; },
+    drawCustom(ctx, W, H, p, d, c) {
+      const T = d.T; const k = p.k; const cy = H * 0.45; const r = Math.min(W, H) * 0.08;
+      D.txt(ctx, T.name + ' — ' + TW_ST[k], W / 2, 18, { color: c.c5, size: narrow(W) ? 12 : 15, w: '800' });
+      const xs = T.eggs === 2 ? [W * 0.33, W * 0.67] : [W / 2];
+      xs.forEach((x, i) => {
+        if (k === 0) B.blob(ctx, x, cy, r, r, '#fde68a', '#a16207', 2.5);
+        else if (k === 1) { B.blob(ctx, x, cy, r, r, '#fde68a', '#a16207', 2.5); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - r * 2.2, cy - r); ctx.lineTo(x - r * 1.1, cy - r * 0.4); ctx.stroke(); B.blob(ctx, x - r * 1.05, cy - r * 0.38, 5, 4, '#1d4ed8'); }
+        else if (k === 2) { B.blob(ctx, x, cy, r * 1.05, r * 1.05, '#fdba74', '#c2410c', 2.5); D.txt(ctx, '2n', x, cy, { color: '#7c2d12', size: 13, w: '800' }); }
+        else {
+          const gap = T.split ? (T.joined ? r * 0.8 : r * 1.6) : 0; const parts = T.split ? [-1, 1] : [0];
+          parts.forEach((sg) => B.blob(ctx, x + sg * gap, cy, r * 0.85, r * 0.85, sg < 0 || !T.split ? '#fecdd3' : '#fbcfe8', '#9f1239', 2.5));
+          if (T.joined) { ctx.fillStyle = '#fda4af'; ctx.fillRect(x - r * 0.25, cy - r * 0.3, r * 0.5, r * 0.6); }
+          if (T.eggs === 2) D.txt(ctx, 'جنين ' + (i + 1), x, cy + r * 1.4, { color: c.text, size: 12, w: '800' });
+        }
+      });
+      if (k === 3 && T.eggs === 1) D.txt(ctx, T.joined ? 'خليتان لم تنفصلا تماماً' : 'جنينان من خليتين منفصلتين', W / 2, cy + r * 1.6, { color: c.text, size: 12, w: '800' });
+      B.para(ctx, D, k === 3 ? T.text + ' ' + T.same : T.text, W / 2, H - 14, W - 30, { color: c.text, size: narrow(W) ? 11 : 13, w: '600', bottom: true });
+    },
+    live(p, d) { return '\\text{' + d.T.name + '}'; },
+    results(p, d) { return [['النوع', d.T.name, false], ['عدد الخلايا البيضية المخصبة', '' + d.T.eggs, false], ['كيف تتكون', d.T.text, false], ['التشابه', d.T.same, false]]; },
+    steps(p, d) { return [d.T.text, d.T.same]; },
+    explain(a, b) { return a.type !== b.type ? ['**' + TWINS[b.type].name + ':** ' + TWINS[b.type].text] : a.k !== b.k ? [TW_ST[b.k] + '.'] : []; },
+    learn: Object.keys(TWINS).map((k) => '**' + TWINS[k].name + ':** ' + TWINS[k].text + ' ' + TWINS[k].same).concat(['تخرج عادة خلية بيضية ثانوية واحدة شهرياً من أحد المبيضين (ص 79).']),
+    challenges: [
+      { q: 'س7 (ص 83): اعرض نتيجة التوائم التي تكون **دائماً من الجنس نفسه**.', hint: 'من بويضة واحدة وحيوان منوي واحد.', init: { type: 'non', k: 0 }, check: (p) => p.type === 'id' && p.k === 3 },
+      { q: 'اعرض نوع التوائم الذي يحتاج **أكثر من خلية بيضية ثانوية** في الوقت نفسه.', hint: 'غير المتطابقة.', init: { type: 'id', k: 0 }, check: (p) => p.type === 'non' }
+    ],
+    tutor: [{ q: 'لماذا تكون التوائم المتطابقة من الجنس نفسه؟', k: ['متطابقه', 'نفس الجنس', 'الجنس'], a: () => 'لأنها تنتج من بويضة واحدة أُخصبت بحيوان منوي واحد، فلها التركيب الوراثي نفسه (ص 79).' }]
+  });
 })(typeof window !== 'undefined' ? window : globalThis);

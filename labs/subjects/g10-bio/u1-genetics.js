@@ -132,6 +132,7 @@
     params: [
       { key: 'type', label: '\\text{الحمض النووي}', type: 'select', options: [['DNA', 'DNA (سكر رايبوزي منقوص الأكسجين)'], ['RNA', 'RNA (سكر رايبوزي)']], value: 'DNA' },
       seqParam('ATGCGTA'),
+      { key: 'ans', label: '\\text{أكمل السلسلة المتممة}', type: 'text', value: '', maxLength: 14, desc: 'اكتب المتممة بنفسك (اختياري)', normalize: B.normSeq, validate: (v) => (v === '' ? null : B.validateSeq(v, 'DNA')), hidden: (p) => p.type === 'RNA' },
       { key: 'hb', label: '\\text{الروابط الهيدروجينية}', type: 'toggle', value: true, on: 'إظهار الروابط', off: 'إخفاء الروابط' }
     ],
     onSet(p, key) { if (key === 'type') p.seq = p.type === 'RNA' ? p.seq.replace(/T/g, 'U') : p.seq.replace(/U/g, 'T'); },
@@ -140,7 +141,9 @@
     compute(p) {
       const err = B.validateSeq(p.seq, p.type); if (err) return { err: err };
       if (p.type === 'RNA') { const s = B.normSeq(p.seq); return { seq: s, rna: true, n: s.length, u: (s.match(/U/g) || []).length }; }
-      const r = B.complement(p.seq, 'DNA'); return Object.assign({}, r, { rev: r.comp.split('').reverse().join('') });
+      const r = B.complement(p.seq, 'DNA'); const ans = B.normSeq(p.ans || '');
+      const marks = ans.split('').map((ch, i) => (ch === r.comp[i] ? '✓' : '✗'));
+      return Object.assign({}, r, { rev: r.comp.split('').reverse().join(''), ans: ans, ansOk: ans.length === r.comp.length && ans === r.comp, ansRight: marks.filter((m) => m === '✓').length });
     },
     drawCustom(ctx, W, H, p, d, c) {
       const nar = narrow(W); if (d.err) { D.txt(ctx, d.err, W / 2, H / 2, { color: c.c2, size: 14 }); return; }
@@ -171,7 +174,7 @@
     results(p, d) {
       if (d.err) return [['خطأ في الإدخال', d.err, false]];
       if (d.rna) return [['تتابع RNA', d.seq, false], ['عدد النيوكليوتيدات', '' + d.n, false], ['السكر', 'رايبوزي', false], ['القاعدة البديلة للثايمين', 'اليوراسيل U (عددها ' + d.u + ')', false]];
-      return [['السلسلة المكتوبة (′5 ← ′3)', d.seq, false], ['السلسلة المكملة (′3 ← ′5)', d.comp, false], ['المكملة مقروءة من ′5', d.rev, false], ['أزواج A–T', '' + d.at, false], ['أزواج G–C', '' + d.gc, false], ['مجموع الروابط الهيدروجينية', d.at + ' \\times 2 + ' + d.gc + ' \\times 3 = ' + d.hBonds]];
+      return [['السلسلة المكتوبة (′5 ← ′3)', d.seq, false], ['السلسلة المكملة (′3 ← ′5)', d.comp, false], ['المكملة مقروءة من ′5', d.rev, false], ['أزواج A–T', '' + d.at, false], ['أزواج G–C', '' + d.gc, false], ['مجموع الروابط الهيدروجينية', d.at + ' \\times 2 + ' + d.gc + ' \\times 3 = ' + d.hBonds]].concat(d.ans ? [['إجابتك للسلسلة المتممة', d.ans + (d.ansOk ? ' ✅ صحيحة' : ' ❌ ' + d.ansRight + ' قواعد صحيحة من ' + d.pairs), false]] : []);
     },
     steps(p, d) { if (d.err || d.rna) return ['في RNA: السكر رايبوزي، ويوجد U بدل T (ص 21–22).']; return ['قابل كل قاعدة بمكملتها: A ↔ T و G ↔ C.', 'المكملة: ' + d.comp + ' (السلسلتان متعاكستان في الاتجاه).', 'الروابط: ' + d.at + ' × 2 + ' + d.gc + ' × 3 = ' + d.hBonds + '.']; },
     explain(a, b, da, db) {
@@ -182,6 +185,7 @@
     learn: ['**النيوكليوتيد (ص 21–22):** جزيء سكر خماسي + مجموعة فوسفات ترتبط بذرة الكربون رقم 5 + قاعدة نيتروجينية ترتبط بذرة الكربون رقم 1، بروابط تساهمية.', '**السكر:** رايبوزي في RNA، ورايبوزي منقوص الأكسجين في DNA.', '**القواعد:** في DNA: A و T و G و C؛ وفي RNA يوجد اليوراسيل U بدلاً من الثايمين.', '**DNA (الشكل 5):** سلسلتان ملتفتان بشكل لولبي ترتبط قواعدهما بروابط هيدروجينية، والسلسلتان متعاكستان في الاتجاه (′5 – ′3).'],
     challenges: [
       { q: 'اكتب سلسلة DNA من **4 قواعد** يكون عدد الروابط الهيدروجينية بينها وبين مكملتها **12**.', hint: 'كل زوج يجب أن يعطي 3 روابط: استعمل G و C فقط.', init: { type: 'DNA', seq: 'ATAT' }, check: (p, d) => !d.err && !d.rna && d.pairs === 4 && d.hBonds === 12 },
+      { q: 'أكمل بنفسك السلسلة المتممة للتسلسل **ATTGCA** في خانة «أكمل السلسلة المتممة».', hint: 'A ↔ T و G ↔ C: المتممة TAACGT.', init: { type: 'DNA', seq: 'ATTGCA', ans: '' }, check: (p, d) => !d.err && !d.rna && d.seq === 'ATTGCA' && d.ansOk },
       { q: 'اجعل السلسلة المكملة **TACG**.', hint: 'المكملة لـ A هي T، ولـ T هي A، ولـ G هي C، ولـ C هي G.', init: { type: 'DNA', seq: 'GGGG' }, check: (p, d) => !d.err && d.comp === 'TACG' },
       { q: 'حوّل إلى **RNA** واكتب تتابعاً يحتوي **3 قواعد يوراسيل** على الأقل.', hint: 'في RNA يحل U محل T.', init: { type: 'DNA', seq: 'GCGC' }, check: (p, d) => d.rna && d.u >= 3 }
     ],
@@ -253,6 +257,7 @@
     ],
     tutor: [
       { q: 'لماذا يسمى التضاعف شبه محافظ؟', k: ['شبه', 'محافظ'], a: () => 'لأن كل جزيء ناتج يحتفظ بإحدى سلسلتي الجزيء الأصلي (محفوظة) ويضاف إليها سلسلة جديدة.' },
+      { q: 'ماذا يحدث لو لم يعمل إنزيم هيليكيز؟', k: ['لو لم', 'هيليكيز', 'لم يعمل'], a: () => 'إنزيم هيليكيز يفك التواء جزيء DNA ويفصل السلسلتين (المرحلة الأولى، ص 24). إن لم يعمل تبقى السلسلتان مرتبطتين، فلا تجد إنزيمات بلمرة DNA سلسلة مفردة تربط عليها النيوكليوتيدات الجديدة، فلا يتضاعف DNA.' },
       { q: 'ما وظيفة كل إنزيم؟', k: ['انزيم', 'هيليكيز', 'لايغيز', 'بلمره'], a: () => B.REPLICATION.map((r) => r.enzyme + ': ' + r.name).join('؛ ') + '.' },
       { q: 'متى يتضاعف DNA؟', k: ['متى', 'مرحله s', 'يتضاعف'], a: () => 'في المرحلة S من الطور البيني في دورة الخلية (ص 24، ص 36).' }
     ]

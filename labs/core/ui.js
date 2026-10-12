@@ -391,7 +391,7 @@
           const r = row.querySelector('input');
           r.addEventListener('input', () => this.set(q.key, +r.value));
           row.querySelector('[data-s=prev]').addEventListener('click', () => this.set(q.key, Math.max(0, this.p[q.key] - 1)));
-          row.querySelector('[data-s=next]').addEventListener('click', () => this.set(q.key, Math.min(q.max, this.p[q.key] + 1)));
+          row.querySelector('[data-s=next]').addEventListener('click', () => this.set(q.key, Math.min(this.stageMax(q), this.p[q.key] + 1)));
           this.inputs[q.key] = { stage: r, name: row.querySelector('.stage-name'), q: q };
         } else if (q.type === 'text') {
           row.innerHTML = lab + '<input type="text" class="seq" dir="ltr" lang="en" autocomplete="off" spellcheck="false" aria-label="' + esc(q.desc || q.key) + '"' + (q.maxLength ? ' maxlength="' + q.maxLength + '"' : '') + '><p class="field-err" role="alert" hidden></p>';
@@ -419,6 +419,8 @@
       });
       this.syncInputs();
     }
+    // آخر مرحلة (قائمة المراحل قد تتغير حسب خيارات أخرى)
+    stageMax(q) { return (typeof q.stages === 'function' ? q.stages(this.p) : q.stages).length - 1; }
     // فرض قيود المجال (مثل أ ≠ 0)
     fixParam(q, v, typed) {
       this.warnEl.hidden = true;
@@ -445,7 +447,7 @@
           if (typeof q.options === 'function') { const html = q.options(this.p).map((o) => '<option value="' + o[0] + '">' + o[1] + '</option>').join(''); if (inp.sel._h !== html) { inp.sel.innerHTML = html; inp.sel._h = html; } }
           inp.sel.value = v;
         }
-        else if (inp.stage) { const names = typeof inp.q.stages === 'function' ? inp.q.stages(this.p) : inp.q.stages; inp.stage.value = v; inp.name.innerHTML = '<b>' + (v + 1) + ' / ' + names.length + '</b> ' + ML.rich(names[v]); }
+        else if (inp.stage) { const names = typeof inp.q.stages === 'function' ? inp.q.stages(this.p) : inp.q.stages; if (v > names.length - 1) { this.p[q.key] = names.length - 1; return this.syncInputs(); } inp.stage.max = names.length - 1; inp.stage.value = v; inp.name.innerHTML = '<b>' + (v + 1) + ' / ' + names.length + '</b> ' + ML.rich(names[v]); }
         else if (inp.text) { if (document.activeElement !== inp.text) { inp.text.value = v; inp.text.classList.remove('bad'); inp.err.hidden = true; } }
         else if (inp.tog) { inp.tog.classList.toggle('on', !!v); inp.tog.setAttribute('aria-checked', !!v); inp.tog.textContent = v ? (q.on || 'مفعّل') : (q.off || 'متوقف'); }
         else { inp.r.value = v; if (document.activeElement !== inp.n) inp.n.value = ML.fmtInput(M.round(v, 4)); }
@@ -578,7 +580,7 @@
       if (s.play.mode === 'stage') {
         // تشغيل المراحل تلقائياً: الانتقال إلى المرحلة التالية كل فترة
         const q = s.params.find((x) => x.key === s.play.key);
-        if (this.p[q.key] >= q.max) this.set(q.key, 0, true);
+        if (this.p[q.key] >= this.stageMax(q)) this.set(q.key, 0, true);
         let acc = 0;
         const loopS = (now) => {
           if (!this.playing) return;
@@ -586,7 +588,7 @@
           if (this.st && s.tick) s.tick(this.st, this.p, this.d, dt);
           if (acc >= (s.play.interval || 1.8)) {
             acc = 0;
-            if (this.p[q.key] >= q.max) { this.stopPlay(); this.update(); return; }
+            if (this.p[q.key] >= this.stageMax(q)) { this.stopPlay(); this.update(); return; }
             this.set(q.key, this.p[q.key] + 1);
           } else this.redraw();
           this.raf = requestAnimationFrame(loopS);

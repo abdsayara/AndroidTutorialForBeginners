@@ -159,7 +159,9 @@ test('كل منزلق ومرحلة وخيار في كل محاكاة: لا NaN �
 test('التحديات: الحالة الابتدائية غير محلولة، وحلها ممكن', () => {
   const solve = {
     'size-scale': [{ i: 9 }, { i: 6 }, { i: 5 }], 'compound-microscope': [{ obj: 40, coarse: 68, fine: 7 }, { obj: 4, coarse: 40, fine: 7 }, { obj: 100, oil: true, coarse: 74, fine: 7 }],
-    'microscope-compare': [{ k: 'tem' }, { k: 'sem' }, { k: 'light' }], 'nucleotide-builder': [{ seq: 'GCGC' }, { seq: 'ATGC' }, { type: 'RNA', seq: 'UUUA' }],
+    'microscope-compare': [{ k: 'tem' }, { k: 'sem' }, { k: 'light' }], 'nucleotide-builder': [{ seq: 'GCGC' }, { seq: 'ATTGCA', ans: 'TAACGT' }, { seq: 'ATGC' }, { type: 'RNA', seq: 'UUUA' }],
+    'cell-theory': [{ k: 2 }, { k: 1 }], 'division-order': [null, null], 'twins': [{ type: 'id', k: 3 }, { type: 'non' }], 'urinary-health': [{ view: 'urea', k: 2 }, { view: 'dialysis', k: 3 }, { view: 'stones', k: 2 }],
+    'protist-nutrition': [{ k: 3 }, { k: 1 }], 'fungi-structure': [{ view: 'hyphae', k: 0 }, { view: 'repro', k: 0 }, { view: 'lichens', k: 2 }],
     'chromosome-zoom': [{ lv: 2 }, { lv: 4 }], 'dna-replication': [{ st: 1 }, { st: 2 }, { st: 4, seq: 'ATGCA' }], 'mutations': [{ kind: 'delete', pos: 4 }, { kind: 'substitute', pos: 3, base: 'A' }, { kind: 'plus' }],
     'cell-cycle': [{ cell: 'bean' }, { cell: 'gut' }, { cyclin: false }, { g0: 'perm' }], 'mitosis': [{ n2: '12', kind: 'plant', s: 5 }, { s: 3 }, { s: 2 }], 'tumors': [{ ctrl: false, type: 'malignant' }, { ctrl: false, type: 'benign' }],
     'meiosis': [{ n2: '36', s: 8 }, { s: 1, nx: 2 }, { s: 8, nx: 0 }], 'mitosis-vs-meiosis': [{ n2: '46', k: 3 }, { k: 2 }], 'gametogenesis': [{ sex: 'm', i: 4 }, { sex: 'f', i: 3 }, null],
@@ -179,6 +181,17 @@ test('التحديات: الحالة الابتدائية غير محلولة، 
 });
 
 test('السحب والإفلات: الفرز الصحيح يكمل التحدي، والخاطئ لا يكمله', () => {
+  { // ترتيب الأدوار: الترتيب الصحيح فقط يكمل التحدي
+    const o = sim('division-order'); const p = defaults(o); const st = o.initState(p); const d = o.compute(p); d.st = st;
+    d.items.forEach((it) => { st.pos[it.id] = it.group; }); assert.ok(o.challenges[0].check(p, d));
+    const [a1, b1] = d.items; st.pos[a1.id] = b1.group; st.pos[b1.id] = a1.group; assert.ok(!o.challenges[0].check(p, d), 'swapped order rejected');
+    assert.deepEqual(J(d.items.map((x) => x.label)).sort(), ['الدور الاستوائي', 'الدور الانفصالي', 'الدور التمهيدي', 'الدور النهائي', 'انقسام السيتوبلازم'].sort());
+  }
+  { // إكمال السلسلة المتممة
+    const nb = sim('nucleotide-builder'); const q = nb.params.find((x) => x.key === 'ans');
+    assert.equal(q.validate(''), null); assert.ok(q.validate('TAU')); assert.ok(q.validate('XYZ'));
+    const d = nb.compute(Object.assign(defaults(nb), { seq: 'ATTGCA', ans: 'TAACGA' })); assert.ok(!d.ansOk); assert.equal(d.ansRight, 5);
+  }
   for (const id of ['protist-sort', 'fungi-sort']) {
     const s = sim(id); const p = defaults(s); const d = s.compute(p); const st = s.initState(p); d.st = st; d.hits = [];
     s.drawCustom(stubCtx(), 900, 540, p, d, COLORS);

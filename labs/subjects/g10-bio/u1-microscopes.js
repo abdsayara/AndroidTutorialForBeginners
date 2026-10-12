@@ -152,6 +152,7 @@
     vars: [['\\text{X10}', 'تكبير العدسة العينية (ص 9، س4)', '\\text{مرة}', 'ثابتة X10'], ['\\text{X4 ، X10 ، X40 ، X100}', 'تكبير العدسة الشيئية (الشكل 5)', '\\text{مرة}', 'أربع عدسات؛ X100 زيتية'], ['\\text{التكبير الكلي}', 'العينية × الشيئية', '\\text{مرة}', 'X40 – X1000'], ['\\text{الضابطان}', 'الضابط الكبير والضابط الصغير لضبط الرؤية', '—', 'تدريج للعرض فقط']],
     assumptions: ['حدة الصورة وموقع التركيز في المحاكاة نموذج مبسّط لأغراض التعليم: كلما زاد التكبير ضاق مدى التركيز فاحتجت الضابط الصغير.', 'مجال الرؤية يصغر مع زيادة التكبير (يظهر جزء أصغر من العينة)؛ لا يذكر الكتاب قيمة عددية لقطره، فيُعرض نوعياً.'],
     params: [
+      { key: 'eye', label: '\\text{العدسة العينية}', type: 'select', options: [[10, 'X10 (القيمة الوحيدة في الكتاب)']], value: 10, desc: 'الكتاب يذكر العينية X10 فقط' },
       { key: 'obj', label: '\\text{العدسة الشيئية}', type: 'select', options: [[4, 'X4'], [10, 'X10'], [40, 'X40'], [100, 'X100 (عدسة زيتية)']], value: 4 },
       { key: 'spec', label: '\\text{الشريحة}', type: 'select', options: [['milk', 'قطرة حليب (نشاط 1)'], ['onion', 'خلايا البصل (س2)']], value: 'milk' },
       { key: 'coarse', label: '\\text{الضابط الكبير}', min: 0, max: 100, step: 2, value: 20, desc: 'تدريج للعرض' },
@@ -161,7 +162,7 @@
     initState: () => ({ part: null }),
     canvasHint: 'اضغط على أي جزء من المجهر لمعرفة اسمه ووظيفته. حرّك الضابطين حتى تصبح الصورة حادة.',
     compute(p) {
-      const mag = B.magnification(10, p.obj); const pos = p.coarse + (p.fine - 5) * 0.5; const err = Math.abs(pos - T_FOCUS[p.obj]);
+      const mag = B.magnification(p.eye, p.obj); const pos = p.coarse + (p.fine - 5) * 0.5; const err = Math.abs(pos - T_FOCUS[p.obj]);
       const oilBad = p.obj === 100 && !p.oil; const oilWaste = p.obj !== 100 && p.oil;
       const blur = Math.min(16, Math.max(0, err - TOL[p.obj]) * 1.6) + (oilBad ? 5 : 0);
       return { mag: mag, err: err, sharp: blur < 0.01, blur: blur, oilBad: oilBad, oilWaste: oilWaste, coarseOnly: err <= 3 };
@@ -179,7 +180,7 @@
       ctx.filter = 'none'; ctx.restore();
       ctx.lineWidth = 5; ctx.strokeStyle = '#1e293b'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke();
       D.txt(ctx, 'ما تراه في العدسة العينية', cx, cy - R - 12, { color: c.text, size: 12 });
-      D.txt(ctx, 'التكبير الكلي = 10 × ' + p.obj + ' = ' + d.mag, cx, cy + R + 18, { color: c.c1, size: 15, w: '800' });
+      D.txt(ctx, 'التكبير الكلي = ' + p.eye + ' × ' + p.obj + ' = ' + d.mag, cx, cy + R + 18, { color: c.c1, size: 15, w: '800' });
       D.txt(ctx, d.sharp ? '✓ الصورة حادة' : d.oilBad ? 'العدسة X100 تحتاج نقطة زيت' : d.err > 6 ? 'الصورة غير واضحة: استعمل الضابط الكبير' : 'اقتربت: استعمل الضابط الصغير', cx, cy + R + 40, { color: d.sharp ? c.c3 : c.c2, size: 13, w: '700' });
       if (st.part) { const pr = PARTS[st.part]; const y = H - 34; ctx.fillStyle = c.bg; ctx.globalAlpha = 0.92; D.rr(ctx, 8, y - 18, W - 16, 40, 10); ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = c.c4; ctx.lineWidth = 2; ctx.stroke(); B.para(ctx, D, pr[0] + ': ' + pr[1], W / 2, y + 2, W - 40, { color: c.text, size: nar ? 10.5 : 13, w: '700', bottom: true }); }
     },
@@ -191,12 +192,12 @@
       return { view: { xmin: 0, xmax: 5, ymin: 0, ymax: 1100 }, xLabel: 'العدسة الشيئية', yLabel: 'التكبير الكلي', caption: 'التكبير الكلي مع العينية X10: X4 ← 40، X10 ← 100، X40 ← 400، X100 ← 1000 (العمود الملوّن: العدسة الحالية).',
         draw(G) { const cc = G.colors(); B.OBJECTIVES.forEach((o, i) => { const v = 10 * o; const x = i + 1; const ctx = G.ctx; ctx.fillStyle = o === p.obj ? cc.c2 : cc.c1; ctx.globalAlpha = o === p.obj ? 1 : 0.45; ctx.fillRect(G.X(x - 0.3), G.Y(v), G.X(x + 0.3) - G.X(x - 0.3), G.Y(0) - G.Y(v)); ctx.globalAlpha = 1; G.text(x, v, 'X' + o + ' → ' + v, { color: cc.text, dy: -10, bold: true }); }); } };
     },
-    live(p, d) { return '\\text{التكبير الكلي} = 10 \\times ' + p.obj + ' = ' + d.mag; },
+    live(p, d) { return '\\text{التكبير الكلي} = ' + p.eye + ' \\times ' + p.obj + ' = ' + d.mag; },
     results(p, d) {
-      return [['تكبير العدسة العينية', 'X10', false], ['تكبير العدسة الشيئية', 'X' + p.obj, false], ['التكبير الكلي', '10 \\times ' + p.obj + ' = ' + d.mag],
+      return [['تكبير العدسة العينية', 'X' + p.eye, false], ['تكبير العدسة الشيئية', 'X' + p.obj, false], ['التكبير الكلي', p.eye + ' \\times ' + p.obj + ' = ' + d.mag],
         ['حالة الصورة', d.sharp ? '✅ حادة' : '❌ غير واضحة', false], ['مجال الرؤية', p.obj === 4 ? 'الأوسع (يظهر جزء كبير من العينة)' : p.obj === 100 ? 'الأضيق' : 'يضيق كلما زاد التكبير', false]].concat(d.oilWaste ? [['تنبيه', 'نقطة الزيت تُستخدم مع العدسة الزيتية X100 فقط', false]] : []);
     },
-    steps(p, d) { return ['ضع الشريحة على المنضدة وثبّتها بمثبت الشريحة.', 'ابدأ بأصغر عدسة شيئية (X4) واضبط الرؤية بالضابط الكبير ثم الصغير (نشاط 1).', 'التكبير الكلي = تكبير العينية × تكبير الشيئية = 10 × ' + p.obj + ' = ' + d.mag + '.', p.obj === 100 ? 'مع العدسة X100 ضع نقطة زيت على الشريحة.' : 'للتكبيرات الأكبر أدر قرص تحريك العدسات الشيئية ثم استعمل الضابط الصغير.']; },
+    steps(p, d) { return ['ضع الشريحة على المنضدة وثبّتها بمثبت الشريحة.', 'ابدأ بأصغر عدسة شيئية (X4) واضبط الرؤية بالضابط الكبير ثم الصغير (نشاط 1).', 'التكبير الكلي = تكبير العينية × تكبير الشيئية = ' + p.eye + ' × ' + p.obj + ' = ' + d.mag + '.', p.obj === 100 ? 'مع العدسة X100 ضع نقطة زيت على الشريحة.' : 'للتكبيرات الأكبر أدر قرص تحريك العدسات الشيئية ثم استعمل الضابط الصغير.']; },
     explain(a, b, da, db) {
       const out = [];
       if (a.obj !== b.obj) out.push('غيّرت العدسة الشيئية من X' + a.obj + ' إلى X' + b.obj + '، فأصبح التكبير الكلي ' + db.mag + ' بدلاً من ' + da.mag + '. ' + (b.obj > a.obj ? 'تكبر الأجسام ويضيق مجال الرؤية فيظهر عدد أقل منها، ويحتاج التركيز ضبطاً أدق.' : 'يتسع مجال الرؤية وتصغر الأجسام.'));
@@ -211,7 +212,7 @@
       { q: 'احصل على أكبر تكبير ممكن (X1000) بصورة حادة.', hint: 'العدسة X100 زيتية: فعّل «نقطة زيت» ثم اضبط الضابطين.', init: { obj: 10, coarse: 30, fine: 5, oil: false }, check: (p, d) => p.obj === 100 && p.oil && d.sharp }
     ],
     tutor: [
-      { q: 'كم التكبير الآن؟', k: ['تكبير', 'كم'], a: (p, d) => 'التكبير الكلي = 10 × ' + p.obj + ' = ' + d.mag + ' مرة.' },
+      { q: 'كم التكبير الآن؟', k: ['تكبير', 'كم'], a: (p, d) => 'التكبير الكلي = ' + p.eye + ' × ' + p.obj + ' = ' + d.mag + ' مرة.' },
       { q: 'لماذا الصورة غير واضحة؟', k: ['واضح', 'ضبابي', 'غير حاد', 'تركيز'], a: (p, d) => (d.sharp ? 'الصورة حادة الآن.' : d.oilBad ? 'العدسة X100 زيتية وتحتاج نقطة زيت.' : d.err > 6 ? 'المسافة بعيدة عن موضع التركيز؛ حرّك الضابط الكبير أولاً.' : 'اقتربت من التركيز؛ حرّك الضابط الصغير قليلاً.') },
       { q: 'لماذا نبدأ بأصغر عدسة شيئية؟', k: ['ابدا', 'اصغر', 'لماذا نبدا'], a: () => 'لأن مجال الرؤية معها أوسع فيسهل إيجاد العينة، ومدى التركيز أكبر فيسهل ضبط الرؤية، ثم ننتقل إلى التكبيرات الأكبر (نشاط 1).' }
     ]
