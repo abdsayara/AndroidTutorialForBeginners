@@ -12,6 +12,9 @@ html = html.replace('<link rel="stylesheet" href="css/app.css">', '<style>\n' + 
 katex_cdn = ('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">\n'
              '  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>')
 html = re.sub(r'<!--KATEX-START-->.*?<!--KATEX-END-->', katex_cdn, html, flags=re.S)
+# Three.js (المختبر ثلاثي الأبعاد): الإصدار نفسه المضمّن في vendor/three (r128)
+three_cdn = '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'
+html = re.sub(r'<!--THREE-START-->.*?<!--THREE-END-->', three_cdn, html, flags=re.S)
 
 def inline(m):
     srcs = re.findall(r'<script src="([^"]+)"></script>', m.group(0))

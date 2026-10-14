@@ -230,3 +230,54 @@ button, input, select { font: inherit; color: inherit; }
   .vars { font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* مختبر الكيمياء ثلاثي الأبعاد (يُضاف إلى الشبكة نفسها دون تغيير التصميم) */
+.lab3d { grid-area: lab; padding: 12px 14px; }
+.lab3d [hidden] { display: none !important; }
+.sim-grid.has-lab { grid-template-areas: "mode mode" "lab lab" "stage controls" "stage results" "why steps" "law law"; }
+.sim-grid.has-lab.has-graph { grid-template-areas: "mode mode" "lab lab" "stage controls" "graph results" "why steps" "law law"; }
+.sim-grid.has-lab .stage { position: static; }
+.lab-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.lab-step { flex: 1 1 380px; font-size: 14.5px; line-height: 1.6; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--ok) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent); }
+.lab-step b { color: var(--ok); margin-inline-end: 6px; }
+.lab-mode { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--primary); color: var(--primary-ink); margin-inline-end: 8px; }
+.lab-ppe { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-ppe { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); color: var(--bad); font-weight: 600; white-space: nowrap; }
+.chip-ppe.on { border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: color-mix(in srgb, var(--ok) 10%, var(--surface)); color: var(--ok); }
+.lab-wrap { position: relative; width: 100%; height: clamp(340px, 60vh, 620px); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #dfe7f1; outline: none; }
+.lab-wrap:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 45%, transparent); }
+.lab-cv { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.lab-hud { position: absolute; top: 8px; right: 8px; display: grid; gap: 4px; min-width: 132px; pointer-events: none; }
+.lab-hud div { background: rgba(15, 23, 42, .78); color: #f8fafc; border-radius: 9px; padding: 3px 10px; font-size: 12px; line-height: 1.45; }
+.lab-hud small { display: block; color: #cbd5e1; font-size: 11px; }
+.lab-hud b { font-size: 15px; }
+.lab-nav { position: absolute; top: 8px; left: 8px; display: flex; flex-direction: column; gap: 5px; }
+.lab-nav .btn, .lab-walk .btn { width: 36px; min-height: 36px; height: 36px; padding: 0; background: rgba(255, 255, 255, .9); color: #0f172a; border-color: #cbd5e1; }
+.lab-walk { position: absolute; bottom: 10px; left: 10px; display: grid; grid-template-columns: repeat(3, 38px); grid-template-areas: ". f ." "l b r"; gap: 4px; }
+.lab-walk [data-w=f] { grid-area: f; } .lab-walk [data-w=l] { grid-area: l; } .lab-walk [data-w=b] { grid-area: b; } .lab-walk [data-w=r] { grid-area: r; }
+.lab-tip, .lab-alert { position: absolute; left: 50%; transform: translateX(-50%); max-width: min(92%, 640px); border-radius: 10px; padding: 7px 14px; font-size: 13.5px; line-height: 1.55; box-shadow: 0 4px 18px rgba(0, 0, 0, .18); }
+.lab-tip { bottom: 10px; background: rgba(255, 255, 255, .95); color: #0f172a; border: 1px solid #cbd5e1; }
+.lab-tip.bad { border-color: #f59e0b; background: #fffbeb; }
+.lab-tip.hover { bottom: auto; top: 10px; padding: 4px 12px; font-size: 13px; }
+.lab-tip span[lang=en] { color: #64748b; font-size: 12px; }
+.lab-alert { top: 52px; background: #fef2f2; color: #991b1b; border: 2px solid #ef4444; font-weight: 600; }
+.lab-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; color: #334155; font-weight: 600; }
+.lab-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.lab-actions .btn { min-height: 38px; font-size: 14px; }
+.lab-actions .btn.next { background: var(--ok); color: #fff; border-color: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); animation: lab-pulse 1.6s ease-in-out infinite; }
+@keyframes lab-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--ok) 12%, transparent); } }
+bdi.chem { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 600; white-space: nowrap; unicode-bidi: isolate; }
+@media (max-width: 900px) {
+  .sim-grid.has-lab, .sim-grid.has-lab.has-graph { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mode" "lab" "stage" "controls" "graph" "results" "why" "steps" "law"; }
+  .lab-wrap { height: clamp(300px, 52vh, 480px); }
+}
+@media (min-width: 640px) and (max-width: 900px) {
+  .sim-grid.has-lab { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mode mode" "lab lab" "stage stage" "controls results" "why steps" "law law"; }
+  .sim-grid.has-lab.has-graph { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mode mode" "lab lab" "stage stage" "controls graph" "results results" "why steps" "law law"; }
+}
+@media (max-width: 520px) {
+  .lab-hud { min-width: 0; grid-template-columns: 1fr 1fr; top: 6px; right: 6px; } .lab-hud div { padding: 1px 7px; font-size: 11px; } .lab-hud small { font-size: 10px; } .lab-hud b { font-size: 12.5px; }
+  .lab-nav .btn, .lab-walk .btn { width: 32px; min-height: 32px; height: 32px; } .lab-nav { gap: 4px; }
+  .lab-step { font-size: 13.5px; } .lab-actions .btn { font-size: 13px; padding: 6px 10px; }
+  .bdi-chem-wrap { white-space: normal; }
+}

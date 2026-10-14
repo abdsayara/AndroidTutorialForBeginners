@@ -58,10 +58,11 @@ test('كل محاكاة: الصيغ والنتائج والخطوات بلا ر�
     if (s.live) tex.push(s.live(p, d));
     s.results(p, d).forEach((r) => { if (r[2] !== false) tex.push(r[1]); });
     const rich = [...(s.steps ? s.steps(p, d) : []), ...(s.learn || []), s.summary, ...s.results(p, d).map((r) => ML.autoMath(r[0]))];
-    rich.forEach((x) => String(x).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g).forEach((part) => { if (part.startsWith('$')) tex.push(part.replace(/^\$+|\$+$/g, '')); else { const a = ML.loc(part); const chk = s.subject === 'g10-bio' ? a.replace(LAT, '') : a; assert.ok(!/[0-9]/.test(chk), s.id + ' plain digits: ' + a.slice(0, 80)); } }));
+    rich.forEach((x) => String(x).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g).forEach((part) => { if (part.startsWith('$')) tex.push(part.replace(/^\$+|\$+$/g, '')); else { const a = ML.loc(part); const chk = s.subject === 'g10-bio' ? a.replace(LAT, '') : s.subject === 'g10-chem' ? '' : a; /* الكيمياء: أرقام الكتاب الغربية */ assert.ok(!/[0-9]/.test(chk), s.id + ' plain digits: ' + a.slice(0, 80)); } }));
     for (const t of tex) {
       const a = ML.arTeX(String(t));
-      if (s.subject === 'g10-bio') { assert.equal(bioLeft(a), null, s.id + ': ' + t + ' → ' + a); assert.equal(bareLatin(String(t)), null, s.id + ' (Latin outside \\text): ' + t); }
+      if (s.subject === 'g10-chem') assert.equal(a, String(t), s.id + ' chem TeX unchanged');
+      else if (s.subject === 'g10-bio') { assert.equal(bioLeft(a), null, s.id + ': ' + t + ' → ' + a); assert.equal(bareLatin(String(t)), null, s.id + ' (Latin outside \\text): ' + t); }
       else assert.equal(leftover(a), null, s.id + ': ' + t + ' → ' + a);
       assert.doesNotThrow(() => KX.renderToString(a, { throwOnError: true, strict: 'ignore' }), s.id + ': ' + a);
       n++;

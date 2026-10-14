@@ -68,6 +68,11 @@
 
   // العلوم الحياتية: الرموز اللاتينية تبقى كما في الكتاب (A، T، G، C، U، DNA، G1، FSH…)، والأرقام المستقلة عربية
   const isBio = (sim) => (sim ? sim.subject === 'g10-bio' : ML.curSubject === 'g10-bio');
+  // الكيمياء: كتاب الكيمياء يكتب الأرقام بالصيغة الغربية (393 ، 4.18) والمعادلات من اليسار لليمين (C2H5OH + 3O2 → …)
+  // فتبقى الصيغ والأرقام كما هي، ويُعزل السالب فقط ليبقى على يسار العدد داخل النص العربي
+  const isChem = (sim) => (sim ? sim.subject === 'g10-chem' : ML.curSubject === 'g10-chem');
+  ML.isChem = isChem;
+  const chemNeg = (s) => String(s).replace(/(^|[^0-9A-Za-z)\]\u2066])([-−])([0-9][0-9.,]*)/g, '$1\u2066$2$3\u2069');
   ML.isBio = isBio;
   const LAT_TOK = /[0-9]*[A-Za-z][A-Za-z0-9′'’]*/g;
   // أرقام عربية خارج الكلمات اللاتينية (G1 ، 2n ، X400 تبقى كما هي)
@@ -177,6 +182,7 @@
   ML.arTeX = function (tex, sim) {
     if (!ML.isAr()) return tex;
     sim = sim === undefined ? ML.curSim : sim;
+    if (isChem(sim)) return tex;
     const vm = varMap(sim); const s = moveUnaryMinus(String(tex)); let out = ''; let i = 0; let prevLetter = false; let argN = 0; // معاملات بلا أقواس: \\tfrac12 ، x^2
     const mapLetter = (c) => vm.own[c] || vm.base[c] || c;
     while (i < s.length) {
@@ -252,6 +258,7 @@
   ML.loc = function (str, sim) {
     if (!ML.isAr() || str === null || str === undefined) return str;
     sim = sim === undefined ? ML.curSim : sim;
+    if (isChem(sim)) return chemNeg(str);
     if (isBio(sim)) return isoNeg(bioDigits(String(str)).replace(/(?<![٠-٩]),|,(?![٠-٩])/g, '،'));
     let s = String(str);
     s = s.replace(UNIT_RE, (m0, pre, u) => (pre === '(' ? pre : pre.replace(/\s+$/, '') + ' ') + UNIT_MAP[u]);
@@ -283,7 +290,7 @@
     return isoNeg(toAD(s));
   };
   // أرقام فقط (لعقد النص في الصفحة)
-  ML.locDigits = (s) => (ML.isAr() ? (isBio() ? bioDigits(String(s)) : toAD(String(s).replace(/(\d)\.(\d)/g, '$1,$2'))) : s);
+  ML.locDigits = (s) => (ML.isAr() && !isChem() ? (isBio() ? bioDigits(String(s)) : toAD(String(s).replace(/(\d)\.(\d)/g, '$1,$2'))) : s);
   ML.bioDigits = bioDigits;
   ML.supDigits = SUPD;
 

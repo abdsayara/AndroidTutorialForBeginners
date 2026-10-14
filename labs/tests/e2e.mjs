@@ -27,7 +27,7 @@ for (const size of sizes) {
   const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, href: ML.simHref(s) })));
   console.log(`[${size.name}] ${sims.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
   // صفحتا المادتين والتنقل بين التبويبات
-  for (const sl of ['math', 'physics', 'biology']) {
+  for (const sl of ['math', 'physics', 'biology', 'chemistry']) {
     await page.goto(base + Q + '#/g10/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
     const st = await page.evaluate(() => ({ n: document.querySelectorAll('.units a[href*="/sim/"]').length, on: (document.querySelector('.stab.on') || {}).textContent || '', g: (document.querySelector('.gtab.on') || {}).textContent || '' }));
     if (!st.n || !st.g) fail(`home ${sl}: links=${st.n} gradeTab=${st.g}`);
@@ -86,6 +86,25 @@ for (const size of sizes) {
       const bad = await page.evaluate(() => { const t = document.querySelector('.results').innerText + ' ' + document.querySelector('.why').innerText; return /NaN|undefined|\[object/.test(t) ? t.slice(0, 200) : null; });
       if (bad) fail(`${id} after pointer: ${bad}`);
     }
+    // المختبر ثلاثي الأبعاد: WebGL يعمل، ثم تنفيذ الوضع الموجّه بالنقر على الإجراء المضيء
+    if (await page.$('.lab3d')) {
+      const gl = await page.evaluate(() => !document.querySelector('.lab3d').classList.contains('no-webgl')); if (!gl) fail(`${id}: WebGL lab did not start`);
+      await page.evaluate(() => { ML.current.set('mode', 'guided'); ML.current.resetState(); ML.current.update(); });
+      for (let k = 0; k < 40; k++) {
+        const nx = await page.$('.lab-actions .btn.next'); if (!nx) break;
+        const act = await nx.getAttribute('data-act');
+        if (act === 'extinguish' || act === 'recT2') { for (let w = 0; w < 60; w++) { const ok = await page.evaluate((a) => { const st = ML.current.st; return st.kind === 'comb' ? (ML.chem.combReading(st, ML.current.p) - st.T1 >= 10) : (st.t - st.tAdd >= 30); }, act); if (ok) break; await page.waitForTimeout(250); } }
+        await nx.scrollIntoViewIfNeeded(); await nx.click(); await page.waitForTimeout(120);
+      }
+      const fin = await page.evaluate(() => { const st = ML.current.st; return st.kind === 'comb' ? ML.chem.combResults(st).dH : st.T2; });
+      if (fin === null || fin === undefined) fail(`${id}: guided lab procedure did not complete`);
+      if (await page.evaluate(() => ML.current.playing)) await page.click('[data-a=play]');
+      // النقر على أداة في المشهد ثلاثي الأبعاد
+      const lb = await (await page.$('.lab-cv')).boundingBox(); await page.mouse.click(lb.x + lb.width * 0.4, lb.y + lb.height * 0.5); await page.waitForTimeout(80);
+      if (!(await page.evaluate(() => !!ML.current))) fail(`${id}: lab click navigated away`);
+      const bad = await page.evaluate(() => { const t = document.querySelector('.lab3d').innerText + document.querySelector('.results').innerText; return /NaN|undefined|\[object/.test(t) ? t.slice(0, 200) : null; });
+      if (bad) fail(`${id} lab text: ${bad}`);
+    }
     // أنماط الرسم البياني الحي
     const gm = await page.$$('.gmodes button');
     for (const b of gm) { await b.click(); await page.waitForTimeout(60); const cap = await page.evaluate(() => (document.querySelector('.graph') || {}).innerText || ''); if (/NaN|undefined|\[object/.test(cap)) fail(`${id}: graph caption ${cap.slice(0, 200)}`); }
@@ -102,7 +121,7 @@ for (const size of sizes) {
       if (solved) fail(`${id}: challenge ${i + 1} is already solved by its init state`);
     }
     // صيغة الكتاب: لا أرقام إنجليزية في النصوص الظاهرة ولا على الرسوم (Canvas)
-    if (!intl) {
+    if (!intl && sm.subject !== 'g10-chem') { // كتاب الكيمياء يكتب الأرقام بالصيغة الغربية
       const asc = await page.evaluate(() => {
         const out = [];
         document.querySelectorAll('.results, .live, .steps, .law, .why, .controls .param label, .graph .gcap, .assume, .sim-head .src').forEach((e) => { const t = e.innerText; if (/[0-9]/.test(t)) out.push(t.match(/.{0,30}[0-9].{0,20}/)[0]); });
@@ -115,7 +134,7 @@ for (const size of sizes) {
     // المساعد
     await page.click('.tutor .fab');
     const chips = await page.$$('.tutor .chip');
-    for (const c of chips) await c.click();
+    for (const c of chips) await c.click({ timeout: 20000 }).catch((er) => fail(`${id}: tutor chip click → ${er.message.split('\n')[0]}`));
     await page.fill('.tutor form input', 'اشرح الدرس'); await page.press('.tutor form input', 'Enter');
     await page.waitForTimeout(200);
     const tutorBad = await page.evaluate(() => { const t = document.querySelector('.msgs').innerText; return /NaN|undefined|\[object/.test(t) ? t.slice(-300) : null; });

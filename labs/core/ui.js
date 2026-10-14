@@ -22,7 +22,7 @@
   ML.ORD = ORD;
 
   /* ---------- الصفوف والمواد ---------- */
-  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio'] }];
+  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] }];
   ML.subjects = {
     'g10-math': {
       id: 'g10-math', grade: 'g10', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '∫',
@@ -78,6 +78,21 @@
         { n: 10, unitAr: 'الوحدة الرابعة: تصنيف الكائنات الحية', ar: 'مملكة الطلائعيات', en: 'Kingdom Protista', icon: '🦠', pages: '103–112', color: 'u4' },
         { n: 11, unitAr: 'الوحدة الرابعة: تصنيف الكائنات الحية', ar: 'مملكة الفطريات', en: 'Kingdom Fungi', icon: '🍄', pages: '113–120', color: 'u5' }
       ]
+    },
+    'g10-chem': {
+      id: 'g10-chem', grade: 'g10', slug: 'chemistry', name: 'الكيمياء', en: 'Chemistry', icon: '⚗',
+      title: 'مختبر الكيمياء التفاعلي', titleEn: 'Interactive 3D Chemistry Lab',
+      book: 'كتاب الكيمياء — الصف العاشر', bookEd: 'دولة فلسطين، الطبعة الثالثة 2020م / 1441هـ',
+      lead: 'ادخل المختبر ثلاثي الأبعاد: ارتدِ أدوات الوقاية، قِس وزِن وسخّن بنفسك، وشاهد التفاعل على مستوى الجزيئات والمعادلة معاً.',
+      search: 'ابحث عن تجربة أو مفهوم… (مثال: حرارة الاحتراق، طارد، طاقة الرابطة)',
+      tutor: 'مساعد الكيمياء الذكي', tutorEn: 'AI Chemistry Tutor', idle: 'نفّذ خطوة في المختبر أو غيّر متغيراً، وسأشرح لك هنا ماذا حدث ولماذا — بلغة الكتاب.',
+      units: [
+        { n: 1, ar: 'بنية الذرة والعناصر الكيميائية', en: 'Atomic Structure and Chemical Elements', icon: '⚛', pages: '2–28', color: 'u1' },
+        { n: 2, ar: 'الحسابات الكيميائية', en: 'Chemical Calculations', icon: '⚖', pages: '29–49', color: 'u2' },
+        { n: 3, ar: 'الماء في حياتنا', en: 'Water in Our Lives', icon: '💧', pages: '50–68', color: 'u3' },
+        { n: 4, ar: 'مدخل إلى الكيمياء العضوية', en: 'Introduction to Organic Chemistry', icon: '⬡', pages: '69–99', color: 'u4' },
+        { n: 5, ar: 'الطاقة في التفاعلات الكيميائية', en: 'Energy in Chemical Reactions', icon: '🔥', pages: '100–119', color: 'u5' }
+      ]
     }
   };
   const SUBJ = (id) => ML.subjects[id || 'g10-math'];
@@ -94,7 +109,7 @@
   ML.texHTML = function (tex, display) {
     try {
       if (root.katex) {
-        if (ML.isAr && ML.isAr()) {
+        if (ML.isAr && ML.isAr() && !(ML.isChem && ML.isChem())) {
           // صيغة الكتاب: رموز وأرقام عربية، والمعادلة من اليمين لليسار
           const h = root.katex.renderToString(ML.arTeX(tex), { throwOnError: false, displayMode: !!display, output: 'html', strict: 'ignore' });
           return '<span class="ar-math" role="math" aria-label="' + esc(tex) + '">' + ML.mirrorKaTeX(h) + '</span>';
@@ -105,11 +120,13 @@
     return '<code dir="ltr">' + esc(tex) + '</code>';
   };
   function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-  // نص غني: $..$ رياضيات ، $$..$$ سطر مستقل ، **غامق** ، أسطر جديدة
+  // نص غني: $..$ رياضيات ، $$..$$ سطر مستقل ، {{..}} صيغة كيميائية ، **غامق** ، أسطر جديدة
   ML.rich = function (s) {
     if (s === null || s === undefined) return '';
-    const parts = String(s).split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+    const parts = String(s).split(/(\$\$[^$]+\$\$|\$[^$]+\$|\{\{[^}]+\}\})/g);
     return parts.map((p) => {
+      // {{...}} معادلة/صيغة كيميائية: من اليسار لليمين كما في الكتاب، بلا تعريب
+      if (p.startsWith('{{') && p.endsWith('}}')) return '<bdi class="chem" dir="ltr" lang="en">' + esc(p.slice(2, -2)) + '</bdi>';
       if (p.startsWith('$$')) return '<div class="math-block" dir="ltr">' + ML.texHTML(p.slice(2, -2), true) + '</div>';
       if (p.startsWith('$') && p.length > 1) return '<span class="m" dir="ltr">' + ML.texHTML(p.slice(1, -1)) + '</span>';
       return esc(ML.loc ? ML.loc(p) : p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
@@ -206,7 +223,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id !== 'g10-math' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id !== 'g10-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -252,6 +269,7 @@
       cancelAnimationFrame(this.raf); this.playing = false;
       if (this.ro) this.ro.disconnect();
       if (this.tutorEl) this.tutorEl.remove();
+      if (this.lab && this.lab.destroy) this.lab.destroy();
     }
     build() {
       const s = this.sim, app = this.app;
@@ -281,6 +299,8 @@
         '</div><p class="hint">' + (s.custom ? (s.canvasHint || '') : 'اسحب لتحريك المستوى • العجلة/القرص للتكبير' + (s.handles ? ' • اسحب النقاط الملوّنة' : '')) + '</p>';
       if (s.assumptions && s.assumptions.length) stage.appendChild(el('div', { class: 'assume' }, '<b>افتراضات التجربة:</b> ' + s.assumptions.map((x) => ML.rich(x)).join(' • ')));
       main.appendChild(stage);
+      // مختبر ثلاثي الأبعاد (اختياري): sim.mount(container, page) ← { update(), destroy() }
+      if (s.mount) { this.labEl = el('section', { class: 'card lab3d' }); main.insertBefore(this.labEl, stage); main.classList.add('has-lab'); }
       if (s.graph) {
         const gc = el('section', { class: 'card graph' });
         gc.innerHTML = '<h3>الرسم البياني الحي <small>Live graph</small></h3>' + (s.graphModes ? '<div class="gmodes" role="tablist"></div>' : '') + '<div class="graph-wrap"><canvas aria-label="الرسم البياني"></canvas></div><p class="hint gcap"></p>';
@@ -341,6 +361,7 @@
       this.ro.observe(this.canvas.parentElement);
       if (this.gCanvas) this.ro.observe(this.gCanvas.parentElement);
       this.layout(true);
+      if (this.labEl) { try { this.lab = s.mount(this.labEl, this); } catch (e) { console.error(e); } }
       this.buildTutor();
     }
     // النقر والسحب على الرسم (فأرة ولمس): sim.onPointer(type, x, y, p, st, api)
@@ -492,6 +513,7 @@
       if (this.mode === 'challenge') this.checkChallenge();
       if (this.plot && s.handles) this.plot.handles = s.handles(this.p, this.d, (k, v) => this.set(k, v));
       this.redraw();
+      if (this.lab && this.lab.update) this.lab.update();
     }
     renderWhy() {
       const ex = this.lastExplain.length ? this.lastExplain : [this.sim.idle || this.subj.idle];
