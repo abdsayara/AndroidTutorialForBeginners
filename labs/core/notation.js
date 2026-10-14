@@ -29,7 +29,7 @@
       .replace(/[٫,]/g, '.').replace(/[−–]/g, '-').replace(/\s/g, '');
     return s === '' ? NaN : Number(s);
   };
-  ML.fmtInput = (v) => (ML.isAr() ? ML.arNum(String(v)) : String(v));
+  ML.fmtInput = (v) => (ML.isAr() && !(ML.isChem && ML.isChem()) ? ML.arNum(String(v)) : String(v));
 
   /* ---------- جداول الرموز (من الكتابين) ---------- */
   // الرياضيات: س، ص، ق(س)، هـ(س)، أ ب جـ، جا جتا ظا، لو، π، العبارات ن ف م، المصفوفات أ ب جـ …
