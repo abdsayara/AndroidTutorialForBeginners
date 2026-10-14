@@ -131,6 +131,7 @@ for (const size of sizes) {
       });
       if (asc.length) fail(`${id}: western digits/latin symbols → ${asc.join(' | ')}`);
     }
+    else await page.evaluate(() => { window.__ft.length = 0; }); // لا تنتقل نصوص رسوم الكيمياء إلى المحاكاة التالية
     // المساعد
     await page.click('.tutor .fab');
     const chips = await page.$$('.tutor .chip');
