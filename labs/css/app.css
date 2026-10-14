@@ -64,7 +64,7 @@ button, input, select { font: inherit; color: inherit; }
 .back { white-space: nowrap; }
 
 /* تبويبات الصفوف والمواد */
-.tabs { max-width: 1400px; margin: 0 auto; padding: 12px 16px 0; display: grid; gap: 8px; }
+.tabs { max-width: 1400px; margin: 0 auto; padding: 12px 16px 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .grade-tabs, .subject-tabs { display: flex; gap: 6px; overflow-x: auto; }
 .gtab, .stab { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 700; }
 .gtab small, .stab small { color: var(--muted); font-weight: 500; font-size: 11px; }
@@ -266,7 +266,7 @@ button, input, select { font: inherit; color: inherit; }
 .lab-actions .btn { min-height: 38px; font-size: 14px; }
 .lab-actions .btn.next { background: var(--ok); color: #fff; border-color: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); animation: lab-pulse 1.6s ease-in-out infinite; }
 @keyframes lab-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--ok) 12%, transparent); } }
-bdi.chem { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 600; white-space: nowrap; unicode-bidi: isolate; }
+bdi.chem { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 600; white-space: normal; overflow-wrap: anywhere; unicode-bidi: isolate; }
 @media (max-width: 900px) {
   .sim-grid.has-lab, .sim-grid.has-lab.has-graph { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mode" "lab" "stage" "controls" "graph" "results" "why" "steps" "law"; }
   .lab-wrap { height: clamp(300px, 52vh, 480px); }
