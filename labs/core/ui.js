@@ -148,7 +148,10 @@
       if (p.startsWith('{{') && p.endsWith('}}')) return '<bdi class="chem" dir="ltr" lang="en">' + esc(p.slice(2, -2)) + '</bdi>';
       if (p.startsWith('$$')) return '<div class="math-block" dir="ltr">' + ML.texHTML(p.slice(2, -2), true) + '</div>';
       if (p.startsWith('$') && p.length > 1) return '<span class="m" dir="ltr">' + ML.texHTML(p.slice(1, -1)) + '</span>';
-      return esc(ML.loc ? ML.loc(p) : p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      let t = ML.loc ? ML.loc(p) : p;
+      // فيزياء الثاني عشر: صيغ لاتينية داخل النص العربي تُعزل كاملة (انظر ML.bidi)
+      if (ML.curSim && ML.curSim.subject === 'g12-physics' && ML.bidi) t = ML.bidi(t);
+      return esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     }).join('');
   };
 

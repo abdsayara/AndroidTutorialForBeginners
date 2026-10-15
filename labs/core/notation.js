@@ -324,9 +324,9 @@
     const ARX = /[\u0600-\u06FF]/;
     const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[0-9]*[A-Za-z][A-Za-z0-9₀-₉′'’]*(?:[ –\-/]+[A-Za-z][A-Za-z0-9₀-₉′'’]*)*/g, (m) => '\u2066' + m + '\u2069');
     // فيزياء الثاني عشر: صيغ لاتينية كاملة بأرقام غربية داخل نص عربي (I = 0.36 A) تُعزل كتلة واحدة
-    const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻×=+\-−.,:/%'’∥≈→↑↓ ]+/g;
-    const latFormula = () => !!(ML.current && ML.current.sim && ML.current.sim.subject === 'g12-physics');
-    const rtlFormula = (t) => t.replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { const core = m.trim(); if (!core || !/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; const i = m.indexOf(core); return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(i + core.length); });
+    const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻×=+\-−.,/%'’∥≈→↑↓ ]+/g;
+    const latFormula = () => !!(ML.curSim && ML.curSim.subject === 'g12-physics');
+    const rtlFormula = (t) => t.replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { let i = 0, j = m.length; while (i < j && !/[A-Za-z0-9Ͱ-Ͽ(√−\-]/.test(m[i])) i++; while (j > i && /[\s(.,:=⇒÷×+]/.test(m[j - 1])) j--; const core = m.slice(i, j); if (!/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(j); });
     function draw(fn, ctx, t, a) {
       t = L(String(t));
       if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);
