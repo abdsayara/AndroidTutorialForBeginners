@@ -27,12 +27,12 @@ for (const size of sizes) {
   const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, href: ML.simHref(s) })));
   console.log(`[${size.name}] ${sims.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
   // صفحتا المادتين والتنقل بين التبويبات
-  for (const sl of ['math', 'physics', 'biology', 'chemistry']) {
-    await page.goto(base + Q + '#/g10/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
+  for (const sl of ['g10/math', 'g10/physics', 'g10/biology', 'g10/chemistry', 'g12/physics']) {
+    await page.goto(base + Q + '#/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
     const st = await page.evaluate(() => ({ n: document.querySelectorAll('.units a[href*="/sim/"]').length, on: (document.querySelector('.stab.on') || {}).textContent || '', g: (document.querySelector('.gtab.on') || {}).textContent || '' }));
     if (!st.n || !st.g) fail(`home ${sl}: links=${st.n} gradeTab=${st.g}`);
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); if (ov > 1) fail(`home ${sl}: horizontal overflow ${ov}px`);
-    if (shots) await page.screenshot({ path: `tests/shots/home-${sl}-${size.name}.png`, fullPage: false });
+    if (shots) await page.screenshot({ path: `tests/shots/home-${sl.replace('/', '-')}-${size.name}.png`, fullPage: false });
   }
   for (const sm of sims) {
     const id = sm.id;
@@ -108,7 +108,7 @@ for (const size of sizes) {
     // أنماط الرسم البياني الحي
     const gm = await page.$$('.gmodes button');
     for (const b of gm) { await b.click(); await page.waitForTimeout(60); const cap = await page.evaluate(() => (document.querySelector('.graph') || {}).innerText || ''); if (/NaN|undefined|\[object/.test(cap)) fail(`${id}: graph caption ${cap.slice(0, 200)}`); }
-    if (sm.subject === 'g10-physics') { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
+    if (sm.subject === 'g10-physics' || sm.subject === 'g12-physics') { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
     await page.click('[data-a=reset]'); await page.waitForTimeout(520);
     // الأوضاع
     for (const m of ['learn', 'challenge', 'explore']) { await page.click(`.modes [data-m=${m}]`); await page.waitForTimeout(80); }
@@ -121,7 +121,7 @@ for (const size of sizes) {
       if (solved) fail(`${id}: challenge ${i + 1} is already solved by its init state`);
     }
     // صيغة الكتاب: لا أرقام إنجليزية في النصوص الظاهرة ولا على الرسوم (Canvas)
-    if (!intl && sm.subject !== 'g10-chem') { // كتاب الكيمياء يكتب الأرقام بالصيغة الغربية
+    if (!intl && !(await page.evaluate(() => ML.isLatinBook(ML.current.sim)))) { // كتابا الكيمياء وفيزياء الثاني عشر يكتبان بالحروف اللاتينية والأرقام الغربية
       const asc = await page.evaluate(() => {
         const out = [];
         document.querySelectorAll('.results, .live, .steps, .law, .why, .controls .param label, .graph .gcap, .assume, .sim-head .src').forEach((e) => { const t = e.innerText; if (/[0-9]/.test(t)) out.push(t.match(/.{0,30}[0-9].{0,20}/)[0]); });

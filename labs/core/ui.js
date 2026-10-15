@@ -22,7 +22,8 @@
   ML.ORD = ORD;
 
   /* ---------- الصفوف والمواد ---------- */
-  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] }];
+  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] },
+    { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
   ML.subjects = {
     'g10-math': {
       id: 'g10-math', grade: 'g10', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '∫',
@@ -93,6 +94,24 @@
         { n: 4, ar: 'مدخل إلى الكيمياء العضوية', en: 'Introduction to Organic Chemistry', icon: '⬡', pages: '69–99', color: 'u4' },
         { n: 5, ar: 'الطاقة في التفاعلات الكيميائية', en: 'Energy in Chemical Reactions', icon: '🔥', pages: '100–119', color: 'u5' }
       ]
+    },
+    'g12-physics': {
+      id: 'g12-physics', grade: 'g12', slug: 'physics', name: 'الفيزياء', en: 'Physics', icon: '⚛',
+      title: 'مختبر الفيزياء التفاعلي', titleEn: 'Interactive Physics Simulation Lab — Grade 12',
+      book: 'كتاب الفيزياء — الصف الثاني عشر العلمي', bookEd: 'دولة فلسطين، الطبعة الثانية 2020م / 1441هـ (معدّلة 2025)',
+      lead: 'غيّر المتغيرات وشاهد التجربة تتحرك أمامك: المتغيرات ← التجربة ← النتيجة ← الرسم البياني ← التفسير — بقوانين الكتاب ورموزه اللاتينية.',
+      search: 'ابحث عن قانون أو تجربة… (مثال: الزخم، التصادم، كيرشوف، فاراداي)',
+      tutor: 'مساعد الفيزياء الذكي', tutorEn: 'AI Physics Tutor', idle: 'غيّر أي متغير أو شغّل التجربة، وسأشرح لك هنا ماذا تغيّر في النتيجة ولماذا — بقوانين الكتاب.',
+      units: [
+        { n: 1, unitAr: 'الوحدة الأولى: الميكانيكا', ar: 'الزخم الخطي والدفع', en: 'Linear Momentum and Impulse', icon: 'p', pages: '4–14', color: 'u1' },
+        { n: 2, unitAr: 'الوحدة الأولى: الميكانيكا', ar: 'التصادمات', en: 'Collisions', icon: '💥', pages: '15–32', color: 'u2' },
+        { n: 3, unitAr: 'الوحدة الأولى: الميكانيكا', ar: 'الحركة الدورانية', en: 'Rotational Motion', icon: '⟳', pages: '33–54', color: 'u3' },
+        { n: 4, unitAr: 'الوحدة الثانية: الكهرباء المتحركة', ar: 'التيار الكهربائي والمقاومة', en: 'Electric Current and Resistance', icon: 'Ω', pages: '57–71', color: 'u4' },
+        { n: 5, unitAr: 'الوحدة الثانية: الكهرباء المتحركة', ar: 'دارات التيار المستمر', en: 'Direct-Current Circuits', icon: '🔋', pages: '72–93', color: 'u5' },
+        { n: 6, unitAr: 'الوحدة الثالثة: الكهرومغناطيسية', ar: 'المجال المغناطيسي', en: 'The Magnetic Field', icon: '🧲', pages: '96–109', color: 'u6' },
+        { n: 7, unitAr: 'الوحدة الثالثة: الكهرومغناطيسية', ar: 'القوة المغناطيسية', en: 'The Magnetic Force', icon: 'F', pages: '110–122', color: 'u1' },
+        { n: 8, unitAr: 'الوحدة الثالثة: الكهرومغناطيسية', ar: 'الحث الكهرومغناطيسي', en: 'Electromagnetic Induction', icon: '⚡', pages: '123–143', color: 'u2' }
+      ]
     }
   };
   const SUBJ = (id) => ML.subjects[id || 'g10-math'];
@@ -109,7 +128,7 @@
   ML.texHTML = function (tex, display) {
     try {
       if (root.katex) {
-        if (ML.isAr && ML.isAr() && !(ML.isChem && ML.isChem())) {
+        if (ML.isAr && ML.isAr() && !(ML.isLatinBook && ML.isLatinBook())) {
           // صيغة الكتاب: رموز وأرقام عربية، والمعادلة من اليمين لليسار
           const h = root.katex.renderToString(ML.arTeX(tex), { throwOnError: false, displayMode: !!display, output: 'html', strict: 'ignore' });
           return '<span class="ar-math" role="math" aria-label="' + esc(tex) + '">' + ML.mirrorKaTeX(h) + '</span>';
@@ -223,7 +242,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id !== 'g10-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id !== 'g10-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -705,7 +724,7 @@
         const a = ML.tutorAnswer(s, q, { p: this.p, d: this.d, lastExplain: this.lastExplain });
         setTimeout(() => say('bot', ML.rich(a)), 120);
       };
-      say('bot', ML.rich('مرحباً! أنا ' + this.subj.tutor + '، مساعدك في ' + (s.subject === 'g10-physics' ? 'تجربة' : 'محاكاة') + ' **' + s.titleAr + '**. أجيبك اعتماداً على القيم التي تراها الآن على الشاشة.'));
+      say('bot', ML.rich('مرحباً! أنا ' + this.subj.tutor + '، مساعدك في ' + (s.subject === 'g10-physics' || s.subject === 'g12-physics' ? 'تجربة' : 'محاكاة') + ' **' + s.titleAr + '**. أجيبك اعتماداً على القيم التي تراها الآن على الشاشة.'));
       const chips = wrap.querySelector('.chips');
       (s.tutor || []).forEach((r) => { const c = el('button', { class: 'chip', type: 'button' }, esc(r.q)); c.addEventListener('click', () => ask(r.q)); chips.appendChild(c); });
       wrap.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); const i = wrap.querySelector('input'); ask(i.value); i.value = ''; });
