@@ -216,7 +216,7 @@
     id: 'resistor-combos', unit: 4, order: 5, lesson: '—', lessonTitle: 'طرق توصيل المقاومات', page: 68,
     titleAr: 'توصيل المقاومات على التوالي والتوازي', titleEn: 'Series and Parallel Resistors', tags: 'توالي توازي مقاومة مكافئة تيار جهد ملتيميتر نشاط 4-4 مثال 8',
     formula: 'R_{eq} = R_1 + R_2 + R_3 ,\\qquad \\frac{1}{R_{eq}} = \\frac{1}{R_1} + \\frac{1}{R_2} + \\frac{1}{R_3}',
-    book: 'نشاط (4-4) ص68: ثلاث مقاومات مع بطارية وملتيميتر على التوالي ثم على التوازي. مثال (8) ص69: 3 Ω و6 Ω على التوازي، ثم مع 2 و4 و10 Ω على التوالي ⇒ 16 Ω.',
+    book: 'نشاط (4-4) ص68: ثلاث مقاومات مع بطارية وملتيميتر على التوالي ثم على التوازي. مثال (8) ص69: 3 Ω و6 Ω على التوازي (2 Ω)، ثم مع 4 Ω و10 Ω على التوالي ⇒ 16 Ω.',
     summary: 'على التوالي: التيار نفسه في كل المقاومات ويتوزع الجهد عليها، والمكافئة مجموعها. على التوازي: الجهد نفسه على كل مقاومة ويتوزع التيار، ومقلوب المكافئة مجموع المقلوبات. القدرة الكلية تساوي مجموع قدرات المقاومات.',
     vars: [['R_1, R_2, R_3', 'المقاومات', '\\Omega', '1 – 60'], ['V', 'جهد البطارية', '\\mathrm{V}', '1 – 24'], ['R_{eq}', 'المقاومة المكافئة', '\\Omega', '—'], ['I', 'التيار الكلي', '\\mathrm{A}', '—']],
     assumptions: ['البطارية مثالية (مقاومتها الداخلية مهملة).', 'أسلاك التوصيل بلا مقاومة.'],
@@ -226,22 +226,21 @@
       { key: 'R1', label: 'R_1\\ (\\Omega)', min: 1, max: 60, step: 1, value: 3 },
       { key: 'R2', label: 'R_2\\ (\\Omega)', min: 1, max: 60, step: 1, value: 6 },
       { key: 'R3', label: 'R_3\\ (\\Omega)', min: 1, max: 60, step: 1, value: 2 },
-      { key: 'R4', label: 'R_4\\ (\\Omega)', min: 1, max: 60, step: 1, value: 1, hidden: (p) => p.mode !== 'ex8' },
-      { key: 'R5', label: 'R_5\\ (\\Omega)', min: 1, max: 60, step: 1, value: 1, hidden: (p) => p.mode !== 'ex8' }
+      { key: 'R4', label: 'R_4\\ (\\Omega)', min: 1, max: 60, step: 1, value: 1, hidden: (p) => p.mode !== 'ex8' }
     ],
     compute(p) {
       let Req, br;
       if (p.mode === 'series') { Req = p.R1 + p.R2 + p.R3; const I = p.V / Req; br = [p.R1, p.R2, p.R3].map((R) => ({ R: R, I: I, V: I * R })); }
       else if (p.mode === 'parallel') { Req = Q.parallel([p.R1, p.R2, p.R3]); br = [p.R1, p.R2, p.R3].map((R) => ({ R: R, I: p.V / R, V: p.V })); }
-      else { const Rp = Q.parallel([p.R1, p.R2]); Req = Rp + p.R3 + p.R4 + p.R5; const I = p.V / Req; br = [{ R: p.R1, I: I * Rp / p.R1, V: I * Rp }, { R: p.R2, I: I * Rp / p.R2, V: I * Rp }].concat([p.R3, p.R4, p.R5].map((R) => ({ R: R, I: I, V: I * R }))); br.Rp = Rp; }
+      else { const Rp = Q.parallel([p.R1, p.R2]); Req = Rp + p.R3 + p.R4; const I = p.V / Req; br = [{ R: p.R1, I: I * Rp / p.R1, V: I * Rp }, { R: p.R2, I: I * Rp / p.R2, V: I * Rp }].concat([p.R3, p.R4].map((R) => ({ R: R, I: I, V: I * R }))); br.Rp = Rp; }
       const I = p.V / Req; return { Req: Req, I: I, br: br, P: br.reduce((s, b) => s + b.I * b.V, 0), Rp: br.Rp };
     },
-    live(p, d) { return p.mode === 'series' ? 'R_{eq} = ' + p.R1 + ' + ' + p.R2 + ' + ' + p.R3 + ' = ' + q(d.Req, '\\Omega') : p.mode === 'parallel' ? '\\frac{1}{R_{eq}} = \\frac{1}{' + p.R1 + '} + \\frac{1}{' + p.R2 + '} + \\frac{1}{' + p.R3 + '} \\Rightarrow R_{eq} = ' + q(d.Req, '\\Omega', 4) : 'R_{eq} = (' + p.R1 + ' \\parallel ' + p.R2 + ') + ' + p.R3 + ' + ' + p.R4 + ' + ' + p.R5 + ' = ' + n(d.Rp) + ' + ' + (p.R3 + p.R4 + p.R5) + ' = ' + q(d.Req, '\\Omega', 4); },
+    live(p, d) { return p.mode === 'series' ? 'R_{eq} = ' + p.R1 + ' + ' + p.R2 + ' + ' + p.R3 + ' = ' + q(d.Req, '\\Omega') : p.mode === 'parallel' ? '\\frac{1}{R_{eq}} = \\frac{1}{' + p.R1 + '} + \\frac{1}{' + p.R2 + '} + \\frac{1}{' + p.R3 + '} \\Rightarrow R_{eq} = ' + q(d.Req, '\\Omega', 4) : 'R_{eq} = (' + p.R1 + ' \\parallel ' + p.R2 + ') + ' + p.R3 + ' + ' + p.R4 + ' = ' + n(d.Rp) + ' + ' + (p.R3 + p.R4) + ' = ' + q(d.Req, '\\Omega', 4); },
     results(p, d) { return [['المقاومة المكافئة', q(d.Req, '\\Omega', 4), true, 'pos'], ['التيار الكلي I = V/Rₑq', q(d.I, 'A', 4)]].concat(d.br.slice(0, 3).map((b, i) => ['R' + (i + 1) + ': التيار والجهد', ML.phys.sci(b.I, 3) + '\\ \\mathrm{A} ,\\ ' + ML.phys.sci(b.V, 3) + '\\ \\mathrm{V}'])).concat([['القدرة الكلية = مجموع القدرات', q(d.P, 'W', 4)]]); },
     steps(p, d) {
       if (p.mode === 'series') return ['Rₑq = R₁ + R₂ + R₃ = ' + n(d.Req) + ' Ω.', 'I = V / Rₑq = ' + n(d.I) + ' A في كل مقاومة.', 'الجهد يتوزع: ' + d.br.map((b) => n(b.V)).join(' + ') + ' = ' + p.V + ' V.'];
       if (p.mode === 'parallel') return ['1/Rₑq = 1/' + p.R1 + ' + 1/' + p.R2 + ' + 1/' + p.R3 + ' ⇒ Rₑq = ' + n(d.Req) + ' Ω.', 'الجهد ' + p.V + ' V على كل مقاومة.', 'التيار يتوزع: ' + d.br.map((b) => n(b.I)).join(' + ') + ' = ' + n(d.I) + ' A.'];
-      return ['(' + p.R1 + ' Ω ∥ ' + p.R2 + ' Ω) = ' + n(d.Rp) + ' Ω.', 'Rₑq = ' + n(d.Rp) + ' + ' + p.R3 + ' + ' + p.R4 + ' + ' + p.R5 + ' = ' + n(d.Req) + ' Ω.'];
+      return ['(' + p.R1 + ' Ω ∥ ' + p.R2 + ' Ω) = ' + n(d.Rp) + ' Ω.', 'Rₑq = ' + n(d.Rp) + ' + ' + p.R3 + ' + ' + p.R4 + ' = ' + n(d.Req) + ' Ω.'];
     },
     drawCustom(ctx, W, H, p, d, cols) {
       const nr = K.narrow(W); const xL = W * 0.12, xR = W * 0.88, yT = H * 0.3, yB = H * 0.82;
@@ -249,20 +248,20 @@
       const lab = (b, i) => 'R' + (i + 1) + '=' + b.R + 'Ω ' + n(b.I, 2) + 'A';
       if (p.mode === 'series') { const seg = (xR - xL) / 3; d.br.forEach((b, i) => K.resistor(ctx, xL + seg * i, yT, xL + seg * (i + 1), yT, lab(b, i), cols, [cols.c1, cols.c2, cols.c3][i])); }
       else if (p.mode === 'parallel') { const x0 = xL + (xR - xL) * 0.25, x1 = xL + (xR - xL) * 0.75; K.wire(ctx, [[xL, yT], [x0, yT]], cols); K.wire(ctx, [[x1, yT], [xR, yT]], cols); d.br.forEach((b, i) => { const y = yT - 60 + 60 * i; K.wire(ctx, [[x0, yT - 60], [x0, yT + 60]], cols); K.wire(ctx, [[x1, yT - 60], [x1, yT + 60]], cols); K.resistor(ctx, x0, y, x1, y, lab(b, i), cols, [cols.c1, cols.c2, cols.c3][i]); }); }
-      else { const seg = (xR - xL) / 4; const x0 = xL, x1 = xL + seg; K.wire(ctx, [[x0, yT - 35], [x0, yT + 35]], cols); K.wire(ctx, [[x1, yT - 35], [x1, yT + 35]], cols); K.resistor(ctx, x0, yT - 35, x1, yT - 35, p.R1 + 'Ω', cols, cols.c1); K.resistor(ctx, x0, yT + 35, x1, yT + 35, p.R2 + 'Ω', cols, cols.c2); [p.R3, p.R4, p.R5].forEach((R, i) => K.resistor(ctx, xL + seg * (i + 1), yT, xL + seg * (i + 2), yT, R + 'Ω', cols, cols.c3)); D.txt(ctx, 'A', xL - 12, yT, { color: cols.text, size: 13, w: '700' }); D.txt(ctx, 'B', xR + 12, yT, { color: cols.text, size: 13, w: '700' }); }
+      else { const seg = (xR - xL) / 3; const x0 = xL, x1 = xL + seg; K.wire(ctx, [[x0, yT - 35], [x0, yT + 35]], cols); K.wire(ctx, [[x1, yT - 35], [x1, yT + 35]], cols); K.resistor(ctx, x0, yT - 35, x1, yT - 35, p.R1 + 'Ω', cols, cols.c1); K.resistor(ctx, x0, yT + 35, x1, yT + 35, p.R2 + 'Ω', cols, cols.c2); [p.R3, p.R4].forEach((R, i) => K.resistor(ctx, xL + seg * (i + 1), yT, xL + seg * (i + 2), yT, R + 'Ω', cols, cols.c3)); D.txt(ctx, 'A', xL - 12, yT, { color: cols.text, size: 13, w: '700' }); D.txt(ctx, 'B', xR + 12, yT, { color: cols.text, size: 13, w: '700' }); }
       D.txt(ctx, 'Rₑq = ' + n(d.Req) + ' Ω   I = ' + n(d.I) + ' A', W / 2, H * 0.08, { color: cols.text, size: nr ? 13 : 15, w: '700' });
     },
-    graph(p, d) { const items = d.br.slice(0, p.mode === 'ex8' ? 5 : 3).map((b, i) => ['R' + (i + 1), b.V, [ '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed'][i]]); return { view: K.barView(items.map((x) => x[1])), xLabel: '', yLabel: 'V (V)', caption: p.mode === 'parallel' ? 'التوازي: الجهد نفسه على كل مقاومة.' : 'التوالي: الجهد يتوزع بنسبة المقاومات.', draw(G) { const c = G.colors(); K.bars(G, items.map((x, i) => [x[0], x[1], [c.c1, c.c2, c.c3, c.c4, c.c5][i]])); } }; },
+    graph(p, d) { const items = d.br.slice(0, p.mode === 'ex8' ? 4 : 3).map((b, i) => ['R' + (i + 1), b.V, '']); return { view: K.barView(items.map((x) => x[1])), xLabel: '', yLabel: 'V (V)', caption: p.mode === 'parallel' ? 'التوازي: الجهد نفسه على كل مقاومة.' : 'التوالي: الجهد يتوزع بنسبة المقاومات.', draw(G) { const c = G.colors(); K.bars(G, items.map((x, i) => [x[0], x[1], [c.c1, c.c2, c.c3, c.c4, c.c5][i]])); } }; },
     explain(a, b, da, db) { const o = []; if (a.mode !== b.mode) o.push(b.mode === 'parallel' ? 'التوازي يجعل المكافئة أصغر من أصغر مقاومة.' : b.mode === 'series' ? 'التوالي يجعل المكافئة أكبر من أكبر مقاومة.' : 'مثال (8): نبسّط التوازي أولاً ثم نجمع على التوالي.'); return o; },
     learn: ['**التوالي (نشاط 4-4):** Rₑq = R₁ + R₂ + R₃، التيار متساوٍ في المقاومات، ومجموع فروق الجهد يساوي جهد البطارية.', '**التوازي:** 1/Rₑq = 1/R₁ + 1/R₂ + 1/R₃، الجهد متساوٍ، ومجموع التيارات يساوي التيار الكلي.', '**القدرة الكلية** في الحالتين = مجموع القدرات المستهلكة في كل مقاومة.'],
     challenges: [
-      { q: 'مثال (8): 3 Ω و6 Ω على التوازي ثم 2 و4 و10 Ω على التوالي. أوجد المكافئة بين A و B.', hint: 'اختر «مثال (8)» واضبط R₃ = 2 و R₄ = 4 و R₅ = 10.', init: { mode: 'series', R1: 3, R2: 6, R3: 2, R4: 1, R5: 1 }, check: (p) => p.mode === 'ex8' && ((p.R1 === 3 && p.R2 === 6) || (p.R1 === 6 && p.R2 === 3)) && p.R3 + p.R4 + p.R5 === 16 && [p.R3, p.R4, p.R5].sort((a, b) => a - b).join() === '2,4,10', why: () => '2 + 2 + 4 + 10 = 16 Ω.' },
+      { q: 'مثال (8): 3 Ω و6 Ω على التوازي ثم 4 Ω و10 Ω على التوالي. أوجد المكافئة بين A و B.', hint: 'اختر «مثال (8)» واضبط R₃ = 4 و R₄ = 10.', init: { mode: 'series', R1: 3, R2: 6, R3: 2, R4: 1 }, check: (p) => p.mode === 'ex8' && ((p.R1 === 3 && p.R2 === 6) || (p.R1 === 6 && p.R2 === 3)) && [p.R3, p.R4].sort((a, b) => a - b).join() === '4,10', why: () => '(3 ∥ 6) = 2 Ω ثم 2 + 4 + 10 = 16 Ω.' },
       { q: 'أسئلة الفصل: بثلاث مقاومات 12 Ω اجعل المكافئة 4 Ω.', hint: 'كلها على التوازي.', init: { mode: 'series', R1: 12, R2: 12, R3: 12 }, check: (p) => p.mode === 'parallel' && p.R1 === 12 && p.R2 === 12 && p.R3 === 12, why: () => '12/3 = 4 Ω.' }
     ],
     tutor: [
       { q: 'لماذا تقل المقاومة المكافئة عند التوصيل على التوازي؟', k: ['توازي', 'تقل'], a: () => K.tutor('هل يزيد عدد المسارات المتاحة للتيار؟', 'كل فرع جديد مسار إضافي للتيار، فيزداد التيار الكلي وتقل المكافئة.') },
       { q: 'ماذا يحدث للتيار في التوالي؟', k: ['توالي', 'تيار'], a: () => K.tutor('هل يوجد تفرع للتيار؟', 'التيار نفسه في كل المقاومات.') },
-      { q: 'كيف أحل مثال (8)؟', k: ['مثال', '8'], a: () => K.tutor('ابدأ بالمقاومتين على التوازي.', '3 ∥ 6 = 2 Ω ثم 2 + 2 + 4 + 10 = 16 Ω.') }
+      { q: 'كيف أحل مثال (8)؟', k: ['مثال', '8'], a: () => K.tutor('ابدأ بالمقاومتين على التوازي.', '3 ∥ 6 = 2 Ω ثم 2 + 4 + 10 = 16 Ω.') }
     ]
   });
 })(typeof window !== 'undefined' ? window : globalThis);
