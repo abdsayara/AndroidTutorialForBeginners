@@ -96,7 +96,7 @@
       K.wire(ctx, [[x1, yT], [x0, yT], [x0, yT + h * 0.3]], cols, cols.text, 3); K.resistor(ctx, x0, yT + h * 0.3, x0, yT + h * 0.7, 'R = ' + p.R + ' Ω', cols); K.wire(ctx, [[x0, yT + h * 0.7], [x0, yB], [x1, yB]], cols, cols.text, 3);
       const xr = x0 + 70 + ((st.t * (20 + p.v * 12)) % (x1 - x0 - 100)); ctx.strokeStyle = '#c2410c'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(xr, yT - 8); ctx.lineTo(xr, yB + 8); ctx.stroke();
       lbl(ctx, 'a', xr + 12, yT - 12, cols.c5, cols); lbl(ctx, 'b', xr + 12, yB + 14, cols.c5, cols);
-      K.vec(ctx, xr, (yT + yB) / 2 - 20, 50, 0, cols.c3, 'v', cols); K.vec(ctx, xr, (yT + yB) / 2 + 20, -45, 0, cols.c2, 'F_B', cols);
+      K.vec(ctx, xr, (yT + yB) / 2 - 20, 50, 0, cols.c3, 'v', cols); K.vec(ctx, xr, (yT + yB) / 2 + 20, -45, 0, cols.c2, 'F', cols);
       D.arrow(ctx, xr + 18, yB - 30, xr + 18, yT + 30, cols.c4, 2.5); lbl(ctx, 'I', xr + 30, (yT + yB) / 2, cols.c4, cols, 13);
       D.txt(ctx, 'ε = ' + n(d.e, 4) + ' V   I = ' + n(d.I, 4) + ' A', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 13 : 15, w: '700' });
     },
@@ -200,9 +200,9 @@
       K.wire(ctx, [[x0, cy + h], [x0 - 30, cy + h + 30], [x0 - 30, H * 0.86], [x0 + len + 30, H * 0.86], [x0 + len + 30, cy + h + 30], [x0 + len, cy + h]], cols);
       D.arrow(ctx, W / 2 - 40, H * 0.86 - 14, W / 2 + 40, H * 0.86 - 14, cols.c1, 3); lbl(ctx, 'I ' + (p.r > 0 ? '↑ يزداد' : p.r < 0 ? '↓ يتناقص' : 'ثابت'), W / 2, H * 0.86 + 16, cols.c1, cols);
       if (p.r !== 0) { const s = p.r > 0 ? -1 : 1; D.arrow(ctx, W / 2 - s * 50, cy - h - 24, W / 2 + s * 50, cy - h - 24, cols.c2, 3); lbl(ctx, 'ε الحثية', W / 2, cy - h - 42, cols.c2, cols, 13); }
-      D.txt(ctx, 'L_in = ' + sct(d.Lin, 3) + ' H', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 14 : 16, w: '700' });
+      D.txt(ctx, 'Lin = ' + sct(d.Lin, 3) + ' H', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 14 : 16, w: '700' });
     },
-    graph(p, d) { const m = d.Lin * 100; return { view: { xmin: -100, xmax: 100, ymin: -m * 1.1, ymax: m * 1.1 }, xLabel: 'ΔI/Δt (A/s)', yLabel: 'ε (V)', caption: 'ε = −L_in ΔI/Δt: ميل الخط يساوي −L_in.', draw(G) { const c = G.colors(); G.fn((r) => -d.Lin * r, { color: c.c1, width: 3, domain: [-100, 100] }); G.hline(0, { color: c.muted }); G.vline(0, { color: c.muted }); G.point(p.r, d.e, { color: c.c2 }); } }; },
+    graph(p, d) { const m = d.Lin * 100; return { view: { xmin: -100, xmax: 100, ymin: -m * 1.1, ymax: m * 1.1 }, xLabel: 'ΔI/Δt (A/s)', yLabel: 'ε (V)', caption: 'ε = −Lin ΔI/Δt: ميل الخط يساوي −Lin.', draw(G) { const c = G.colors(); G.fn((r) => -d.Lin * r, { color: c.c1, width: 3, domain: [-100, 100] }); G.hline(0, { color: c.muted }); G.vline(0, { color: c.muted }); G.point(p.r, d.e, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.N !== b.N) o.push('المحاثة تتناسب مع مربع عدد اللفات.'); if (a.len !== b.len) o.push('إطالة الملف بعدد اللفات نفسه تقلل المحاثة.'); return o; },
     learn: ['**المحاثة (8-6) ص129:** L_in = NΦ/I ، ووحدتها الهنري H = Wb/A.', '**للملف الحلزوني (8-7):** L_in = μ₀N²A/L ؛ لا تعتمد على التيار، وهي موجبة دائماً.', '**(8-8) ص130:** ε = −L_in ΔI/Δt ؛ الهنري: محاثة محث تتولد فيه 1 V عندما يتغير التيار بمعدل 1 A/s.'],
     challenges: [

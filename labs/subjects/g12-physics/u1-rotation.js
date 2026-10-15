@@ -32,12 +32,12 @@
       ctx.fillStyle = cols.text; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
       let a = (st.tc !== null ? st.tc : st.t) * d.w; let x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
       if (st.tc !== null) { const dt = st.t - st.tc; const sc = R / p.r; x += -Math.sin(a) * p.v * dt * sc; y += Math.cos(a) * p.v * dt * sc; }
-      else { ctx.strokeStyle = cols.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke(); K.vec(ctx, x, y, (cx - x) * 0.35, (cy - y) * 0.35, cols.c2, 'F_c', cols); }
+      else { ctx.strokeStyle = cols.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke(); K.vec(ctx, x, y, (cx - x) * 0.35, (cy - y) * 0.35, cols.c2, 'Fc', cols); }
       ctx.fillStyle = cols.c1; ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2); ctx.fill();
       K.vec(ctx, x, y, -Math.sin(a) * 40, Math.cos(a) * 40, cols.c3, 'v', cols);
       D.txt(ctx, p.cut ? 'قُطع الخيط: حركة في خط مستقيم مماسي' : 'حركة دائرية بقوة مركزية', W / 2, H * 0.08, { color: cols.text, size: 15, w: '700' });
     },
-    graph(p, d) { return { view: { xmin: 0, xmax: 3, ymin: 0, ymax: Math.max(1, p.m * 9 / p.r * 1.1) }, xLabel: 'v (m/s)', yLabel: 'F_c (N)', caption: 'القوة المركزية تتناسب مع مربع السرعة.', draw(G) { const c = G.colors(); G.fn((v) => p.m * v * v / p.r, { color: c.c1, width: 3, domain: [0, 3] }); G.point(p.v, d.F, { color: c.c2 }); } }; },
+    graph(p, d) { return { view: { xmin: 0, xmax: 3, ymin: 0, ymax: Math.max(1, p.m * 9 / p.r * 1.1) }, xLabel: 'v (m/s)', yLabel: 'Fc (N)', caption: 'القوة المركزية تتناسب مع مربع السرعة.', draw(G) { const c = G.colors(); G.fn((v) => p.m * v * v / p.r, { color: c.c1, width: 3, domain: [0, 3] }); G.point(p.v, d.F, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.cut !== b.cut) o.push(b.cut ? 'زالت القوة المركزية فتحرّكت السيارة في خط مستقيم مماسي (القصور الذاتي).' : 'أعدت ربط الخيط.'); if (a.v !== b.v) o.push('مضاعفة السرعة تضاعف القوة المركزية أربع مرات.'); return o; },
     learn: ['**القوة المركزية (ص34):** قوة باتجاه المركز تلزم لتحريك جسم في مسار دائري، a_c = v²/r ، F_c = m v²/r = m r ω².', 'في النشاط: دون خيط تتحرك السيارة في خط مستقيم، ومع الخيط في دائرة، وعند تحرير الخيط تعود إلى خط مستقيم مماسي.'],
     challenges: [

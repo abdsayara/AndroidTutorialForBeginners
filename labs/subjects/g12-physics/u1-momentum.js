@@ -76,7 +76,7 @@
       if (p.mode === 'car') {
         const y = H * 0.6; ctx.strokeStyle = cols.axis; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(20, y + 4); ctx.lineTo(W - 20, y + 4); ctx.stroke();
         K.cart(ctx, W * 0.45, y, 110, 40, cols.c1, p.m + ' kg', cols);
-        K.vec(ctx, W * 0.45 + 60, y - 50, Math.min(W * 0.3, p.vi * 6), 0, cols.c3, 'v_i = ' + p.vi, cols); K.vec(ctx, W * 0.45 + 60, y - 20, Math.min(W * 0.3, p.vf * 6), 0, cols.c5, 'v_f = ' + p.vf, cols);
+        K.vec(ctx, W * 0.45 + 60, y - 50, Math.min(W * 0.3, p.vi * 6), 0, cols.c3, 'vi = ' + p.vi, cols); K.vec(ctx, W * 0.45 + 60, y - 20, Math.min(W * 0.3, p.vf * 6), 0, cols.c5, 'vf = ' + p.vf, cols);
         K.vec(ctx, W * 0.45 - 60, y - 20, -Math.min(W * 0.3, Math.abs(d.F) / 40), 0, cols.c2, 'F = ' + n(d.F, 0) + ' N', cols);
       } else {
         D.txt(ctx, 'دفع متساوٍ؟ قارن المساحتين في الرسم البياني', W / 2, H * 0.2, { color: cols.text, size: nr ? 13 : 15, w: '700' });
@@ -331,7 +331,7 @@
       const cx = W * 0.45, cy = H * 0.62; ctx.fillStyle = 'rgba(148,163,184,.25)'; ctx.fillRect(0, cy - 30, W, 60); ctx.fillRect(cx - 30, 0, 60, H);
       K.cart(ctx, cx - 140, cy + 10, 60, 26, cols.c1, '1', cols); K.vec(ctx, cx - 110, cy - 20, p.v1 * 5, 0, cols.c1, 'v₁ᵢ', cols);
       ctx.save(); ctx.translate(cx + 8, cy + 120); ctx.rotate(-Math.PI / 2); K.cart(ctx, 0, 0, 60, 26, cols.c2, '2', cols); ctx.restore(); K.vec(ctx, cx + 40, cy + 110, 0, -p.v2 * 5, cols.c2, 'v₂ᵢ', cols);
-      const L = Math.min(W * 0.35, d.vf * 12); const a = d.th * Math.PI / 180; K.vec(ctx, cx, cy, Math.cos(a) * L, -Math.sin(a) * L, cols.c3, 'v_f', cols, 4);
+      const L = Math.min(W * 0.35, d.vf * 12); const a = d.th * Math.PI / 180; K.vec(ctx, cx, cy, Math.cos(a) * L, -Math.sin(a) * L, cols.c3, 'vf', cols, 4);
       ctx.strokeStyle = cols.muted; ctx.beginPath(); ctx.arc(cx, cy, 40, -a, 0); ctx.stroke(); D.txt(ctx, 'θ = ' + K.n(d.th, 1) + '°', cx + 60, cy - 14, { color: cols.text, size: 13, w: '700', align: 'left' });
       D.txt(ctx, 'N ↑   E →', W - 60, 24, { color: cols.muted, size: 12, w: '700' });
     },

@@ -287,9 +287,9 @@
   }
   // عزل المقاطع اللاتينية/الرقمية داخل نص عربي حتى لا ينقلب ترتيبها (مثل الإحداثيات)
   // فيزياء الثاني عشر: الصيغ لاتينية بأرقام غربية، فتُعزل الصيغة كاملة (1/R = 1/4 + … ⇒ R = 2 Ω) لا كل كلمة وحدها
-  const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻²³¹×=+\-−.,/%'’∥≈→←⇒↑↓√()\[\]÷ₑ ]+/g;
+  const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻\u2090-\u209C\u1D62-\u1D6A\u2C7C²³¹×=+\-−.,/%'’∥≈→←⇒↑↓√()\[\]÷ₑ_½° ]+/g;
   ML.bidi = function (s) {
-    if (ML.isAr && ML.isAr() && ML.curSim && ML.curSim.subject === 'g12-physics') return String(s).replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { let i = 0, j = m.length; while (i < j && !/[A-Za-z0-9Ͱ-Ͽ(√−\-]/.test(m[i])) i++; while (j > i && /[\s(\[.,:=⇒÷×+]/.test(m[j - 1])) j--; const core = m.slice(i, j); if (!/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(j); });
+    if (ML.isAr && ML.isAr() && ML.curSim && ML.curSim.subject === 'g12-physics') return String(s).replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { let i = 0, j = m.length; while (i < j && !/[A-Za-z0-9Ͱ-Ͽ(√−\-½]/.test(m[i])) i++; while (j > i && /[\s(\[.,:=⇒÷×+]/.test(m[j - 1])) j--; const core = m.slice(i, j); if (!/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(j); });
     // صيغة الكتاب: الأرقام عربية فتُترك داخل النص العربي (الأقواس والفاصلة «،» والسالب تنعكس طبيعياً)؛ نعزل اللاتيني فقط
     if (ML.isAr && ML.isAr()) return (ML.isoNeg ? ML.isoNeg(String(s).replace(/[\u2066-\u2069]/g, '')) : String(s)).replace(/[0-9]*[A-Za-z][A-Za-z0-9₀-₉′'’]*(?:[ –\-/]+[A-Za-z][A-Za-z0-9₀-₉′'’]*)*/g, (m) => '\u2066' + m + '\u2069');
     return String(s).replace(/[A-Za-z0-9\u0660-\u0669\u00B2\u00B3\u00B9\u2070-\u209F\u0391-\u03C9(\[{][A-Za-z0-9\u0660-\u0669\u00B2\u00B3\u00B9\u2070-\u209F\u0391-\u03C9\-+.,=()\[\]{}'\/ π°θ≈·×√:|<>~∧∨→↔−]*[A-Za-z0-9\u0660-\u0669\u00B2\u00B3\u00B9\u2070-\u209F\u0391-\u03C9)\]}°']|[A-Za-z0-9\u0391-\u03C9]/g, (m) => '\u2066' + m + '\u2069')

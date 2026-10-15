@@ -85,11 +85,11 @@
     drawCustom(ctx, W, H, p, d, cols) {
       const st = d.st || { t: 0 }; const rad = Math.max(14, Math.min(H * 0.3, 14 + p.r * 5));
       wireView(ctx, W, H, p, cols, st.t, 8 + Math.min(120, Math.log10(1 + d.vd * 1e6) * 25), 'A = πr²', rad);
-      D.txt(ctx, DENS[p.mat][0] + ': v_d = ' + sct(d.vd, 3) + ' m/s', W / 2, H * 0.1, { color: cols.text, size: K.narrow(W) ? 13 : 15, w: '700' });
+      D.txt(ctx, DENS[p.mat][0] + ': vd = ' + sct(d.vd, 3) + ' m/s', W / 2, H * 0.1, { color: cols.text, size: K.narrow(W) ? 13 : 15, w: '700' });
     },
     graph(p, d, gi) {
       if (gi === 1) { const rm = 15; return { view: { xmin: 0, xmax: rm, ymin: 0, ymax: Math.max(d.J * 1.5, p.I / (Math.PI * 1e-6) * 0.05) }, xLabel: 'r (mm)', yLabel: 'J (A/m²)', caption: 'كثافة التيار تقل بزيادة مساحة المقطع عند ثبوت التيار.', draw(G) { const c = G.colors(); G.fn((r) => p.I / (Math.PI * r * r * 1e-6), { color: c.c5, width: 3, domain: [0.3, rm] }); G.point(p.r, d.J, { color: c.c2 }); } }; }
-      const k = d.vd / p.I; return { view: { xmin: 0, xmax: 300, ymin: 0, ymax: k * 300 * 1.1 }, xLabel: 'I (A)', yLabel: 'v_d (m/s)', caption: 'السرعة الانسياقية تتناسب طردياً مع شدة التيار.', draw(G) { const c = G.colors(); G.fn((I) => k * I, { color: c.c1, width: 3, domain: [0, 300] }); G.point(p.I, d.vd, { color: c.c2 }); } };
+      const k = d.vd / p.I; return { view: { xmin: 0, xmax: 300, ymin: 0, ymax: k * 300 * 1.1 }, xLabel: 'I (A)', yLabel: 'vd (m/s)', caption: 'السرعة الانسياقية تتناسب طردياً مع شدة التيار.', draw(G) { const c = G.colors(); G.fn((I) => k * I, { color: c.c1, width: 3, domain: [0, 300] }); G.point(p.I, d.vd, { color: c.c2 }); } };
     },
     graphModes: ['v_d – I', 'J – r'],
     explain(a, b, da, db) { const o = []; if (a.r !== b.r) o.push('تصغير المقطع يزيد السرعة الانسياقية وكثافة التيار للتيار نفسه.'); if (a.mat !== b.mat) o.push('الفلز الأقل كثافة إلكترونات حرة يحتاج سرعة انسياقية أكبر لنقل التيار نفسه.'); return o; },

@@ -128,9 +128,9 @@
       K.resistor(ctx, cx + 10, y, cx + bw / 2 + 30, y, 'r = ' + p.r + ' Ω', cols, cols.c4);
       lbl(ctx, 'b', cx - bw / 2 - 40, y, cols.c5, cols, 15); lbl(ctx, 'a', cx + bw / 2 + 40, y, cols.c5, cols, 15);
       const dir = p.mode === 'dis' ? 1 : -1; D.arrow(ctx, cx - 40 * dir, y + 70, cx + 40 * dir, y + 70, cols.c2, 3); lbl(ctx, 'I = ' + p.I + ' A ' + (p.mode === 'dis' ? '(تفريغ)' : '(شحن)'), cx, y + 90, cols.c2, cols, 13);
-      D.txt(ctx, 'V_ab = ' + n(d.V) + ' V', cx, H * 0.12, { color: cols.text, size: K.narrow(W) ? 14 : 17, w: '700' });
+      D.txt(ctx, 'Vab = ' + n(d.V) + ' V', cx, H * 0.12, { color: cols.text, size: K.narrow(W) ? 14 : 17, w: '700' });
     },
-    graph(p, d) { const Im = 20; return { view: { xmin: 0, xmax: Im, ymin: Math.max(0, p.e - Im * p.r - 2), ymax: p.e + Im * p.r + 2 }, xLabel: 'I (A)', yLabel: 'V_ab (V)', caption: 'تفريغ: V = ε − Ir (ميل سالب يساوي r)، وشحن: V = ε + Ir. عند I = 0 يكون V = ε.', draw(G) { const c = G.colors(); G.fn((I) => p.e - I * p.r, { color: c.c1, width: p.mode === 'dis' ? 3 : 1.5, domain: [0, Im] }); G.fn((I) => p.e + I * p.r, { color: c.c2, width: p.mode === 'ch' ? 3 : 1.5, domain: [0, Im] }); G.hline(p.e, { color: c.muted, dash: [5, 4] }); G.point(p.I, d.V, { color: c.c5 }); } }; },
+    graph(p, d) { const Im = 20; return { view: { xmin: 0, xmax: Im, ymin: Math.max(0, p.e - Im * p.r - 2), ymax: p.e + Im * p.r + 2 }, xLabel: 'I (A)', yLabel: 'Vab (V)', caption: 'تفريغ: V = ε − Ir (ميل سالب يساوي r)، وشحن: V = ε + Ir. عند I = 0 يكون V = ε.', draw(G) { const c = G.colors(); G.fn((I) => p.e - I * p.r, { color: c.c1, width: p.mode === 'dis' ? 3 : 1.5, domain: [0, Im] }); G.fn((I) => p.e + I * p.r, { color: c.c2, width: p.mode === 'ch' ? 3 : 1.5, domain: [0, Im] }); G.hline(p.e, { color: c.muted, dash: [5, 4] }); G.point(p.I, d.V, { color: c.c5 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.mode !== b.mode) o.push(b.mode === 'ch' ? 'عند الشحن يزيد فرق الجهد بين القطبين على القوة الدافعة.' : 'عند التفريغ يقل فرق الجهد عن القوة الدافعة.'); if (a.I !== b.I && b.I === 0) o.push('دون تيار: فرق الجهد يساوي القوة الدافعة (دارة مفتوحة).'); return o; },
     learn: ['**تفريغ ص80:** Vₐb = ε − Ir، والمقدار Ir يسمى الهبوط في الجهد.', '**شحن ص81:** Vₐb = ε + Ir.', 'القوة الدافعة لأي مصدر هي فرق الجهد بين طرفيه عندما تكون الدارة مفتوحة (I = 0).'],
     challenges: [
@@ -199,7 +199,7 @@
     graph(p, d) {
       if (p.mode === 'ohm') return { view: { xmin: 0, xmax: 5, ymin: 0, ymax: Math.max(30, d.R * 5) * 1.05 }, xLabel: 'I (A)', yLabel: 'V (V)', caption: 'ميل منحنى V–I يساوي المقاومة.', draw(G) { const c = G.colors(); G.fn((I) => d.R * I, { color: c.c1, width: 3, domain: [0, 5] }); G.point(p.I, p.V, { color: c.c2 }); } };
       const f = (R1) => bridge(Object.assign({}, p, { R1: R1 })).Ig; let mx = 1e-6; for (let R = 0.5; R <= 30; R += 0.5) mx = Math.max(mx, Math.abs(f(R)));
-      return { view: { xmin: 0, xmax: 30, ymin: -mx * 1.15, ymax: mx * 1.15 }, xLabel: 'R₁ (Ω)', yLabel: 'I_g (A)', caption: 'تيار الجلفانوميتر ينعدم عند R₁ = R₂R₃/R₄ = ' + n(d.Rx) + ' Ω.', draw(G) { const c = G.colors(); G.fn(f, { color: c.c1, width: 3, domain: [0.5, 30] }); G.hline(0, { color: c.muted }); G.point(p.R1, d.Ig, { color: c.c2 }); } };
+      return { view: { xmin: 0, xmax: 30, ymin: -mx * 1.15, ymax: mx * 1.15 }, xLabel: 'R₁ (Ω)', yLabel: 'Ig (A)', caption: 'تيار الجلفانوميتر ينعدم عند R₁ = R₂R₃/R₄ = ' + n(d.Rx) + ' Ω.', draw(G) { const c = G.colors(); G.fn(f, { color: c.c1, width: 3, domain: [0.5, 30] }); G.hline(0, { color: c.muted }); G.point(p.R1, d.Ig, { color: c.c2 }); } };
     },
     explain(a, b, da, db) { const o = []; if (a.R1 !== b.R1 && db.bal) o.push('انعدمت قراءة الجلفانوميتر: القنطرة متزنة.'); return o; },
     learn: ['**قانون أوم (5-5) ص81:** R = V/I؛ الخطأ يقل باستخدام فولتميتر مقاومته كبيرة جداً.', '**قنطرة ويتستون ص82:** عند الاتزان Ig = 0 فيتساوى جهد النقطتين c و e، ومنه R₁/R₂ = R₃/R₄.'],

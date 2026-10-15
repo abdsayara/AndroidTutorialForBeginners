@@ -235,7 +235,7 @@
       D.txt(ctx, d.f === 0 ? 'لا قوة' : (d.attract ? 'تجاذب' : 'تنافر') + ': ' + sct(d.f, 3) + ' N/m', W / 2, H * 0.07, { color: cols.text, size: nr ? 14 : 16, w: '700' });
     },
     graph(p, d) {
-      if (p.mode === 'three') { const v = [d.fab, d.fcb, d.F]; return { view: K.barView(v), xLabel: '', yLabel: 'F/L (N/m)', caption: 'القوتان متعامدتان، والمحصلة = √(F_ab² + F_cb²).', draw(G) { const c = G.colors(); K.bars(G, [['F_ab', d.fab, c.c1], ['F_cb', d.fcb, c.c4], ['F', d.F, c.c2]]); } }; }
+      if (p.mode === 'three') { const v = [d.fab, d.fcb, d.F]; return { view: K.barView(v), xLabel: '', yLabel: 'F/L (N/m)', caption: 'القوتان متعامدتان، والمحصلة = √(Fab² + Fcb²).', draw(G) { const c = G.colors(); K.bars(G, [['Fab', d.fab, c.c1], ['Fcb', d.fcb, c.c4], ['F', d.F, c.c2]]); } }; }
       const k = Q.mu0 * Math.abs(p.I1 * p.I2) / (2 * Math.PI); return { view: { xmin: 0, xmax: 20, ymin: 0, ymax: Math.max(k / 0.02, 1e-7) * 1.05 }, xLabel: 'r (cm)', yLabel: 'F/L (N/m)', caption: 'القوة تتناسب عكسياً مع المسافة بين السلكين.', draw(G) { const c = G.colors(); G.fn((r) => k / (r / 100), { color: c.c1, width: 3, domain: [2, 20] }); G.point(p.r, d.f, { color: c.c2 }); } };
     },
     explain(a, b, da, db) { const o = []; if (Math.sign(a.I1 * a.I2) !== Math.sign(b.I1 * b.I2) && b.mode === 'two') o.push(db.attract ? 'أصبح التياران بالاتجاه نفسه: تجاذب.' : 'أصبح التياران متعاكسين: تنافر.'); return o; },

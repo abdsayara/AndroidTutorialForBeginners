@@ -150,8 +150,12 @@
       if (p.startsWith('$') && p.length > 1) return '<span class="m" dir="ltr">' + ML.texHTML(p.slice(1, -1)) + '</span>';
       let t = ML.loc ? ML.loc(p) : p;
       // فيزياء الثاني عشر: صيغ لاتينية داخل النص العربي تُعزل كاملة (انظر ML.bidi)
-      if (ML.curSim && ML.curSim.subject === 'g12-physics' && ML.bidi) t = ML.bidi(t);
-      return esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      const g12 = ML.curSim && ML.curSim.subject === 'g12-physics';
+      if (g12 && ML.bidi) t = ML.bidi(t);
+      let h = esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      // الرموز السفلية كما في الكتاب: v_f ، V_ab ، L_in
+      if (g12) h = h.replace(/([A-Za-zͰ-Ͽ])_([A-Za-z0-9]{1,4})/g, '$1<sub>$2</sub>');
+      return h;
     }).join('');
   };
 

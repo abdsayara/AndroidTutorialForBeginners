@@ -324,11 +324,13 @@
     const ARX = /[\u0600-\u06FF]/;
     const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[0-9]*[A-Za-z][A-Za-z0-9₀-₉′'’]*(?:[ –\-/]+[A-Za-z][A-Za-z0-9₀-₉′'’]*)*/g, (m) => '\u2066' + m + '\u2069');
     // فيزياء الثاني عشر: صيغ لاتينية كاملة بأرقام غربية داخل نص عربي (I = 0.36 A) تُعزل كتلة واحدة
-    const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻×=+\-−.,/%'’∥≈→↑↓ ]+/g;
+    const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻\u2090-\u209C\u1D62-\u1D6A\u2C7C×=+\-−.,/%'’∥≈→↑↓_½√²³° ]+/g;
     const latFormula = () => !!(ML.curSim && ML.curSim.subject === 'g12-physics');
-    const rtlFormula = (t) => t.replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { let i = 0, j = m.length; while (i < j && !/[A-Za-z0-9Ͱ-Ͽ(√−\-]/.test(m[i])) i++; while (j > i && /[\s(.,:=⇒÷×+]/.test(m[j - 1])) j--; const core = m.slice(i, j); if (!/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(j); });
+    const rtlFormula = (t) => t.replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { let i = 0, j = m.length; while (i < j && !/[A-Za-z0-9Ͱ-Ͽ(√−\-½]/.test(m[i])) i++; while (j > i && /[\s(.,:=⇒÷×+]/.test(m[j - 1])) j--; const core = m.slice(i, j); if (!/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(j); });
+    const SUBL = { a: 'ₐ', e: 'ₑ', o: 'ₒ', x: 'ₓ', h: 'ₕ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', p: 'ₚ', s: 'ₛ', t: 'ₜ', i: 'ᵢ', j: 'ⱼ', r: 'ᵣ', u: 'ᵤ', v: 'ᵥ', 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
+    const subs = (t) => t.replace(/([A-Za-zͰ-Ͽ])_([A-Za-z0-9]{1,4})/g, (m, a2, b2) => a2 + b2.split('').map((c) => SUBL[c] || c).join(''));
     function draw(fn, ctx, t, a) {
-      t = L(String(t));
+      t = L(String(t)); if (latFormula()) t = subs(t);
       if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);
       if (/[⁰¹²³⁴-⁹]/.test(t) && sciDraw(fn, ctx, t, a[0], a[1])) return undefined;
       const d = ctx.direction; ctx.direction = 'rtl';
@@ -336,7 +338,7 @@
     }
     proto.fillText = function (t, ...a) { return draw(ft, this, t, a); };
     proto.strokeText = function (t, ...a) { return draw(st, this, t, a); };
-    proto.measureText = function (t) { t = L(String(t)); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, latFormula() ? rtlFormula(t) : rtlText(t)); this.direction = d; return r; };
+    proto.measureText = function (t) { t = L(String(t)); if (latFormula()) t = subs(t); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, latFormula() ? rtlFormula(t) : rtlText(t)); this.direction = d; return r; };
     proto.__mlLoc = true;
   }
 
