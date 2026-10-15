@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const ML = root.ML; const D = ML.pdraw; const Q = ML.phys12; const K = ML.p12;
-  const n = K.n, q = K.q, sct = ML.phys.sct, sci = ML.phys.sci;
+  const n = K.n, q = K.qT, sct = K.sctT, sci = K.sciT;
   const lbl = (ctx, t, x, y, color, cols, size) => D.txt(ctx, t, x, y, { color: color || cols.text, size: size || 12, w: '700', halo: cols.bg });
   const rad = (deg) => deg * Math.PI / 180;
 
@@ -117,14 +117,17 @@
     results(p, d) { return [['كتلة الجسيم m', q(d.m, 'kg', 3), true, 'pos'], ['سرعة الخروج v', q(d.v, 'm/s', 3), true, 'pos'], ['الطاقة الحركية عند الخروج', q(d.K, 'J', 3)]]; },
     steps(p, d) { return ['تردد الجهد = تردد الدوران: f = qB/(2πm) ⇒ m = qB/(2πf) = ' + sct(d.m, 3) + ' kg.', 'r = mv/(qB) ⇒ v = qBr/m = ' + sct(d.v, 3) + ' m/s.']; },
     drawCustom(ctx, W, H, p, d, cols) {
-      const cx = W / 2, cy = H * 0.54, S = Math.min(W * 0.4, H * 0.4); const gap = 8;
+      const cx = W / 2, cy = H * 0.5, S = Math.min(W * 0.4, H * 0.36); const gap = 8;
       [[-1, cols.c1], [1, cols.c4]].forEach(([s, c]) => { ctx.fillStyle = c; ctx.globalAlpha = 0.15; ctx.beginPath(); ctx.arc(cx + s * gap, cy, S, s > 0 ? -Math.PI / 2 : Math.PI / 2, s > 0 ? Math.PI / 2 : 3 * Math.PI / 2); ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke(); });
       lbl(ctx, 'D', cx - S * 0.6, cy - S * 0.6, cols.c1, cols, 16); lbl(ctx, 'D', cx + S * 0.6, cy - S * 0.6, cols.c4, cols, 16);
-      const turns = 6, st = d.st || { t: 0 }; const tot = turns * 2; const prog = Math.min(tot, st.t / 8 * tot * 1.1);
-      ctx.strokeStyle = cols.c2; ctx.lineWidth = 2; ctx.beginPath(); let px = cx, py = cy;
-      for (let k = 0; k < tot; k++) { const rk = S * Math.sqrt((k + 1) / tot) * 0.92; const s = k % 2 ? -1 : 1; const ox = cx + s * gap; const steps = 20; for (let j = 0; j <= steps; j++) { const frac = Math.min(1, Math.max(0, prog - k)); if (j / steps > frac) break; const a = (s > 0 ? Math.PI / 2 : -Math.PI / 2) - s * j / steps * Math.PI; px = ox + rk * Math.cos(a) * s; py = cy - rk * Math.sin(a); if (k === 0 && j === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); } }
-      ctx.stroke(); ctx.fillStyle = cols.c2; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
-      lbl(ctx, '~', cx, cy + S + 18, cols.text, cols, 18); lbl(ctx, 'f = ' + p.f + ' kHz', cx, cy + S + 36, cols.text, cols);
+      // مسار حلزوني: نصف دائرة في كل قرص، ويزداد نصف القطر بعد كل عبور للفجوة
+      const tot = 12, st = d.st || { t: 0 }; const prog = Math.min(tot, st.t / 8 * tot * 1.1); const pts = [];
+      for (let k = 0; k < tot; k++) { const rk = S * Math.sqrt((k + 1) / tot) * 0.92, s = k % 2 ? -1 : 1, ox = cx + s * gap; for (let j = 0; j <= 24; j++) { const a = Math.PI / 2 - j / 24 * Math.PI; pts.push([k + j / 24, ox + s * rk * Math.cos(a), cy - s * rk * Math.sin(a)]); } }
+      ctx.strokeStyle = cols.c2; ctx.globalAlpha = 0.25; ctx.lineWidth = 1.5; ctx.beginPath(); pts.forEach((P, i) => (i ? ctx.lineTo(P[1], P[2]) : ctx.moveTo(P[1], P[2]))); ctx.stroke(); ctx.globalAlpha = 1;
+      const done = pts.filter((P) => P[0] <= prog); let px = cx, py = cy;
+      if (done.length) { ctx.lineWidth = 2.5; ctx.beginPath(); done.forEach((P, i) => (i ? ctx.lineTo(P[1], P[2]) : ctx.moveTo(P[1], P[2]))); ctx.stroke(); px = done[done.length - 1][1]; py = done[done.length - 1][2]; }
+      ctx.fillStyle = cols.c2; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+      lbl(ctx, '~  f = ' + p.f + ' kHz', cx, cy + S + 18, cols.text, cols, 13);
       D.txt(ctx, 'v = ' + sct(d.v, 3) + ' m/s', W / 2, H * 0.06, { color: cols.text, size: K.narrow(W) ? 14 : 16, w: '700' });
     },
     graph(p, d) { const k = d.v / p.R; return { view: { xmin: 0, xmax: 6, ymin: 0, ymax: k * 6 * 1.1 }, xLabel: 'r (m)', yLabel: 'v (m/s)', caption: 'سرعة الخروج تتناسب مع نصف قطر السيكلترون: v = 2πf r.', draw(G) { const c = G.colors(); G.fn((r) => k * r, { color: c.c1, width: 3, domain: [0, 6] }); G.point(p.R, d.v, { color: c.c2 }); } }; },

@@ -323,16 +323,20 @@
     // صيغة الكتاب: النص المعرّب يُرسم من اليمين لليسار؛ فقط المقاطع اللاتينية (H₂ …) تُعزل
     const ARX = /[\u0600-\u06FF]/;
     const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[0-9]*[A-Za-z][A-Za-z0-9₀-₉′'’]*(?:[ –\-/]+[A-Za-z][A-Za-z0-9₀-₉′'’]*)*/g, (m) => '\u2066' + m + '\u2069');
+    // فيزياء الثاني عشر: صيغ لاتينية كاملة بأرقام غربية داخل نص عربي (I = 0.36 A) تُعزل كتلة واحدة
+    const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻×=+\-−.,:/%'’∥≈→↑↓ ]+/g;
+    const latFormula = () => !!(ML.current && ML.current.sim && ML.current.sim.subject === 'g12-physics');
+    const rtlFormula = (t) => t.replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { const core = m.trim(); if (!core || !/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; const i = m.indexOf(core); return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(i + core.length); });
     function draw(fn, ctx, t, a) {
       t = L(String(t));
       if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);
       if (/[⁰¹²³⁴-⁹]/.test(t) && sciDraw(fn, ctx, t, a[0], a[1])) return undefined;
       const d = ctx.direction; ctx.direction = 'rtl';
-      const r = fn.call(ctx, rtlText(t), ...a); ctx.direction = d; return r;
+      const r = fn.call(ctx, latFormula() ? rtlFormula(t) : rtlText(t), ...a); ctx.direction = d; return r;
     }
     proto.fillText = function (t, ...a) { return draw(ft, this, t, a); };
     proto.strokeText = function (t, ...a) { return draw(st, this, t, a); };
-    proto.measureText = function (t) { t = L(String(t)); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, rtlText(t)); this.direction = d; return r; };
+    proto.measureText = function (t) { t = L(String(t)); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, latFormula() ? rtlFormula(t) : rtlText(t)); this.direction = d; return r; };
     proto.__mlLoc = true;
   }
 

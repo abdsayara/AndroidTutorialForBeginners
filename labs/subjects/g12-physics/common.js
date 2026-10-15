@@ -8,6 +8,10 @@
   K.g = 10; // الكتاب يستخدم g = 10 m/s² في حلول الأمثلة
   K.n = (x, d) => { if (!Number.isFinite(x)) return '—'; const a = Math.abs(x); if (a !== 0 && (a >= 1e6 || a < 1e-3)) return ML.phys.sct(x, 3); return String(+x.toFixed(d === undefined ? 3 : d)); };
   K.q = (x, unit, sig) => ML.phys.q(x, unit, sig || 4);
+  // للكميات الصغيرة جداً فعلياً (كتلة جسيم، شحنة، قوة 10⁻¹³ N): ML.phys.sci تعرض ما دون 10⁻¹² صفراً
+  K.sciT = (x, sig) => { if (!x || !Number.isFinite(x) || Math.abs(x) >= 1e-12) return ML.phys.sci(x, sig); const e = Math.floor(Math.log10(Math.abs(x))); let m = +(x / Math.pow(10, e)).toPrecision(sig || 4); let k = e; if (Math.abs(m) >= 10) { m /= 10; k++; } return m + ' \\times 10^{' + k + '}'; };
+  K.sctT = (x, sig) => (!x || !Number.isFinite(x) || Math.abs(x) >= 1e-12 ? ML.phys.sct(x, sig) : K.sciT(x, sig).replace(/ \\times 10\^\{(-?\d+)\}/, (m0, e) => '×10' + e.split('').map((c) => (c === '-' ? '⁻' : '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c])).join('')));
+  K.qT = (x, unit, sig) => K.sciT(x, sig || 4) + (unit ? '\\ \\mathrm{' + unit + '}' : '');
   K.narrow = (W) => W < 560;
   // تلميح أولاً في وضع التعلّم، والجواب في وضع التجربة
   K.tutor = (hint, answer) => {
