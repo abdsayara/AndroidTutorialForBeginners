@@ -146,21 +146,27 @@ export function createHandler({ cache, alerts, demo = false, apiCacheControl = '
   const routes = makeRoutes(cache, alerts, { demo });
   return async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    // On Vercel every /api/<name> is rewritten to the one function as /api?__path=<name>.
+    let pathname = url.pathname;
+    if (/^\/api(\/index(\.js)?)?$/.test(pathname) && url.searchParams.has('__path')) {
+      pathname = `/api/${url.searchParams.get('__path')}`;
+      url.searchParams.delete('__path');
+    }
     try {
       if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
-      const route = routes[url.pathname];
+      const route = routes[pathname];
       if (route) {
         const r = await route(url.searchParams);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
-      } else if (url.pathname.startsWith('/api/')) {
+      } else if (pathname.startsWith('/api')) {
         throw new HttpError(404, 'not found');
       } else {
         await serveStatic(res, url.pathname);
       }
     } catch (e) {
       const status = e.status ?? 502;
-      if (!e.status) console.warn(`[api] ${url.pathname}: ${e.message}`);
+      if (!e.status) console.warn(`[api] ${pathname}: ${e.message}`);
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: e.status ? e.message : 'upstream unavailable' }));
     }

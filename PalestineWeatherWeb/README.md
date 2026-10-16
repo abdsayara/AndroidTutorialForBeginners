@@ -58,7 +58,7 @@ docker run -p 3000:3000 -v pw-data:/data palestine-weather-web
 
 ## النشر على Vercel
 
-الملف `vercel.json` ومجلد `api/` يجهّزان المشروع لـ Vercel: كل واجهة في `api/` دالة خادم (Function) تستخدم نفس الكود، والملفات الثابتة تُقدَّم من `public/`.
+الملف `vercel.json` ومجلد `api/` يجهّزان المشروع لـ Vercel: كل الواجهات تمر بدالة خادم واحدة `api/index.js` (الخطة المجانية تسمح بـ 12 دالة فقط) تستخدم نفس كود الخادم، والملفات الثابتة تُقدَّم من `public/`.
 عند ربط المشروع اجعل **Root Directory** = `PalestineWeatherWeb` ولا تحدد إطار عمل (Framework: Other).
 
 الفروق عن الخادم العادي:

@@ -28,9 +28,22 @@ test('serverless handler: live alerts and CDN cache headers', async () => {
   }
 });
 
-test('every /api file is a Vercel function exporting the handler', async () => {
-  for (const r of ['cities', 'forecast', 'air', 'now', 'grid', 'quakes', 'prayer', 'rates', 'news', 'alerts', 'places', 'reverse', 'search']) {
-    const mod = await import(`../api/${r}.js`);
-    assert.equal(typeof mod.default, 'function', r);
+test('the single Vercel function routes /api?__path=<name>', async () => {
+  const mod = await import('../api/index.js');
+  assert.equal(typeof mod.default, 'function');
+  const dir = await mkdtemp(path.join(tmpdir(), 'pwv-'));
+  const cache = new Cache(dir, demoFetch());
+  const server = createServer(createHandler({ cache, alerts: new LiveAlerts(cache) })).listen(0);
+  await new Promise((r) => server.once('listening', r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const r = await fetch(`${base}/api?__path=forecast&city=gaza`);
+    assert.equal(r.status, 200);
+    assert.equal((await r.json()).data.days.length, 7);
+    assert.equal((await fetch(`${base}/api?__path=nope`)).status, 404);
+    assert.equal((await fetch(`${base}/api/index?__path=places`)).status, 200);
+  } finally {
+    server.close();
+    await rm(dir, { recursive: true, force: true });
   }
 });
