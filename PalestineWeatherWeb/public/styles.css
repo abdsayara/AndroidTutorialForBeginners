@@ -286,3 +286,69 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
   .map-layout .layers { grid-column: 1 / -1; }
   .map-wrap { height: calc(100vh - 220px); }
 }
+
+/* ---------------------------------------------------------------- roads */
+
+.roads-top { gap: 12px; }
+.roads-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.roads-sum .tile { text-align: center; padding: 10px 8px; }
+.roads-sum .value { font-family: var(--font-display); font-size: 26px; }
+.roads-sum .open { background: var(--green-tint); color: var(--green-dark); }
+.roads-sum .busy { background: var(--amber-tint); color: var(--amber-ink); }
+.roads-sum .closed { background: var(--red-tint); color: var(--red); }
+.roads-sum .label { color: inherit; }
+
+.roads-map { display: block; width: 100%; max-width: 360px; max-height: 62vh; margin-inline: auto; }
+.roads-map .land { fill: #E9EEE8; stroke: #B9C6BC; stroke-width: 0.4; }
+.roads-map .lake { fill: #CFE0EE; }
+.roads-map .border { fill: none; stroke: var(--green); stroke-width: 0.35; stroke-dasharray: 1.2 0.8; opacity: 0.7; }
+.roads-map .town circle { fill: var(--muted); }
+.roads-map .town text { font-size: 2.6px; fill: var(--muted); text-anchor: middle; font-family: var(--font); }
+.cp-dot { cursor: pointer; outline: none; }
+.cp-dot circle { stroke: #fff; stroke-width: 0.45; fill: #9AA59E; }
+.cp-dot.open circle { fill: #1E8E57; }
+.cp-dot.busy circle { fill: var(--amber); }
+.cp-dot.closed circle { fill: var(--red); }
+.cp-dot.old circle { opacity: 0.45; }
+.cp-dot.focus circle, .cp-dot:focus-visible circle { stroke: var(--ink); stroke-width: 0.7; }
+
+.roads-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.roads-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 5px; vertical-align: -1px; background: #9AA59E; }
+.roads-legend i.open { background: #1E8E57; }
+.roads-legend i.busy { background: var(--amber); }
+.roads-legend i.closed { background: var(--red); }
+
+.cp-grid { display: grid; gap: 10px; }
+@media (min-width: 640px) { .cp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.cp { background: var(--card); border-radius: var(--r-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-inline-start: 5px solid #9AA59E; scroll-margin: 80px; }
+.cp h3 { font-size: 17px; }
+.cp.open { border-inline-start-color: #1E8E57; }
+.cp.busy { border-inline-start-color: var(--amber); }
+.cp.closed { border-inline-start-color: var(--red); }
+.cp.old { opacity: 0.7; }
+.cp.focus { box-shadow: 0 0 0 2px var(--ink); }
+.cp-badge { font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 12px; background: var(--line); }
+.cp.open .cp-badge { background: var(--green-tint); color: var(--green-dark); }
+.cp.busy .cp-badge { background: var(--amber-tint); color: var(--amber-ink); }
+.cp.closed .cp-badge { background: var(--red-tint); color: var(--red); }
+.cp-snip { margin: 0; font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+
+.quiet-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.quiet-list span { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 2px 10px; font-size: 13px; color: var(--muted); }
+
+.feed { display: grid; gap: 10px; }
+.post { background: var(--card); border-radius: var(--r-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.post-text { font-size: 15px; line-height: 1.8; overflow-wrap: anywhere; }
+.post-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 10px; background: var(--line); color: var(--muted); }
+.tag.open { background: var(--green-tint); color: var(--green-dark); }
+.tag.busy { background: var(--amber-tint); color: var(--amber-ink); }
+.tag.closed { background: var(--red-tint); color: var(--red); }
+
+@media (min-width: 900px) {
+  .roads-top { display: grid; grid-template-columns: 1fr 340px; grid-template-rows: auto auto auto 1fr; grid-template-areas: "sum map" "legend map" "src map" ". map"; align-items: start; column-gap: 20px; }
+  .roads-top .roads-sum { grid-area: sum; }
+  .roads-top .roads-map { grid-area: map; }
+  .roads-top .roads-legend { grid-area: legend; justify-content: start; }
+  .roads-top .source { grid-area: src; }
+}

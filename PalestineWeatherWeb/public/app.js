@@ -12,6 +12,7 @@ const TABS = [
   { path: '/more', label: 'المزيد', icon: 'more' },
 ];
 const MORE = [
+  { path: '/roads', label: 'أحوال الطرق', icon: 'road' },
   { path: '/hourly', label: 'تفاصيل اليوم', icon: 'clock' },
   { path: '/prayer', label: 'أوقات الصلاة', icon: 'moon' },
   { path: '/alerts', label: 'التنبيهات السابقة', icon: 'bell' },

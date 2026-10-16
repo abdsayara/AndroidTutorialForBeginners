@@ -163,6 +163,26 @@ export function demoFetch(now = () => new Date()) {
         .map((t, i) => `<item><title>${t} - مصدر تجريبي</title><link>https://example.com/news/${i}</link><pubDate>${new Date(n.getTime() - (i + 1) * 3600000).toUTCString()}</pubDate><source url="https://example.com">مصدر تجريبي</source></item>`);
       return new Response(`<?xml version="1.0"?><rss><channel>${items.join('')}</channel></rss>`, { headers: { 'Content-Type': 'application/rss+xml' } });
     }
+    if (url.host === 't.me') {
+      // Mimics the public channel preview at t.me/s/<channel>: newest posts last.
+      const channel = url.pathname.split('/').pop();
+      const before = Number(q.get('before') ?? 0);
+      const posts = [
+        [1001, 300, 'صباح الخير 🌤\nحوارة سالك بالاتجاهين ✅\nزعترة أزمة خفيفة للنازل'],
+        [1002, 190, 'قلنديا أزمة خانقة 🔴 والكونتينر سالك'],
+        [1003, 130, 'عطارة مسكر من الجهتين ⛔️\nعين سينيا سالك'],
+        [1004, 95, 'الأنفاق تفتيش وبطء، حاجز 300 سالك'],
+        [1005, 60, 'حدا بيعرف كيف دير شرف؟'],
+        [1006, 42, 'دير شرف سالك 🟢'],
+        [1007, 25, 'العروب مغلق، الفوار سالك، رأس الجورة أزمة'],
+        [1008, 12, 'بيت إيل DCO سالك\nجبع أزمة للطالع'],
+        [1009, 4, 'زعترة صارت سالكة 👍\nالمعرجات سالك'],
+      ].filter(([id]) => !before || id < before).slice(before ? -3 : -6);
+      const html = posts.map(([id, minAgo, text]) => `<div class="tgme_widget_message_wrap js-widget_message_wrap"><div class="tgme_widget_message js-widget_message" data-post="${channel}/${id}">
+        <div class="tgme_widget_message_text js-message_text" dir="auto">${text.replace(/\n/g, '<br/>')}</div>
+        <a class="tgme_widget_message_date" href="https://t.me/${channel}/${id}"><time datetime="${new Date(n.getTime() - minAgo * 60000).toISOString().replace('Z', '+00:00')}" class="time">.</time></a></div></div>`);
+      return new Response(`<html><body><section class="tgme_channel_history">${html.join('')}</section></body></html>`, { headers: { 'Content-Type': 'text/html' } });
+    }
     return new Response('not found', { status: 404 });
   };
 }

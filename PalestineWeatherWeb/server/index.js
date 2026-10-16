@@ -8,6 +8,7 @@ import { Cache } from './cache.js';
 import { AlertStore, startAlertJob } from './alerts.js';
 import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
+import * as R from './roads.js';
 import { demoFetch } from './demo.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -87,6 +88,28 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     },
 
     '/api/alerts': async () => ({ data: await alerts.list() }),
+
+    // Checkpoints and roads from public Telegram channels; posts arrive every few minutes.
+    '/api/roads': async () => {
+      const channels = R.roadChannels();
+      const r = await cache.get('roads', 120, async () => {
+        const sources = await Promise.all(channels.map(async (ch) => {
+          try {
+            const first = R.parseTelegram(await cache.text(R.telegramUrl(ch.id)), ch.id);
+            // One more page of older posts, so quiet hours still show the last news.
+            const older = first.length ? R.parseTelegram(await cache.text(R.telegramUrl(ch.id, first[0].id)).catch(() => ''), ch.id) : [];
+            const posts = [...older, ...first];
+            return { ...ch, ok: posts.length > 0, posts, error: posts.length ? null : 'no public posts' };
+          } catch (err) {
+            return { ...ch, ok: false, posts: [], error: err.message };
+          }
+        }));
+        if (!sources.some((s) => s.ok)) throw new Error('no road source reachable');
+        const roads = R.buildRoads(sources.flatMap((s) => s.posts));
+        return { ...roads, sources: sources.map(({ posts, ...s }) => ({ ...s, count: posts.length })) };
+      });
+      return { ...r, cdnSeconds: 60 };
+    },
 
     // Villages, towns and cities from OpenStreetMap; changes rarely, so cache for a week.
     '/api/places': async () => {
