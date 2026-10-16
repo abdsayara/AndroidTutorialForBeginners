@@ -27,7 +27,6 @@ import ps.weather.data.Http
 import ps.weather.data.Prefs
 import ps.weather.data.QuakeRepository
 import ps.weather.data.WeatherRepository
-import ps.weather.data.cityById
 import ps.weather.ui.arabicDayName
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -42,7 +41,7 @@ class AlertWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
     override suspend fun doWork(): Result {
         Http.init(applicationContext)
         val prefs = Prefs(applicationContext)
-        val city = cityById(prefs.cityId)
+        val city = prefs.selectedPlace()
         val found = ArrayList<AlertRecord>()
         val now = System.currentTimeMillis()
 

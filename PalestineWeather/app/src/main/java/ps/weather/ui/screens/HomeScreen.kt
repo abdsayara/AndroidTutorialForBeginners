@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ps.weather.data.City
 import ps.weather.data.Forecast
+import ps.weather.data.PlaceKind
 import ps.weather.data.WeatherRepository
 import ps.weather.ui.aqiText
 import ps.weather.ui.arabicDate
@@ -70,7 +71,14 @@ fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit) {
                         Icon(PwIcons.Pin, null, tint = Pw.Green, modifier = Modifier.size(20.dp))
                         Text(city.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     }
-                    Text(arabicDate(LocalDate.now()), fontSize = 13.sp, color = Pw.Muted)
+                    Text(
+                        listOfNotNull(
+                            if (city.kind == PlaceKind.GPS) "موقعك الحالي" else null,
+                            if (city.isListed) null else city.area,
+                            arabicDate(LocalDate.now()),
+                        ).joinToString(" · "),
+                        fontSize = 13.sp, color = Pw.Muted,
+                    )
                 }
                 RoundIconButton(PwIcons.Refresh, "تحديث", refresh)
                 Spacer(Modifier.width(8.dp))

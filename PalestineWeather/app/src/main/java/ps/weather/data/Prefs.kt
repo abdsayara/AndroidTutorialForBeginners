@@ -33,6 +33,33 @@ class Prefs(context: Context) {
         get() = sp.getString("city", CITIES.first().id)!!
         set(v) = sp.edit().putString("city", v).apply()
 
+    /** The selected place: a chosen village / GPS point if any, else the selected listed city. */
+    fun selectedPlace(): City = runCatching {
+        sp.getString("place", null)?.let { s ->
+            val o = JSONObject(s)
+            City(
+                id = o.getString("id"), name = o.getString("name"),
+                lat = o.getDouble("lat"), lon = o.getDouble("lon"),
+                region = Region.valueOf(o.getString("region")), major = false,
+                kind = PlaceKind.valueOf(o.getString("kind")),
+                area = o.optString("area").takeIf { !o.isNull("area") },
+                accuracyM = if (o.has("acc")) o.getInt("acc") else null,
+            )
+        }
+    }.getOrNull() ?: cityById(cityId)
+
+    fun select(place: City) {
+        if (place.isListed) {
+            sp.edit().putString("city", place.id).remove("place").apply()
+        } else {
+            val o = JSONObject()
+                .put("id", place.id).put("name", place.name).put("lat", place.lat).put("lon", place.lon)
+                .put("region", place.region.name).put("kind", place.kind.name).put("area", place.area ?: JSONObject.NULL)
+            place.accuracyM?.let { o.put("acc", it) }
+            sp.edit().putString("place", o.toString()).apply()
+        }
+    }
+
     var favorites: Set<String>
         get() = sp.getStringSet("favorites", setOf("jerusalem", "gaza"))!!
         set(v) = sp.edit().putStringSet("favorites", v).apply()

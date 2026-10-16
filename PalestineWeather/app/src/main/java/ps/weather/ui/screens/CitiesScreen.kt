@@ -1,10 +1,7 @@
 package ps.weather.ui.screens
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -28,6 +25,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,10 +43,14 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import ps.weather.data.CITIES
 import ps.weather.data.City
+import ps.weather.data.Locator
+import ps.weather.data.PlaceKind
+import ps.weather.data.PlacesRepository
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ps.weather.data.Prefs
 import ps.weather.data.Region
 import ps.weather.data.WeatherRepository
-import ps.weather.data.nearestCity
 import ps.weather.ui.components.Load
 import ps.weather.ui.components.OfflineBanner
 import ps.weather.ui.components.PillButton
@@ -60,22 +63,43 @@ import ps.weather.ui.weatherText
 @Composable
 fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val (load, _) = rememberLoad("citiesNow") { WeatherRepository.citiesNow(CITIES) }
     var query by rememberSaveable { mutableStateOf("") }
     var region by rememberSaveable { mutableStateOf<Region?>(null) }
     var favorites by remember { mutableStateOf(prefs.favorites) }
-    var locationMessage by remember { mutableStateOf<String?>(null) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var locating by remember { mutableStateOf(false) }
+
+    // Villages and towns matching the query (debounced), from the places API.
+    var found by remember { mutableStateOf<List<City>>(emptyList()) }
+    var searching by remember { mutableStateOf(false) }
+    var searchFailed by remember { mutableStateOf(false) }
+    LaunchedEffect(query) {
+        val q = query.trim()
+        found = emptyList()
+        searchFailed = false
+        if (q.length < 2) { searching = false; return@LaunchedEffect }
+        searching = true
+        delay(350)
+        val r = runCatching { PlacesRepository.search(q) }
+        found = r.getOrDefault(emptyList())
+        searchFailed = r.isFailure
+        searching = false
+    }
 
     val locate: () -> Unit = {
-        val loc = lastKnownLocation(context)
-        if (loc == null) {
-            locationMessage = "تعذّر تحديد موقعك الآن — شغّل خدمة الموقع وحاول مجدداً"
-        } else {
-            onSelect(nearestCity(loc.first, loc.second))
+        locating = true
+        message = "جارٍ تحديد موقعك…"
+        scope.launch {
+            Locator.locatePlace(context)
+                .onSuccess { message = null; onSelect(it) }
+                .onFailure { message = it.message }
+            locating = false
         }
     }
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) locate() else locationMessage = "لم يُسمح بالوصول إلى الموقع"
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
+        if (granted.values.any { it }) locate() else message = "لم يُسمح بالوصول إلى موقعك — اسمح بذلك من إعدادات التطبيق"
     }
 
     val now = (load as? Load.Ok)?.value ?: emptyMap()
@@ -85,13 +109,13 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
         .sortedByDescending { it.id in favorites }
 
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text("المدن", fontSize = 24.sp, fontWeight = FontWeight.Bold) }
+        item { Text("المدن والقرى", fontSize = 24.sp, fontWeight = FontWeight.Bold) }
         item {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("ابحث عن مدينة") },
+                placeholder = { Text("ابحث عن مدينة أو بلدة أو قرية") },
                 leadingIcon = { Icon(PwIcons.Search, null, tint = Pw.Muted) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
@@ -105,18 +129,35 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(16.dp))
                     .border(BorderStroke(1.dp, Pw.Green), RoundedCornerShape(16.dp))
-                    .clickable(role = Role.Button) {
-                        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                        if (granted) locate() else permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    .clickable(role = Role.Button, enabled = !locating) {
+                        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        if (granted) locate()
+                        else permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                     }
                     .padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Icon(PwIcons.Locate, null, tint = Pw.Green, modifier = Modifier.size(20.dp))
-                Text("استخدم موقعي الحالي", color = Pw.Green, fontWeight = FontWeight.SemiBold)
+                Text("استخدم موقعي الدقيق", color = Pw.Green, fontWeight = FontWeight.SemiBold)
             }
-            locationMessage?.let { Text(it, color = Pw.Red, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp)) }
+            message?.let {
+                Text(it, color = if (locating) Pw.Muted else Pw.Red, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        }
+        if (!current.isListed) {
+            item { Text("الموقع المختار", fontSize = 13.sp, color = Pw.Muted) }
+            item { PlaceRow(current, selected = true) { onSelect(current) } }
+        }
+        if (query.trim().length >= 2) {
+            item { Text("قرى وبلدات", fontSize = 13.sp, color = Pw.Muted) }
+            when {
+                searching -> item { Text("جارٍ البحث…", fontSize = 13.sp, color = Pw.Muted) }
+                searchFailed -> item { Text("تعذّر البحث الآن — تحقق من الاتصال", fontSize = 13.sp, color = Pw.Red) }
+                found.isEmpty() -> item { Text("لا توجد قرى بهذا الاسم", fontSize = 13.sp, color = Pw.Muted) }
+                else -> items(found, key = { "f_" + it.id }) { p -> PlaceRow(p, selected = p.id == current.id) { onSelect(p) } }
+            }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -157,11 +198,27 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
     }
 }
 
-@SuppressLint("MissingPermission")
-private fun lastKnownLocation(context: Context): Pair<Double, Double>? {
-    val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    return listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER, LocationManager.PASSIVE_PROVIDER)
-        .mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
-        .maxByOrNull { it.time }
-        ?.let { it.latitude to it.longitude }
+/** A village / GPS place row. */
+@Composable
+private fun PlaceRow(place: City, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 60.dp).clip(RoundedCornerShape(18.dp))
+            .background(if (selected) Pw.GreenTint else Pw.Card)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (place.kind == PlaceKind.GPS) Icon(PwIcons.Locate, null, tint = Pw.Green, modifier = Modifier.size(18.dp))
+        Column(Modifier.weight(1f)) {
+            Text(place.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                listOfNotNull(
+                    if (place.kind == PlaceKind.GPS) "موقعك الدقيق" + (place.accuracyM?.let { " (±$it م)" } ?: "") else null,
+                    place.area,
+                ).joinToString(" · "),
+                fontSize = 12.sp, color = Pw.Muted,
+            )
+        }
+    }
 }

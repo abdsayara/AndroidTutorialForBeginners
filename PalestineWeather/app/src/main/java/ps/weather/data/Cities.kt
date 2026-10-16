@@ -12,6 +12,13 @@ enum class Region(val label: String) {
     INTERIOR("الداخل"),
 }
 
+enum class PlaceKind { CITY, VILLAGE, GPS }
+
+/**
+ * A place the user can pick: one of the listed [CITIES], a village / town found on the
+ * map or by search, or the exact GPS position. Non-city places take the region of the
+ * nearest listed city.
+ */
 data class City(
     val id: String,
     val name: String,
@@ -20,7 +27,25 @@ data class City(
     val region: Region,
     /** Major cities are always labelled on the map; the rest appear when zoomed in. */
     val major: Boolean,
-)
+    val kind: PlaceKind = PlaceKind.CITY,
+    /** Governorate / nearby town, for villages and GPS points. */
+    val area: String? = null,
+    /** GPS accuracy in metres. */
+    val accuracyM: Int? = null,
+) {
+    val isListed: Boolean get() = kind == PlaceKind.CITY
+}
+
+/** Builds a village / GPS place, naming its area after the nearest listed city when unknown. */
+fun placeAt(name: String?, lat: Double, lon: Double, kind: PlaceKind, area: String? = null, accuracyM: Int? = null): City {
+    val near = nearestCity(lat, lon)
+    return City(
+        id = if (kind == PlaceKind.GPS) "gps" else "p${"%.4f".format(java.util.Locale.US, lat)}_${"%.4f".format(java.util.Locale.US, lon)}",
+        name = name ?: "قرب ${near.name}",
+        lat = lat, lon = lon, region = near.region, major = false,
+        kind = kind, area = area ?: near.name, accuracyM = accuracyM,
+    )
+}
 
 val CITIES = listOf(
     City("jerusalem", "القدس", 31.7683, 35.2137, Region.WEST_BANK, true),

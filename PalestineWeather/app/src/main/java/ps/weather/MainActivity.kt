@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.sp
 import ps.weather.data.City
 import ps.weather.data.Http
 import ps.weather.data.Prefs
-import ps.weather.data.cityById
 import ps.weather.ui.components.PwIcons
 import ps.weather.ui.map.MapScreen
 import ps.weather.ui.screens.AboutScreen
@@ -95,7 +94,7 @@ private enum class Tab(val label: String, val icon: ImageVector) {
 private fun App(initialSub: Sub?) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context.applicationContext) }
-    var city by remember { mutableStateOf(cityById(prefs.cityId)) }
+    var city by remember { mutableStateOf(prefs.selectedPlace()) }
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     var sub by rememberSaveable { mutableStateOf(initialSub) }
 
@@ -106,7 +105,7 @@ private fun App(initialSub: Sub?) {
 
     fun selectCity(c: City) {
         city = c
-        prefs.cityId = c.id
+        prefs.select(c)
         sub = null
         tab = Tab.HOME
     }
