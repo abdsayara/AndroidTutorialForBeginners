@@ -116,7 +116,7 @@ function homeBody(fc, aqi) {
 async function home(el, ctx, cancelled) {
   const city = ctx.city;
   el.innerHTML = `<div class="page">
-    ${header(city.name, F.arabicDate(), {
+    ${header(city.name, [city.kind === 'gps' ? 'موقعك الحالي' : null, city.region ? null : city.area, F.arabicDate()].filter(Boolean).join(' · '), {
       actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
     })}
@@ -127,8 +127,8 @@ async function home(el, ctx, cancelled) {
     slot.innerHTML = spinner;
     try {
       const [fc, air] = await Promise.all([
-        api(`/api/forecast?city=${city.id}`),
-        api(`/api/air?city=${city.id}`).catch(() => null),
+        api(`/api/forecast?${ctx.placeQuery()}`),
+        api(`/api/air?${ctx.placeQuery()}`).catch(() => null),
       ]);
       if (cancelled()) return;
       slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data?.aqi)}</div>`;
@@ -172,7 +172,7 @@ async function hourly(el, ctx, cancelled) {
     </div>`;
   };
   const run = async () => {
-    fc = await load(slot, `/api/forecast?city=${city.id}`, () => '', cancelled);
+    fc = await load(slot, `/api/forecast?${ctx.placeQuery()}`, () => '', cancelled);
     if (fc) draw();
   };
   run();
@@ -187,19 +187,40 @@ async function cities(el, ctx, cancelled) {
   let favorites = new Set(settings.favorites);
   let now = {};
   let msg = '';
+  let found = [];        // villages / towns from the search service
+  let searching = false;
+  let searchTimer = null;
 
   el.innerHTML = `<div class="page">
-    ${header('المدن')}
-    <label class="search">${icon('search', 20)}<span class="sr-only">ابحث عن مدينة</span>
-      <input id="q" type="search" placeholder="ابحث عن مدينة" autocomplete="off"></label>
-    <button class="locate" data-action="locate">${icon('locate', 20)} استخدم موقعي الحالي</button>
-    <div id="msg" role="status" class="small" style="color:var(--red)"></div>
+    ${header('المدن والقرى')}
+    <label class="search">${icon('search', 20)}<span class="sr-only">ابحث عن مدينة أو قرية</span>
+      <input id="q" type="search" placeholder="ابحث عن مدينة أو بلدة أو قرية" autocomplete="off"></label>
+    <button class="locate" data-action="locate">${icon('locate', 20)} استخدم موقعي الدقيق</button>
+    <div id="msg" role="status" class="small"></div>
+    <div id="current"></div>
+    <div id="found"></div>
     <div class="pills" id="regions"></div>
     <div id="list" class="city-list"></div>
   </div>`;
 
+  const placeRow = (p, i, current) => `<div class="city ${current ? 'current' : ''}">
+      <button class="pick" data-action="pickPlace" data-i="${i}">
+        <span class="bold" style="font-size:16px">${p.kind === 'gps' ? icon('locate', 16, 'style="display:inline;vertical-align:-2px;color:var(--green)"') + ' ' : ''}${esc(p.name)}</span>
+        <span class="muted tiny">${esc([p.kind === 'gps' ? `موقعك الدقيق${p.accuracy ? ` (±${p.accuracy} م)` : ''}` : null, p.area].filter(Boolean).join(' · '))}</span>
+      </button>
+    </div>`;
+
   const draw = () => {
-    el.querySelector('#msg').textContent = msg;
+    const m = el.querySelector('#msg');
+    m.textContent = msg;
+    m.style.color = msg.startsWith('جارٍ') ? 'var(--muted)' : 'var(--red)';
+    const cur = ctx.city.region ? null : ctx.city;
+    el.querySelector('#current').innerHTML = cur
+      ? `<div class="subtitle" style="margin-bottom:6px">الموقع المختار</div>${placeRow(cur, -1, true)}` : '';
+    el.querySelector('#found').innerHTML = query.length >= 2
+      ? `<div class="subtitle" style="margin-bottom:6px">قرى وبلدات</div>${searching ? spinner
+        : found.length ? `<div class="city-list">${found.map((p, i) => placeRow(p, i, false)).join('')}</div>`
+          : '<div class="muted small">لا توجد قرى بهذا الاسم</div>'}` : '';
     el.querySelector('#regions').innerHTML =
       pill('الكل', 'data-action="region" data-r=""', region == null) +
       Object.entries(ctx.regions).map(([k, v]) => pill(v, `data-action="region" data-r="${k}"`, region === k)).join('');
@@ -221,37 +242,52 @@ async function cities(el, ctx, cancelled) {
     }).join('') : '<div class="empty">لا توجد نتائج — جرّب اسماً آخر</div>';
   };
   draw();
-  el.querySelector('#q').addEventListener('input', (e) => { query = e.target.value.trim(); draw(); });
+  el.querySelector('#q').addEventListener('input', (e) => {
+    query = e.target.value.trim();
+    clearTimeout(searchTimer);
+    found = [];
+    searching = query.length >= 2;
+    draw();
+    if (!searching) return;
+    const q = query;
+    searchTimer = setTimeout(async () => {
+      try {
+        const r = await api(`/api/search?q=${encodeURIComponent(q)}`);
+        if (cancelled() || q !== query) return;
+        found = r.data.map((p) => ({ ...p, id: `p${p.lat}_${p.lon}`, kind: 'village', area: p.area || `قرب ${ctx.nearestCity(p.lat, p.lon).name}` }));
+      } catch { found = []; }
+      searching = false;
+      if (!cancelled() && q === query) draw();
+    }, 350);
+  });
   api('/api/now').then((r) => { if (!cancelled()) { now = r.data; draw(); } }).catch(() => {});
 
   return actions(el, {
     region: (t) => { region = t.dataset.r || null; draw(); },
     pick: (t) => ctx.setCity(t.dataset.id),
+    pickPlace: (t) => {
+      const i = Number(t.dataset.i);
+      if (i < 0) ctx.navigate('/');
+      else if (found[i]) ctx.setPlace(found[i]);
+    },
     fav: (t) => {
       const id = t.dataset.id;
       favorites.has(id) ? favorites.delete(id) : favorites.add(id);
       settings.favorites = [...favorites];
       draw();
     },
-    locate: () => {
-      if (!navigator.geolocation) { msg = 'المتصفح لا يدعم تحديد الموقع'; draw(); return; }
+    locate: async () => {
       msg = 'جارٍ تحديد موقعك…'; draw();
-      navigator.geolocation.getCurrentPosition(
-        (p) => {
-          const near = nearest(ctx.cities, p.coords.latitude, p.coords.longitude);
-          ctx.setCity(near.id);
-        },
-        () => { msg = 'تعذّر تحديد موقعك — اسمح للموقع بالوصول إلى موقعك وحاول مجدداً'; draw(); },
-        { timeout: 10000, maximumAge: 600000 },
-      );
+      try {
+        const p = await ctx.locate();
+        if (!cancelled()) ctx.setPlace(p);
+      } catch (e) {
+        if (!cancelled()) { msg = e.message; draw(); }
+      }
     },
   });
 }
 
-function nearest(list, lat, lon) {
-  const d = (c) => (c.lat - lat) ** 2 + ((c.lon - lon) * Math.cos((lat * Math.PI) / 180)) ** 2;
-  return list.reduce((a, b) => (d(b) < d(a) ? b : a));
-}
 
 // ---------------------------------------------------------------- farming
 
@@ -290,7 +326,7 @@ async function farming(el, ctx, cancelled) {
   const city = ctx.city;
   el.innerHTML = `<div class="page">${header('الزراعة والتنبيهات', city.name)}<div id="slot"></div><div id="settings">${alertSettings()}</div></div>`;
   const slot = el.querySelector('#slot');
-  const run = () => load(slot, `/api/forecast?city=${city.id}`, (fc) => {
+  const run = () => load(slot, `/api/forecast?${ctx.placeQuery()}`, (fc) => {
     const days = fc.days;
     const rain = days.slice(1).find((d) => d.precipProbMax >= 60);
     const frost = days.find((d) => d.min <= 3);
@@ -382,7 +418,7 @@ async function prayer(el, ctx, cancelled) {
       </section>
     </div>`;
   };
-  const run = async () => { data = await load(slot, `/api/prayer?city=${city.id}&method=${method}`, view, cancelled); };
+  const run = async () => { data = await load(slot, `/api/prayer?${ctx.placeQuery()}&method=${method}`, view, cancelled); };
   run();
   // Refresh the countdown every 30 s without refetching.
   const timer = setInterval(() => { if (data && !cancelled()) slot.innerHTML = view(data); }, 30_000);

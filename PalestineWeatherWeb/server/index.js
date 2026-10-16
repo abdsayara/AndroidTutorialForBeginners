@@ -25,10 +25,22 @@ class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
 
-function requireCity(q) {
-  const city = cityById(q.get('city'));
-  if (!city) throw new HttpError(400, 'unknown city');
-  return city;
+/**
+ * A known city (?city=id) or any point in Palestine (?lat=&lon=). Free points are
+ * rounded to ~100 m so nearby visitors share cache entries.
+ */
+function requirePlace(q) {
+  if (q.has('city')) {
+    const city = cityById(q.get('city'));
+    if (!city) throw new HttpError(400, 'unknown city');
+    return city;
+  }
+  const lat = Number(q.get('lat'));
+  const lon = Number(q.get('lon'));
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || !S.inBounds(lat, lon)) throw new HttpError(400, 'lat/lon outside Palestine');
+  const rl = +lat.toFixed(3);
+  const ro = +lon.toFixed(3);
+  return { id: `p${rl}_${ro}`, lat: rl, lon: ro };
 }
 
 /** Route table: path → (query, cache) → {data, fetchedAt, stale} | plain object. */
@@ -37,12 +49,12 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo, liveAlerts: !!alerts.live } }),
 
     '/api/forecast': async (q) => {
-      const c = requireCity(q);
+      const c = requirePlace(q);
       return cache.get(`forecast_${c.id}`, 900, async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon))));
     },
 
     '/api/air': async (q) => {
-      const c = requireCity(q);
+      const c = requirePlace(q);
       return cache.get(`air_${c.id}`, 1800, async () => S.parseAir(await cache.json(S.airUrl(c.lat, c.lon))));
     },
 
@@ -57,7 +69,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     },
 
     '/api/prayer': async (q) => {
-      const c = requireCity(q);
+      const c = requirePlace(q);
       const method = Number(q.get('method') ?? 5);
       if (!S.PRAYER_METHODS[method]) throw new HttpError(400, 'unknown method');
       const day = S.palestineDate();
@@ -75,6 +87,29 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     },
 
     '/api/alerts': async () => ({ data: await alerts.list() }),
+
+    // Villages, towns and cities from OpenStreetMap; changes rarely, so cache for a week.
+    '/api/places': async () => {
+      const r = await cache.get('places', 7 * 86400, async () => S.parsePlaces(await cache.json(S.placesUrl())));
+      return { ...r, cdnSeconds: 86400 };
+    },
+
+    '/api/reverse': async (q) => {
+      const p = requirePlace(q);
+      const r = await cache.get(`reverse_${p.id}`, 30 * 86400, async () => S.parseReverse(await cache.json(S.reverseUrl(p.lat, p.lon))));
+      return { ...r, cdnSeconds: 86400 };
+    },
+
+    '/api/search': async (q) => {
+      const term = (q.get('q') ?? '').trim();
+      if (term.length < 2 || term.length > 60) throw new HttpError(400, 'query must be 2–60 characters');
+      const r = await cache.get(`search_${term}`, 86400, async () => {
+        const answers = await Promise.all(S.searchUrls(term).map((u) => cache.json(u).catch(() => null)));
+        if (answers.every((a) => a == null)) throw new Error('search unavailable');
+        return S.parseSearch(answers);
+      });
+      return { ...r, cdnSeconds: 86400 };
+    },
   };
 }
 
@@ -98,6 +133,10 @@ async function serveStatic(res, urlPath) {
   res.end(body);
 }
 
+/** Longer CDN caching for slow-changing routes, when the deployment caches at all. */
+const cdnHeader = (base, seconds) =>
+  base === 'no-store' || !seconds ? base : `public, s-maxage=${seconds}, stale-while-revalidate=${seconds * 7}`;
+
 /**
  * The request handler shared by the standalone server and the Vercel functions.
  * `apiCacheControl` lets a CDN cache API answers (Vercel); the standalone server
@@ -112,7 +151,7 @@ export function createHandler({ cache, alerts, demo = false, apiCacheControl = '
       const route = routes[url.pathname];
       if (route) {
         const r = await route(url.searchParams);
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : apiCacheControl });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
       } else if (url.pathname.startsWith('/api/')) {
         throw new HttpError(404, 'not found');

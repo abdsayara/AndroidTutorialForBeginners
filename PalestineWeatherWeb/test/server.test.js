@@ -35,6 +35,23 @@ test('every API route answers with data', async () => {
   }
 });
 
+test('exact coordinates, villages, search and reverse geocoding', async () => {
+  const f = await get('/api/forecast?lat=31.96&lon=35.198');
+  assert.equal(f.status, 200);
+  assert.equal(f.body.data.days.length, 7);
+  assert.equal((await get('/api/prayer?lat=31.96&lon=35.198&method=5')).status, 200);
+  assert.equal((await get('/api/forecast?lat=40&lon=35')).status, 400);
+  assert.equal((await get('/api/forecast?lat=abc&lon=35')).status, 400);
+  const places = await get('/api/places');
+  assert.ok(places.body.data.length > 5);
+  assert.ok(!places.body.data.some((p) => p[0] === 'عمّان' || p[0] === 'مكان في البحر'));
+  const rev = await get('/api/reverse?lat=31.96&lon=35.198');
+  assert.match(rev.body.data.name, /قرية تجريبية/);
+  const search = await get('/api/search?q=' + encodeURIComponent('سلواد'));
+  assert.ok(search.body.data.length >= 1);
+  assert.equal((await get('/api/search?q=x')).status, 400);
+});
+
 test('forecast shape', async () => {
   const { body } = await get('/api/forecast?city=jericho');
   assert.equal(body.data.days.length, 7);

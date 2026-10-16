@@ -29,13 +29,47 @@ export const ctx = {
   get cities() { return state.cities; },
   get regions() { return state.regions; },
   get liveAlerts() { return state.liveAlerts; },
+  /** The selected location: one of the listed cities, or any village / GPS point. */
   get city() { return state.city; },
   setCity(id) {
     const c = state.cities.find((x) => x.id === id);
-    if (!c) return;
-    state.city = c;
-    settings.cityId = id;
-    navigate('/');
+    if (c) this.setPlace(c);
+  },
+  setPlace(p, { go = true } = {}) {
+    state.city = p;
+    if (p.region) { settings.cityId = p.id; settings.place = null; } else settings.place = p;
+    if (go) navigate('/');
+  },
+  /** Query string identifying a place for the API: a city id, or exact coordinates. */
+  placeQuery(p = state.city) {
+    return p.region ? `city=${encodeURIComponent(p.id)}` : `lat=${p.lat}&lon=${p.lon}`;
+  },
+  /** Nearest listed city, for "near X" labels. */
+  nearestCity(lat, lon) {
+    const d = (c) => (c.lat - lat) ** 2 + ((c.lon - lon) * Math.cos((lat * Math.PI) / 180)) ** 2;
+    return state.cities.reduce((a, b) => (d(b) < d(a) ? b : a));
+  },
+  /** Exact GPS position named after its village / neighbourhood. Rejects with an Arabic message. */
+  locate() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) { reject(new Error('المتصفح لا يدعم تحديد الموقع')); return; }
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = +pos.coords.latitude.toFixed(5);
+        const lon = +pos.coords.longitude.toFixed(5);
+        if (lat < 29.3 || lat > 33.5 || lon < 34.0 || lon > 36.0) { reject(new Error('موقعك الحالي خارج فلسطين')); return; }
+        const near = ctx.nearestCity(lat, lon);
+        let name = null;
+        let area = null;
+        try { ({ name, area } = (await api(`/api/reverse?lat=${lat}&lon=${lon}`)).data); } catch { /* offline: fall back below */ }
+        resolve({
+          id: 'gps', kind: 'gps', lat, lon, accuracy: Math.round(pos.coords.accuracy),
+          name: name || `قرب ${near.name}`, area: area || near.name,
+        });
+      }, (err) => reject(new Error(err.code === 1
+        ? 'لم يُسمح بالوصول إلى موقعك — اسمح للموقع بذلك من إعدادات المتصفح'
+        : 'تعذّر تحديد موقعك — تأكد من تشغيل خدمة الموقع وحاول مجدداً')),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    });
   },
   navigate: (p) => navigate(p),
 };
@@ -113,7 +147,7 @@ async function checkAlerts() {
     document.getElementById('main').innerHTML = '<div class="empty">تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد تحميل الصفحة.</div>';
     return;
   }
-  state.city = state.cities.find((c) => c.id === settings.cityId) ?? state.cities[0];
+  state.city = settings.place ?? state.cities.find((c) => c.id === settings.cityId) ?? state.cities[0];
   await render();
   checkAlerts();
   setInterval(checkAlerts, 10 * 60 * 1000);

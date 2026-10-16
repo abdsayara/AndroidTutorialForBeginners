@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+const UA = 'PalestineWeatherWeb/1.0 (+https://palestine-weather.vercel.app)';
+
 /**
  * Upstream fetch with two cache layers:
  *  - memory, for `ttl` seconds, so many visitors share one upstream request;
@@ -51,13 +53,14 @@ export class Cache {
   }
 
   async json(url) {
-    const res = await this.fetch(url, { headers: { 'User-Agent': 'PalestineWeatherWeb/1.0' }, signal: AbortSignal.timeout(20000) });
+    // Nominatim's usage policy asks for an identifying User-Agent.
+    const res = await this.fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(60000) });
     if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`);
     return res.json();
   }
 
   async text(url) {
-    const res = await this.fetch(url, { headers: { 'User-Agent': 'PalestineWeatherWeb/1.0' }, signal: AbortSignal.timeout(20000) });
+    const res = await this.fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(20000) });
     if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`);
     return res.text();
   }

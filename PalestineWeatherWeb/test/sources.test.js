@@ -90,3 +90,29 @@ test('buildAlerts groups cities per type and day', () => {
   assert.ok(byType.wind);
   assert.equal(alerts.filter((a) => a.type === 'quake').length, 1);
 });
+
+test('parsePlaces keeps named places inside Palestine, Arabic names first, cities first', () => {
+  const r = S.parsePlaces({ elements: [
+    { lat: 31.7151, lon: 35.1872, tags: { name: 'Beit Jala', 'name:ar': 'بيت جالا', place: 'village' } },
+    { lat: 32.5194, lon: 35.1536, tags: { name: 'Umm al-Fahm', 'name:ar': 'أم الفحم', place: 'city' } },
+    { lat: 31.95, lon: 35.93, tags: { name: 'Amman', 'name:ar': 'عمّان', place: 'city' } },
+    { lat: 32.1, lon: 34.6, tags: { name: 'Sea', place: 'village' } },
+    { lat: 31.9, lon: 35.2, tags: { place: 'village' } },
+  ] });
+  assert.deepEqual(r.map((p) => p[0]), ['أم الفحم', 'بيت جالا']);
+  assert.equal(r[0][3], 'c');
+});
+
+test('parseReverse picks the village or neighbourhood name', () => {
+  assert.deepEqual(S.parseReverse({ address: { village: 'بيرزيت', county: 'محافظة رام الله والبيرة' } }), { name: 'بيرزيت', area: 'محافظة رام الله والبيرة' });
+  assert.deepEqual(S.parseReverse({ address: { suburb: 'الشيخ جراح', city: 'القدس', state: 'القدس' } }), { name: 'الشيخ جراح', area: 'القدس' });
+});
+
+test('parseSearch merges, filters to Palestine and ranks by population', () => {
+  const r = S.parseSearch([
+    { results: [{ id: 1, name: 'سلواد', latitude: 31.9789, longitude: 35.2564, admin2: 'رام الله', population: 7000 }] },
+    { results: [{ id: 2, name: 'الطيبة', latitude: 32.2667, longitude: 35.0103, population: 43000 }, { id: 3, name: 'x', latitude: 31.95, longitude: 35.93 }] },
+    null,
+  ]);
+  assert.deepEqual(r.map((p) => p.name), ['الطيبة', 'سلواد']);
+});

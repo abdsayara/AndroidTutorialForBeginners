@@ -1,5 +1,6 @@
 // Upstream data sources: URL builders and pure parsers (unit-tested in test/).
 import { CITIES, describePlace } from './cities.js';
+import { OUTER } from '../public/shape.js';
 
 const FORECAST = 'https://api.open-meteo.com/v1/forecast';
 const AIR = 'https://air-quality-api.open-meteo.com/v1/air-quality';
@@ -234,4 +235,81 @@ export function parseRss(xml) {
     items.push({ title, link, source, published: Number.isNaN(pub) ? null : pub });
   }
   return items.slice(0, 30);
+}
+
+// ---------------------------------------------------------------- Places: villages, towns, search, reverse geocoding
+
+
+const K = Math.cos((31.5 * Math.PI) / 180);
+const OUTLINE = [...OUTER.matchAll(/[ML]([\d.]+) ([\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+
+/** True when the point lies inside historic Palestine (same outline as the map). */
+export function insidePalestine(lat, lon) {
+  const x = (lon - 34.1) * 92 * K;
+  const y = (33.4 - lat) * 92;
+  let inside = false;
+  for (let i = 0, j = OUTLINE.length - 1; i < OUTLINE.length; j = i++) {
+    const [xi, yi] = OUTLINE[i];
+    const [xj, yj] = OUTLINE[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** Coordinates the API accepts for free points (a little wider than the outline). */
+export const inBounds = (lat, lon) => lat >= 29.3 && lat <= 33.5 && lon >= 34.0 && lon <= 36.0;
+
+const PLACE_KIND = { city: 'c', town: 't', village: 'v' };
+
+/** All cities, towns and villages in Palestine with names, from OpenStreetMap via Overpass. */
+export function placesUrl() {
+  const q = '[out:json][timeout:90];node["place"~"^(city|town|village)$"]["name"](29.45,34.2,33.35,35.9);out body;';
+  return `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`;
+}
+
+/** Compact list: [nameAr, lat, lon, kind] — kind c=city, t=town, v=village. */
+export function parsePlaces(o) {
+  const out = [];
+  for (const e of o.elements ?? []) {
+    const t = e.tags ?? {};
+    const name = t['name:ar'] || t['name:en'] || t.name;
+    if (!name || typeof e.lat !== 'number' || !insidePalestine(e.lat, e.lon)) continue;
+    out.push([name, +e.lat.toFixed(4), +e.lon.toFixed(4), PLACE_KIND[t.place] ?? 'v']);
+  }
+  // Bigger places first so the map can label them before small villages.
+  const rank = { c: 0, t: 1, v: 2 };
+  return out.sort((a, b) => rank[a[3]] - rank[b[3]]);
+}
+
+/** Name of the village / neighbourhood at a point, in Arabic, from OpenStreetMap Nominatim. */
+export function reverseUrl(lat, lon) {
+  return `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&accept-language=ar`;
+}
+
+export function parseReverse(o) {
+  const a = o.address ?? {};
+  // Most precise first: a neighbourhood inside a city beats the city's own name.
+  const name = a.hamlet || a.village || a.neighbourhood || a.suburb || a.quarter || a.town || a.city || a.municipality || o.name || null;
+  const town = a.town || a.city || a.municipality;
+  const area = (town && town !== name ? town : null) ?? a.county ?? a.state_district ?? a.state ?? null;
+  return { name, area };
+}
+
+/** Search villages and towns by name (GeoNames data via Open-Meteo), in Palestine only. */
+export function searchUrls(q) {
+  const base = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=20&language=ar&format=json`;
+  return [`${base}&countryCode=PS`, `${base}&countryCode=IL`];
+}
+
+export function parseSearch(responses) {
+  const seen = new Set();
+  const out = [];
+  for (const o of responses) {
+    for (const r of o?.results ?? []) {
+      if (!insidePalestine(r.latitude, r.longitude) || seen.has(r.id)) continue;
+      seen.add(r.id);
+      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: r.admin2 || r.admin1 || null, population: r.population ?? 0 });
+    }
+  }
+  return out.sort((a, b) => b.population - a.population).slice(0, 20);
 }

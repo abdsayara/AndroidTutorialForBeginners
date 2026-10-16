@@ -22,6 +22,9 @@ const write = (key, value) => {
 export const settings = {
   get cityId() { return read('city', 'jerusalem'); },
   set cityId(v) { write('city', v); },
+  /** A chosen village or GPS point ({id, name, lat, lon, area, kind}); null when a listed city is chosen. */
+  get place() { return read('place', null); },
+  set place(v) { write('place', v); },
   get favorites() { return read('favorites', ['jerusalem', 'gaza']); },
   set favorites(v) { write('favorites', v); },
   get prayerMethod() { return read('prayerMethod', 5); },

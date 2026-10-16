@@ -8,6 +8,7 @@ import { LAKES, OUTER, REGION_LINES } from './shape.js';
 const K = Math.cos((31.5 * Math.PI) / 180);
 const KM_PER_UNIT = 1.2086;
 const FIT_HEIGHT = 372; // map units that fit the whole country vertically at zoom 1
+const PLACES_ZOOM = 2.2; // villages and towns appear from this zoom level
 const proj = (lat, lon) => [(lon - 34.1) * 92 * K, (33.4 - lat) * 92];
 
 function parse(d) {
@@ -57,7 +58,10 @@ function pinColors(layer, n) {
 export function mountMap(el, ctx, cancelled) {
   const st = {
     layer: 'temp', cx: 65, cy: 185, zoom: 1, regions: true,
-    sel: ctx.city.id, quake: null, frame: -1, playing: false, days: 7,
+    sel: ctx.city.region ? ctx.city.id : null, quake: null, frame: -1, playing: false, days: 7,
+    // A selected village / GPS point (not one of the listed cities), its live values, and the GPS fix.
+    place: ctx.city.region ? null : ctx.city, placeNow: null, gps: ctx.city.kind === 'gps' ? ctx.city : null,
+    places: null, msg: '',
     now: null, grid: null, quakes: null, loading: {},
   };
 
@@ -72,6 +76,7 @@ export function mountMap(el, ctx, cancelled) {
           <button class="icon-btn" data-action="zout" aria-label="تصغير">${icon('minus')}</button>
           <button class="icon-btn" data-action="reset" aria-label="عرض فلسطين كاملة">${icon('expand')}</button>
           <button class="icon-btn" data-action="regions" id="reg-btn" aria-label="حدود المناطق">${icon('regions')}</button>
+          <button class="icon-btn primary" data-action="locate" aria-label="موقعي الدقيق">${icon('locate')}</button>
         </div>
         <div class="map-legend" id="legend" hidden></div>
         <div class="scale" id="scale"><div class="bar"></div><span></span></div>
@@ -90,6 +95,16 @@ export function mountMap(el, ctx, cancelled) {
   const scale = () => (H / FIT_HEIGHT) * st.zoom;
   const toScreen = ([x, y]) => [(x - st.cx) * scale() + W / 2, (y - st.cy) * scale() + H / 2];
   const visibleCities = () => ctx.cities.filter((c) => c.major || st.zoom >= 1.8 || c.id === st.sel);
+  // Places that are not already one of the listed cities (same name or within ~2 km).
+  let placesCache = null;
+  const visiblePlaces = () => {
+    if (!st.places) return [];
+    if (!placesCache) {
+      placesCache = st.places.filter(([name, lat, lon]) => !ctx.cities.some((c) =>
+        c.name === name || (Math.abs(c.lat - lat) < 0.018 && Math.abs(c.lon - lon) < 0.02)));
+    }
+    return placesCache;
+  };
   const frameIdx = () => (!st.grid ? 0 : st.frame < 0 || st.frame >= st.grid.times.length ? st.grid.nowIndex : st.frame);
 
   // ---------------------------------------------------------------- drawing
@@ -163,6 +178,33 @@ export function mountMap(el, ctx, cancelled) {
       }
     }
 
+    // Villages and towns (OpenStreetMap), shown once zoomed in. Labels skip collisions.
+    const taken = [];
+    const free = (x, y, w, h) => {
+      if (taken.some((r) => x < r[0] + r[2] && x + w > r[0] && y < r[1] + r[3] && y + h > r[1])) return false;
+      taken.push([x, y, w, h]);
+      return true;
+    };
+    for (const c of visibleCities()) {
+      const [x, y] = toScreen(proj(c.lat, c.lon));
+      taken.push([x - 24, y - 12, 48, 44]); // keep clear of city pins and their names
+    }
+    if (st.places && st.zoom >= PLACES_ZOOM) {
+      const dark = st.layer === 'storms' || st.layer === 'clouds';
+      for (const [name, lat, lon, kind] of visiblePlaces()) {
+        const [x, y] = toScreen(proj(lat, lon));
+        if (x < -10 || y < -10 || x > W + 10 || y > H + 10) continue;
+        const big = kind !== 'v';
+        g.fillStyle = dark ? 'rgba(255,255,255,0.85)' : big ? '#12241B' : '#5C6B62';
+        g.beginPath(); g.arc(x, y, big ? 3 : 2.2, 0, Math.PI * 2); g.fill();
+        if (st.zoom >= (big ? 2.8 : 4.5)) {
+          g.font = `${big ? 600 : 500} ${big ? 11 : 10}px "IBM Plex Sans Arabic", sans-serif`;
+          const w = g.measureText(name).width + 6;
+          if (free(x - w - 5, y - 8, w, 16)) label(name, x - w - 5, y, { align: 'start', h: 15, padX: 3, font: g.font, bg: 'rgba(255,255,255,0.78)' });
+        }
+      }
+    }
+
     // City markers
     const values = st.layer === 'temp' || st.layer === 'wind';
     for (const c of visibleCities()) {
@@ -186,6 +228,22 @@ export function mountMap(el, ctx, cancelled) {
         const w = g.measureText(c.name).width + 8;
         label(c.name, x - 7 - w, y, { align: 'start' });
       }
+    }
+
+    // GPS fix (blue dot with accuracy ring) and the selected village / point.
+    if (st.gps) {
+      const [x, y] = toScreen(proj(st.gps.lat, st.gps.lon));
+      const r = ((st.gps.accuracy ?? 0) / 1000 / KM_PER_UNIT) * scale();
+      if (r > 8) { g.fillStyle = 'rgba(31,95,168,0.15)'; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 9, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#1F5FA8'; g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill();
+    }
+    if (st.place && st.place.kind !== 'gps') {
+      const [x, y] = toScreen(proj(st.place.lat, st.place.lon));
+      g.fillStyle = '#146B45';
+      g.beginPath(); g.arc(x, y - 16, 9, Math.PI * 0.85, Math.PI * 0.15); g.lineTo(x, y); g.closePath(); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y - 16, 3.5, 0, Math.PI * 2); g.fill();
+      label(st.place.name, x, y + 12, { font: '700 12px "IBM Plex Sans Arabic", sans-serif', h: 18 });
     }
 
     // Scale bar
@@ -216,15 +274,28 @@ export function mountMap(el, ctx, cancelled) {
 
   function panel() {
     const p = $('#panel');
+    const msg = st.msg ? `<div class="banner" role="status">${esc(st.msg)}</div>` : '';
+    if ((st.layer === 'temp' || st.layer === 'wind') && st.place) {
+      const pl = st.place;
+      const n = st.placeNow;
+      p.innerHTML = `${msg}<section class="card"><div class="row">
+        <div class="grow"><div class="display" style="font-size:18px">${esc(pl.name)}</div>
+          <div class="muted small">${esc([pl.kind === 'gps' ? `موقعك الدقيق${pl.accuracy ? ` (±${pl.accuracy} م)` : ''}` : null, pl.area].filter(Boolean).join(' · '))}</div>
+          <div class="muted small">${n ? `${F.weatherText(n.code)} · مطر ${n.precipProb}% · رياح ${F.round(n.wind)} كم/س` : n === null ? 'جارٍ تحميل الطقس…' : ''}</div></div>
+        <div class="display" style="font-size:30px">${n ? F.deg(n.temp) : '—'}</div>
+        <button class="icon-btn primary" data-action="open" aria-label="تفاصيل ${esc(pl.name)}">${icon('forward')}</button>
+      </div></section>`;
+      return;
+    }
     if (st.layer === 'temp' || st.layer === 'wind') {
-      const c = ctx.cities.find((x) => x.id === st.sel) ?? ctx.city;
+      const c = ctx.cities.find((x) => x.id === st.sel) ?? ctx.cities[0];
       const n = st.now?.[c.id];
       p.innerHTML = `<section class="card"><div class="row">
         <div class="grow"><div class="display" style="font-size:18px">${esc(c.name)}</div>
           <div class="muted small">${n ? `${F.weatherText(n.code)} · مطر ${n.precipProb}% · رياح ${F.round(n.wind)} كم/س` : esc(ctx.regions[c.region] ?? '')}</div></div>
         <div class="display" style="font-size:30px">${n ? F.deg(n.temp) : '—'}</div>
         <button class="icon-btn primary" data-action="open" aria-label="تفاصيل ${esc(c.name)}">${icon('forward')}</button>
-      </div>${st.loading.nowError ? '<div class="banner">تعذّر تحميل قيم المدن</div>' : ''}</section>`;
+      </div>${st.loading.nowError ? '<div class="banner">تعذّر تحميل قيم المدن</div>' : ''}</section>${msg}`;
     } else if (st.layer === 'quakes') {
       const list = st.quakes ?? [];
       const q = list.find((x) => x.id === st.quake) ?? list[0];
@@ -274,6 +345,30 @@ export function mountMap(el, ctx, cancelled) {
     if (!cancelled()) refresh();
   }
   fetchInto('now', '/api/now');
+  fetchInto('places', '/api/places').then(() => { placesCache = null; });
+
+  /** Current conditions for the selected village / point. */
+  async function loadPlaceNow() {
+    const pl = st.place;
+    if (!pl) return;
+    st.placeNow = null;
+    refresh();
+    try {
+      const fc = (await api(`/api/forecast?lat=${pl.lat}&lon=${pl.lon}`)).data;
+      if (cancelled() || st.place !== pl) return;
+      const key = (fc.current.time ?? '').slice(0, 13);
+      const h = fc.hours.find((x) => x.time.slice(0, 13) >= key) ?? fc.hours[0];
+      st.placeNow = { temp: fc.current.temp, code: fc.current.code, wind: fc.current.wind, precipProb: h?.precipProb ?? 0 };
+    } catch {
+      st.placeNow = undefined;
+    }
+    if (!cancelled()) refresh();
+  }
+  if (st.place) {
+    [st.cx, st.cy] = proj(st.place.lat, st.place.lon);
+    st.zoom = 4;
+    loadPlaceNow();
+  }
   fetchInto('grid', '/api/grid');
   const loadQuakes = () => fetchInto('quakes', `/api/quakes?days=${st.days}`);
   loadQuakes();
@@ -298,7 +393,7 @@ export function mountMap(el, ctx, cancelled) {
     const s0 = scale();
     const ux = st.cx + (px - W / 2) / s0;
     const uy = st.cy + (py - H / 2) / s0;
-    st.zoom = Math.min(14, Math.max(0.8, st.zoom * factor));
+    st.zoom = Math.min(40, Math.max(0.8, st.zoom * factor));
     const s1 = scale();
     st.cx = ux - (px - W / 2) / s1;
     st.cy = uy - (py - H / 2) / s1;
@@ -359,8 +454,22 @@ export function mountMap(el, ctx, cancelled) {
       const best = (st.quakes ?? []).map((q) => [q, dist(toScreen(proj(q.lat, q.lon)))]).sort((a, b) => a[1] - b[1])[0];
       if (best && best[1] < 40) { st.quake = best[0].id; refresh(); }
     } else {
-      const best = visibleCities().map((c) => [c, dist(toScreen(proj(c.lat, c.lon)))]).sort((a, b) => a[1] - b[1])[0];
-      if (best && best[1] < 36) { st.sel = best[0].id; refresh(); }
+      const cands = visibleCities().map((c) => [{ city: c }, dist(toScreen(proj(c.lat, c.lon)))]);
+      if (st.zoom >= PLACES_ZOOM) {
+        for (const [name, lat, lon] of visiblePlaces()) cands.push([{ name, lat, lon }, dist(toScreen(proj(lat, lon)))]);
+      }
+      const best = cands.sort((a, b) => a[1] - b[1])[0];
+      if (!best || best[1] >= 36) return;
+      st.msg = '';
+      if (best[0].city) {
+        st.sel = best[0].city.id;
+        st.place = null;
+        refresh();
+      } else {
+        const { name, lat, lon } = best[0];
+        st.place = { id: `p${lat}_${lon}`, kind: 'village', name, lat, lon, area: `قرب ${ctx.nearestCity(lat, lon).name}` };
+        loadPlaceNow();
+      }
     }
   }
 
@@ -378,7 +487,23 @@ export function mountMap(el, ctx, cancelled) {
       case 'zout': zoomAt(1 / 1.4, W / 2, H / 2); break;
       case 'reset': st.cx = 65; st.cy = 185; st.zoom = 1; break;
       case 'regions': st.regions = !st.regions; break;
-      case 'open': ctx.setCity(st.sel); return;
+      case 'open':
+        if (st.place) ctx.setPlace(st.place);
+        else ctx.setCity(st.sel);
+        return;
+      case 'locate':
+        st.msg = 'جارٍ تحديد موقعك…';
+        ctx.locate().then((pl) => {
+          if (cancelled()) return;
+          st.msg = '';
+          st.gps = pl;
+          st.place = pl;
+          [st.cx, st.cy] = proj(pl.lat, pl.lon);
+          st.zoom = Math.max(st.zoom, 6);
+          if (st.layer !== 'temp' && st.layer !== 'wind') st.layer = 'temp';
+          loadPlaceNow();
+        }).catch((e) => { if (!cancelled()) { st.msg = e.message; refresh(); } });
+        break;
       case 'days': st.days = Number(t.dataset.d); st.quake = null; loadQuakes(); return;
       case 'frame': stop(); st.frame = Number(t.dataset.i); break;
       case 'play':

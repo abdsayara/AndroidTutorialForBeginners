@@ -29,7 +29,7 @@ test('serverless handler: live alerts and CDN cache headers', async () => {
 });
 
 test('every /api file is a Vercel function exporting the handler', async () => {
-  for (const r of ['cities', 'forecast', 'air', 'now', 'grid', 'quakes', 'prayer', 'rates', 'news', 'alerts']) {
+  for (const r of ['cities', 'forecast', 'air', 'now', 'grid', 'quakes', 'prayer', 'rates', 'news', 'alerts', 'places', 'reverse', 'search']) {
     const mod = await import(`../api/${r}.js`);
     assert.equal(typeof mod.default, 'function', r);
   }

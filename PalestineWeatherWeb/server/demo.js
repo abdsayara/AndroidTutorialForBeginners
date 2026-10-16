@@ -110,6 +110,29 @@ export function demoFetch(now = () => new Date()) {
       } else out = lats.map((la, i) => forecastFor(la, lons[i], n));
       return json(many ? out : out[0]);
     }
+    if (url.host === 'overpass-api.de') {
+      const v = (name, lat, lon, place = 'village') => ({ type: 'node', lat, lon, tags: { name, 'name:ar': name, place } });
+      return json({ elements: [
+        v('بيت جالا', 31.7151, 35.1872, 'town'), v('بيت ساحور', 31.7044, 35.2259, 'town'), v('بيرزيت', 31.9677, 35.1977, 'town'),
+        v('سلواد', 31.9789, 35.2564), v('عرابة', 32.4093, 35.1985, 'town'), v('دورا', 31.5072, 35.0283, 'town'),
+        v('بني نعيم', 31.5152, 35.1647, 'town'), v('عصيرة الشمالية', 32.2489, 35.2533), v('حوارة', 32.1531, 35.2564),
+        v('العيزرية', 31.7708, 35.2639, 'town'), v('بيت لاهيا', 31.5464, 34.4951, 'town'), v('عبسان الكبيرة', 31.3215, 34.3546),
+        v('كفر كنا', 32.7466, 35.3428), v('أم الفحم', 32.5194, 35.1536, 'city'), v('الطيبة', 32.2667, 35.0103, 'city'),
+        v('مكان في البحر', 32.1, 34.6), v('عمّان', 31.95, 35.93, 'city'),
+      ] });
+    }
+    if (url.host === 'nominatim.openstreetmap.org') {
+      const la = Number(q.get('lat')), lo = Number(q.get('lon'));
+      return json({ address: { village: `قرية تجريبية (${la.toFixed(2)}, ${lo.toFixed(2)})`, county: 'محافظة تجريبية', state: 'فلسطين' } });
+    }
+    if (url.host === 'geocoding-api.open-meteo.com') {
+      if (q.get('countryCode') !== 'PS') return json({});
+      const name = q.get('name');
+      return json({ results: [
+        { id: 1, name: `${name} (تجريبي)`, latitude: 31.9, longitude: 35.2, admin2: 'رام الله والبيرة', population: 3000 },
+        { id: 2, name: `${name} الشرقية (تجريبي)`, latitude: 32.25, longitude: 35.28, admin1: 'نابلس', population: 1200 },
+      ] });
+    }
     if (url.host === 'air-quality-api.open-meteo.com') return json({ current: { european_aqi: 34 } });
     if (url.host === 'earthquake.usgs.gov') {
       const t = n.getTime();
