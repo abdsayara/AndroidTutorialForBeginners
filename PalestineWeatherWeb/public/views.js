@@ -1,0 +1,528 @@
+// Page views. Each view renders into `el` and may return a cleanup function.
+import { api, settings } from './api.js';
+import * as F from './format.js';
+import { esc } from './format.js';
+import { icon, starFilled, weatherIcon } from './icons.js';
+
+// ---------------------------------------------------------------- helpers
+
+const spinner = '<div class="loading" role="status" aria-label="جارٍ التحميل"><div class="spinner"></div></div>';
+
+const staleBanner = (r) => (r.stale
+  ? `<div class="banner" role="status">تعذّر التحديث — تُعرض آخر بيانات محفوظة (${esc(new Date(r.fetchedAt).toLocaleString('ar', { dateStyle: 'short', timeStyle: 'short' }))})</div>`
+  : '');
+
+const errorBox = (retryAction = 'retry') =>
+  `<div class="empty">لا يمكن جلب البيانات الآن ولا توجد نسخة محفوظة.<br><button class="pill" data-action="${retryAction}">إعادة المحاولة</button></div>`;
+
+function header(title, subtitle, { back = false, actions = '' } = {}) {
+  return `<header class="header">
+    ${back ? `<a class="icon-btn" href="/more" data-link aria-label="رجوع">${icon('back')}</a>` : ''}
+    <div class="titles"><h1>${esc(title)}</h1>${subtitle ? `<div class="subtitle">${esc(subtitle)}</div>` : ''}</div>
+    ${actions}
+  </header>`;
+}
+
+/** Wire delegated `data-action` clicks; returns the cleanup. */
+function actions(el, handlers) {
+  const ac = new AbortController();
+  el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-action]');
+    if (!t || !el.contains(t)) return;
+    const fn = handlers[t.dataset.action];
+    if (fn) fn(t, e);
+  }, { signal: ac.signal });
+  return () => ac.abort();
+}
+
+/** Loads `path` into `slot`, re-rendering on retry. */
+async function load(slot, path, renderFn, cancelled) {
+  slot.innerHTML = spinner;
+  try {
+    const r = await api(path);
+    if (cancelled()) return null;
+    slot.innerHTML = staleBanner(r) + renderFn(r.data);
+    return r.data;
+  } catch {
+    if (!cancelled()) slot.innerHTML = errorBox();
+    return null;
+  }
+}
+
+const pill = (label, attrs, on) => `<button class="pill" ${attrs} aria-pressed="${on}">${esc(label)}</button>`;
+
+// ---------------------------------------------------------------- home
+
+function homeBody(fc, aqi) {
+  const c = fc.current;
+  const nowKey = (c.time ?? '').slice(0, 13);
+  let nowIdx = fc.hours.findIndex((h) => h.time.slice(0, 13) >= nowKey);
+  if (nowIdx < 0) nowIdx = 0;
+  const today = fc.days[0] ?? {};
+  const lo = Math.min(...fc.days.map((d) => d.min));
+  const hi = Math.max(...fc.days.map((d) => d.max));
+  const span = Math.max(1, hi - lo);
+
+  const hours = fc.hours.slice(nowIdx, nowIdx + 24).map((h, i) => `
+    <div class="hour ${i === 0 ? 'now' : ''}">
+      <span>${i === 0 ? 'الآن' : F.hourLabel(h.time)}</span>
+      ${weatherIcon(h.code, { isDay: h.isDay, size: 22, cloudColor: i === 0 ? '#fff' : 'var(--muted)' })}
+      <span class="t">${F.deg(h.temp)}</span>
+      ${h.precipProb >= 20 ? `<span class="p">${h.precipProb}%</span>` : ''}
+    </div>`).join('');
+
+  const days = fc.days.map((d) => `
+    <div class="day">
+      <span class="name">${F.relativeDay(d.date)}</span>
+      ${weatherIcon(d.code, { size: 22 })}
+      <span class="prob">${d.precipProbMax >= 10 ? `${d.precipProbMax}%` : ''}</span>
+      <span class="muted">${F.deg(d.min)}</span>
+      <div class="range" aria-hidden="true"><span style="inset-inline-start:${((d.min - lo) / span) * 100}%;inset-inline-end:${((hi - d.max) / span) * 100}%"></span></div>
+      <span class="bold">${F.deg(d.max)}</span>
+    </div>`).join('');
+
+  return `
+    <section class="hero" aria-label="الطقس الآن">
+      <div class="row">
+        <div class="grow">
+          <div class="temp">${F.deg(c.temp)}</div>
+          <div class="cond">${F.weatherText(c.code)}</div>
+          <div class="meta">العظمى ${F.deg(today.max)} · الصغرى ${F.deg(today.min)} · الإحساس ${F.deg(c.apparent)}</div>
+        </div>
+        ${weatherIcon(c.code, { isDay: c.isDay, size: 104, cloudColor: '#fff', sunColor: 'var(--sun)' })}
+      </div>
+      <div class="chips">
+        <div class="chip">${icon('drop', 16)} مطر ${fc.hours[nowIdx]?.precipProb ?? 0}%</div>
+        <div class="chip">${icon('wind', 16)} ${F.round(c.wind)} كم/س ${F.windDir(c.windDir)}</div>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-hours">
+      <div class="row"><h2 id="h-hours" class="grow">الساعات القادمة</h2><a class="link-btn" href="/hourly" data-link>التفاصيل</a></div>
+      <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
+    </section>
+
+    <section class="grid2 grid4" aria-label="تفاصيل">
+      <div class="tile"><div class="label">الرطوبة</div><div class="value">${c.humidity ?? '—'}%</div></div>
+      <div class="tile"><div class="label">الأشعة فوق البنفسجية</div><div class="value">${F.round(today.uvMax)} · ${F.uvText(today.uvMax)}</div></div>
+      <div class="tile"><div class="label">الشروق / الغروب</div><div class="value">${today.sunrise ? F.clock(today.sunrise) : '—'} · ${today.sunset ? F.clock(today.sunset) : '—'}</div></div>
+      <div class="tile"><div class="label">جودة الهواء</div><div class="value">${aqi != null ? `${aqi} · ${F.aqiText(aqi)}` : '—'}</div></div>
+    </section>
+
+    <section class="card flush list" aria-label="توقعات 7 أيام">${days}</section>
+    <div class="source">المصدر: Open-Meteo</div>`;
+}
+
+async function home(el, ctx, cancelled) {
+  const city = ctx.city;
+  el.innerHTML = `<div class="page">
+    ${header(city.name, F.arabicDate(), {
+      actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
+                <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
+    })}
+    <div id="slot"></div>
+  </div>`;
+  const slot = el.querySelector('#slot');
+  const run = async () => {
+    slot.innerHTML = spinner;
+    try {
+      const [fc, air] = await Promise.all([
+        api(`/api/forecast?city=${city.id}`),
+        api(`/api/air?city=${city.id}`).catch(() => null),
+      ]);
+      if (cancelled()) return;
+      slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data?.aqi)}</div>`;
+    } catch {
+      if (!cancelled()) slot.innerHTML = errorBox();
+    }
+  };
+  run();
+  return actions(el, { retry: run });
+}
+
+// ---------------------------------------------------------------- hourly
+
+async function hourly(el, ctx, cancelled) {
+  const city = ctx.city;
+  el.innerHTML = `<div class="page">${header('تفاصيل الطقس', city.name, { back: true })}<div id="slot"></div></div>`;
+  const slot = el.querySelector('#slot');
+  let fc = null;
+  let day = 0;
+  const draw = () => {
+    const days = fc.days.slice(0, 4);
+    const date = days[day]?.date;
+    const hours = fc.hours.filter((h) => h.time.startsWith(date));
+    slot.innerHTML = `<div class="page" style="max-width:none">
+      <div class="pills even" role="tablist">${days.map((d, i) =>
+        `<button class="pill" role="tab" data-action="day" data-i="${i}" aria-selected="${i === day}">${F.relativeDay(d.date)}</button>`).join('')}</div>
+      <section class="card">
+        <h2>احتمال الأمطار</h2>
+        <div class="bars" role="img" aria-label="احتمال الأمطار لكل ساعة">${hours.map((h) => `<span style="height:${Math.max(2, h.precipProb)}%" title="${F.hourLabel(h.time)}: ${h.precipProb}%"></span>`).join('')}</div>
+        <div class="bar-axis"><span>12 ص</span><span>6 ص</span><span>12 م</span><span>6 م</span><span>11 م</span></div>
+      </section>
+      <section class="card flush list">${hours.map((h) => `
+        <div class="hrow">
+          <span class="muted" style="width:52px">${F.hourLabel(h.time)}</span>
+          ${weatherIcon(h.code, { isDay: h.isDay, size: 20 })}
+          <span class="grow muted small">${F.weatherText(h.code)}</span>
+          <span class="muted tiny">${F.round(h.wind)} كم/س</span>
+          <span class="tiny" style="color:var(--blue);width:36px">${h.precipProb}%</span>
+          <span class="bold" style="width:36px">${F.deg(h.temp)}</span>
+        </div>`).join('')}</section>
+    </div>`;
+  };
+  const run = async () => {
+    fc = await load(slot, `/api/forecast?city=${city.id}`, () => '', cancelled);
+    if (fc) draw();
+  };
+  run();
+  return actions(el, { day: (t) => { day = Number(t.dataset.i); draw(); }, retry: run });
+}
+
+// ---------------------------------------------------------------- cities
+
+async function cities(el, ctx, cancelled) {
+  let query = '';
+  let region = null;
+  let favorites = new Set(settings.favorites);
+  let now = {};
+  let msg = '';
+
+  el.innerHTML = `<div class="page">
+    ${header('المدن')}
+    <label class="search">${icon('search', 20)}<span class="sr-only">ابحث عن مدينة</span>
+      <input id="q" type="search" placeholder="ابحث عن مدينة" autocomplete="off"></label>
+    <button class="locate" data-action="locate">${icon('locate', 20)} استخدم موقعي الحالي</button>
+    <div id="msg" role="status" class="small" style="color:var(--red)"></div>
+    <div class="pills" id="regions"></div>
+    <div id="list" class="city-list"></div>
+  </div>`;
+
+  const draw = () => {
+    el.querySelector('#msg').textContent = msg;
+    el.querySelector('#regions').innerHTML =
+      pill('الكل', 'data-action="region" data-r=""', region == null) +
+      Object.entries(ctx.regions).map(([k, v]) => pill(v, `data-action="region" data-r="${k}"`, region === k)).join('');
+    const list = ctx.cities
+      .filter((c) => !region || c.region === region)
+      .filter((c) => !query || c.name.includes(query))
+      .sort((a, b) => favorites.has(b.id) - favorites.has(a.id));
+    el.querySelector('#list').innerHTML = list.length ? list.map((c) => {
+      const n = now[c.id];
+      const fav = favorites.has(c.id);
+      return `<div class="city ${c.id === ctx.city.id ? 'current' : ''}">
+        <button class="pick" data-action="pick" data-id="${c.id}">
+          <span class="bold" style="font-size:16px">${esc(c.name)}</span>
+          <span class="muted tiny">${esc(ctx.regions[c.region])}${n ? ' · ' + F.weatherText(n.code) : ''}</span>
+        </button>
+        <button class="icon-btn star" style="background:none" data-action="fav" data-id="${c.id}" aria-pressed="${fav}" aria-label="${fav ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}: ${esc(c.name)}">${fav ? starFilled() : icon('star', 20)}</button>
+        <span class="t">${n ? F.deg(n.temp) : '—'}</span>
+      </div>`;
+    }).join('') : '<div class="empty">لا توجد نتائج — جرّب اسماً آخر</div>';
+  };
+  draw();
+  el.querySelector('#q').addEventListener('input', (e) => { query = e.target.value.trim(); draw(); });
+  api('/api/now').then((r) => { if (!cancelled()) { now = r.data; draw(); } }).catch(() => {});
+
+  return actions(el, {
+    region: (t) => { region = t.dataset.r || null; draw(); },
+    pick: (t) => ctx.setCity(t.dataset.id),
+    fav: (t) => {
+      const id = t.dataset.id;
+      favorites.has(id) ? favorites.delete(id) : favorites.add(id);
+      settings.favorites = [...favorites];
+      draw();
+    },
+    locate: () => {
+      if (!navigator.geolocation) { msg = 'المتصفح لا يدعم تحديد الموقع'; draw(); return; }
+      msg = 'جارٍ تحديد موقعك…'; draw();
+      navigator.geolocation.getCurrentPosition(
+        (p) => {
+          const near = nearest(ctx.cities, p.coords.latitude, p.coords.longitude);
+          ctx.setCity(near.id);
+        },
+        () => { msg = 'تعذّر تحديد موقعك — اسمح للموقع بالوصول إلى موقعك وحاول مجدداً'; draw(); },
+        { timeout: 10000, maximumAge: 600000 },
+      );
+    },
+  });
+}
+
+function nearest(list, lat, lon) {
+  const d = (c) => (c.lat - lat) ** 2 + ((c.lon - lon) * Math.cos((lat * Math.PI) / 180)) ** 2;
+  return list.reduce((a, b) => (d(b) < d(a) ? b : a));
+}
+
+// ---------------------------------------------------------------- farming
+
+const SUIT = {
+  great: ['ممتاز', 'var(--green)', '#fff'],
+  ok: ['جيد', 'var(--green-tint)', 'var(--green-dark)'],
+  rainy: ['ماطر', 'var(--blue-tint)', 'var(--blue-ink)'],
+  harsh: ['غير مناسب', 'var(--red-tint)', '#8C1D0E'],
+};
+function suitability(d) {
+  if (d.precipProbMax >= 50) return 'rainy';
+  if (d.max >= 36 || d.windMax >= 40) return 'harsh';
+  if (d.precipProbMax < 25 && d.windMax < 25 && d.max >= 12 && d.max <= 32) return 'great';
+  return 'ok';
+}
+const ALERT_TYPES = {
+  rain: ['مطر', 'قبل وصول المنخفضات'],
+  frost: ['صقيع', 'لحماية المزروعات ليلاً'],
+  heat: ['حر', 'حرارة فوق 35°'],
+  wind: ['رياح وغبار', 'رياح قوية'],
+  quake: ['زلازل', 'هزات بقوة 3 فأكثر'],
+};
+
+function alertSettings() {
+  const supported = 'Notification' in window;
+  return `<section class="card flush list">
+    <div class="toggle-row"><div class="grow"><h2>إشعارات المتصفح</h2><div class="muted tiny">${supported ? 'تصلك التنبيهات الجديدة ما دامت الصفحة مفتوحة' : 'المتصفح لا يدعم الإشعارات'}</div></div>
+      <button class="switch" role="switch" data-action="notify" aria-checked="${settings.notify && supported && Notification.permission === 'granted'}" aria-label="إشعارات المتصفح" ${supported ? '' : 'disabled'}></button></div>
+    ${Object.entries(ALERT_TYPES).map(([k, [label, hint]]) => `
+      <div class="toggle-row"><div class="grow"><div class="bold small">${label}</div><div class="muted tiny">${hint}</div></div>
+        <button class="switch" role="switch" data-action="type" data-k="${k}" aria-checked="${settings.alertOn(k)}" aria-label="${label}"></button></div>`).join('')}
+  </section>`;
+}
+
+async function farming(el, ctx, cancelled) {
+  const city = ctx.city;
+  el.innerHTML = `<div class="page">${header('الزراعة والتنبيهات', city.name)}<div id="slot"></div><div id="settings">${alertSettings()}</div></div>`;
+  const slot = el.querySelector('#slot');
+  const run = () => load(slot, `/api/forecast?city=${city.id}`, (fc) => {
+    const days = fc.days;
+    const rain = days.slice(1).find((d) => d.precipProbMax >= 60);
+    const frost = days.find((d) => d.min <= 3);
+    const rain3 = days.slice(0, 3).reduce((s, d) => s + d.precipSum, 0);
+    const spray = days.slice(0, 4).find((d) => d.precipProbMax < 20 && d.windMax < 15);
+    return `<div class="page" style="max-width:none">
+      ${rain || frost ? `<div class="notice">${icon('bell', 24)}<div>
+        ${rain ? `<div class="bold">أمطار متوقعة ${F.relativeDay(rain.date)}</div><div class="small">احتمال ${rain.precipProbMax}% — أنهِ القطف وغطِّ المحصول المقطوف قبلها.</div>` : ''}
+        ${frost ? `<div class="bold">خطر صقيع ${F.relativeDay(frost.date)}</div><div class="small">الصغرى ${F.deg(frost.min)} — احمِ الشتلات والمزروعات الحساسة.</div>` : ''}
+      </div></div>` : ''}
+      <section class="card">
+        <h2>ملاءمة الأيام للعمل في الأرض</h2>
+        <div class="muted tiny">قطف الزيتون والأعمال الحقلية: مطر قليل ورياح هادئة وحرارة معتدلة</div>
+        <div class="suit">${days.slice(0, 5).map((d) => {
+          const [label, bg, fg] = SUIT[suitability(d)];
+          return `<div style="background:${bg};color:${fg}">${F.relativeDay(d.date)}<b>${label}</b></div>`;
+        }).join('')}</div>
+      </section>
+      <div class="grid2">
+        <div class="tile"><div class="label">الري</div><div class="value" style="font-size:15px">${rain3 >= 5 ? `أجّل الري — ${Math.round(rain3)} ملم متوقعة` : 'الري مناسب — لا أمطار مؤثرة'}</div></div>
+        <div class="tile"><div class="label">الرش والمبيدات</div><div class="value" style="font-size:15px">${spray ? `مناسب ${F.relativeDay(spray.date)}` : 'رياح أو أمطار — انتظر'}</div></div>
+      </div>
+    </div>`;
+  }, cancelled);
+  run();
+  const redrawSettings = () => { el.querySelector('#settings').innerHTML = alertSettings(); };
+  return actions(el, {
+    retry: run,
+    type: (t) => { settings.setAlertOn(t.dataset.k, !settings.alertOn(t.dataset.k)); redrawSettings(); },
+    notify: async () => {
+      if (settings.notify && Notification.permission === 'granted') settings.notify = false;
+      else settings.notify = (await Notification.requestPermission()) === 'granted';
+      redrawSettings();
+    },
+  });
+}
+
+// ---------------------------------------------------------------- more
+
+function more(el) {
+  const items = [
+    ['/hourly', 'clock', 'تفاصيل اليوم ساعة بساعة'],
+    ['/prayer', 'moon', 'أوقات الصلاة والقبلة'],
+    ['/alerts', 'bell', 'التنبيهات السابقة'],
+    ['/news', 'news', 'أخبار الطقس والمناخ'],
+    ['/currency', 'coins', 'أسعار العملات'],
+    ['/about', 'compass', 'مصادر البيانات وحول الموقع'],
+  ];
+  el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label]) =>
+    `<a href="${href}" data-link><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav></div>`;
+}
+
+// ---------------------------------------------------------------- prayer
+
+async function prayer(el, ctx, cancelled) {
+  const city = ctx.city;
+  let method = settings.prayerMethod;
+  el.innerHTML = `<div class="page">${header('أوقات الصلاة', `${city.name} · ${F.arabicDate()}`, { back: true })}<div id="slot"></div></div>`;
+  const slot = el.querySelector('#slot');
+  const nowHm = () => new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit', hour12: false });
+  const mins = (hm) => { const [h, m] = hm.split(':').map(Number); return h * 60 + m; };
+
+  let data = null;
+  const view = (d) => {
+    const now = mins(nowHm());
+    const prayers = d.times.filter((t) => t.name !== 'الشروق');
+    const next = prayers.find((t) => mins(t.time) > now) ?? prayers[0];
+    let until = mins(next.time) - now;
+    if (until < 0) until += 1440;
+    return `<div class="page" style="max-width:none">
+      <section class="next-prayer" aria-live="polite">
+        <div class="small" style="opacity:.85">${esc(d.hijri)}</div>
+        <div>الصلاة القادمة</div>
+        <div class="big">${esc(next.name)} · ${F.clock(next.time)}</div>
+        <div class="until">بعد ${Math.floor(until / 60)} ساعة و ${until % 60} دقيقة</div>
+      </section>
+      <section class="card flush list">${d.times.map((t) => {
+        const isNext = t.name === next.name;
+        const past = mins(t.time) <= now && !isNext;
+        return `<div class="prow ${isNext ? 'next' : ''} ${past ? 'past' : ''}"><span class="dot"></span><span class="grow">${esc(t.name)}</span><span>${F.clock(t.time)}</span></div>`;
+      }).join('')}</section>
+      <section class="card"><div class="row">
+        <span style="color:var(--green);transform:rotate(${d.qibla}deg);display:inline-flex" aria-hidden="true">${icon('arrowUp', 36)}</span>
+        <div><div class="muted tiny">اتجاه القبلة</div><div class="bold">${Math.round(d.qibla)}° من الشمال</div></div>
+      </div></section>
+      <section class="card"><h2>طريقة الحساب</h2>
+        <div class="pills">${Object.entries(d.methods).map(([id, label]) => pill(label, `data-action="method" data-m="${id}"`, Number(id) === method)).join('')}</div>
+        <div class="source">المصدر: aladhan.com — قارن مع تقويم الأوقاف المعتمد في منطقتك.</div>
+      </section>
+    </div>`;
+  };
+  const run = async () => { data = await load(slot, `/api/prayer?city=${city.id}&method=${method}`, view, cancelled); };
+  run();
+  // Refresh the countdown every 30 s without refetching.
+  const timer = setInterval(() => { if (data && !cancelled()) slot.innerHTML = view(data); }, 30_000);
+  const off = actions(el, { retry: run, method: (t) => { method = Number(t.dataset.m); settings.prayerMethod = method; run(); } });
+  return () => { clearInterval(timer); off(); };
+}
+
+// ---------------------------------------------------------------- alerts
+
+const ALERT_STYLE = {
+  rain: ['drop', 'var(--blue-tint)', 'var(--blue-ink)'],
+  frost: ['moon', '#E4F1F5', '#1C5566'],
+  heat: ['thermo', '#FBE7DF', '#8C2F12'],
+  wind: ['wind', '#F3ECDD', '#6A4B12'],
+  quake: ['wave', '#F1E6F3', '#5E2A6B'],
+};
+const LEVELS = { info: ['للعلم', '#EEF1EE', '#3A4A40'], warn: ['تحذير', 'var(--amber-tint)', 'var(--amber-ink)'], high: ['خطر', 'var(--red-tint)', '#8C1D0E'] };
+
+async function alerts(el, ctx, cancelled) {
+  let filter = null;
+  let all = [];
+  el.innerHTML = `<div class="page">${header('التنبيهات السابقة', 'آخر 30 يوماً لكل فلسطين', { back: true })}<div class="pills" id="f"></div><div id="slot"></div></div>`;
+  const slot = el.querySelector('#slot');
+  const draw = () => {
+    el.querySelector('#f').innerHTML = pill('الكل', 'data-action="f" data-k=""', filter == null) +
+      Object.entries(ALERT_TYPES).map(([k, [label]]) => pill(label, `data-action="f" data-k="${k}"`, filter === k)).join('');
+    const list = all.filter((a) => !filter || a.type === filter);
+    if (!list.length) { slot.innerHTML = '<div class="empty">لا توجد تنبيهات. يفحص الخادم التوقعات والزلازل كل 3 ساعات ويسجّل التنبيهات هنا.</div>'; return; }
+    let last = '';
+    slot.innerHTML = `<div class="page" style="max-width:none;gap:10px">${list.map((a) => {
+      const d = new Date(a.time);
+      const label = F.arabicDate(d.toLocaleDateString('en-CA', { timeZone: 'Asia/Hebron' }));
+      const head = label !== last ? `<div class="date-head">${esc(label)}</div>` : '';
+      last = label;
+      const [ic, bg, fg] = ALERT_STYLE[a.type] ?? ALERT_STYLE.rain;
+      const [lv, lbg, lfg] = LEVELS[a.level] ?? LEVELS.info;
+      return `${head}<article class="alert">
+        <div class="ic" style="background:${bg};color:${fg}">${icon(ic)}</div>
+        <div class="grow" style="display:flex;flex-direction:column;gap:2px">
+          <div class="row"><span class="bold grow">${esc(a.title)}</span><span class="muted tiny">${d.toLocaleTimeString('ar', { timeZone: 'Asia/Hebron', hour: 'numeric', minute: '2-digit' })}</span></div>
+          <div class="muted small">${esc(a.body)}</div>
+          <span class="level" style="background:${lbg};color:${lfg}">${lv}</span>
+        </div>
+      </article>`;
+    }).join('')}</div>`;
+  };
+  const run = async () => {
+    slot.innerHTML = spinner;
+    try { all = (await api('/api/alerts')).data; if (!cancelled()) draw(); } catch { if (!cancelled()) slot.innerHTML = errorBox(); }
+  };
+  run();
+  return actions(el, { f: (t) => { filter = t.dataset.k || null; draw(); }, retry: run });
+}
+
+// ---------------------------------------------------------------- news
+
+const TOPICS = { weather: 'الطقس', climate: 'المناخ', farming: 'الزراعة' };
+
+async function news(el, ctx, cancelled) {
+  let topic = 'weather';
+  el.innerHTML = `<div class="page">${header('أخبار الطقس والمناخ', 'عناوين من Google News', { back: true })}<div class="pills even" id="t"></div><div id="slot"></div></div>`;
+  const slot = el.querySelector('#slot');
+  const run = () => {
+    el.querySelector('#t').innerHTML = Object.entries(TOPICS).map(([k, v]) => pill(v, `data-action="topic" data-k="${k}"`, k === topic)).join('');
+    return load(slot, `/api/news?topic=${topic}`, (items) => (items.length
+      ? `<div class="page" style="max-width:none;gap:10px">${items.map((n) => `
+          <a class="news" href="${esc(n.link)}" target="_blank" rel="noopener noreferrer">
+            <div class="title">${esc(n.title)}</div>
+            <div class="muted tiny">${esc([n.source, F.ago(n.published)].filter(Boolean).join(' · '))}</div>
+          </a>`).join('')}</div>`
+      : '<div class="empty">لا توجد أخبار الآن</div>'), cancelled);
+  };
+  run();
+  return actions(el, { topic: (t) => { topic = t.dataset.k; run(); }, retry: run });
+}
+
+// ---------------------------------------------------------------- currency
+
+async function currency(el, ctx, cancelled) {
+  el.innerHTML = `<div class="page">${header('أسعار العملات', 'مقابل الشيكل', { back: true })}<div id="slot"></div></div>`;
+  const slot = el.querySelector('#slot');
+  let from = 'USD';
+  let amount = '100';
+  let data = null;
+
+  const fmt = (v, d = 2) => v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const result = () => {
+    const r = data.rates[from];
+    const n = parseFloat(amount.replace(',', '.')) || 0;
+    el.querySelector('#res').innerHTML = `<span class="grow small" style="opacity:.85">${esc(amount)} ${esc(r?.name ?? from)} =</span><span class="v num">${r ? fmt(n * r.ils) : '—'} ₪</span>`;
+    el.querySelectorAll('.codes button').forEach((b) => b.setAttribute('aria-checked', b.dataset.c === from));
+  };
+  const run = async () => {
+    data = await load(slot, '/api/rates', (d) => `<div class="page" style="max-width:none">
+      <section class="converter">
+        <label>المبلغ<input id="amt" inputmode="decimal" value="${esc(amount)}" aria-label="المبلغ"></label>
+        <div class="codes" role="radiogroup" aria-label="العملة">${Object.keys(d.rates).map((c) =>
+          `<button role="radio" data-action="code" data-c="${c}" aria-checked="${c === from}">${c}</button>`).join('')}</div>
+        <div class="result" id="res" aria-live="polite"></div>
+      </section>
+      <section class="card flush list">${Object.entries(d.rates).map(([code, r]) => `
+        <div class="rate"><div class="grow"><div class="bold">${esc(r.name)}</div><div class="muted tiny">${code}</div></div>
+          <span class="bold num">${fmt(r.ils, r.ils < 1 ? 3 : 2)} ₪</span></div>`).join('')}</section>
+      <div class="source">أسعار مرجعية يومية من open.er-api.com${d.updated ? ` (${esc(d.updated.slice(0, 16))})` : ''}. أسعار الصرافين للبيع والشراء تختلف عنها.</div>
+    </div>`, cancelled);
+    if (!data) return;
+    result();
+    el.querySelector('#amt').addEventListener('input', (e) => { amount = e.target.value.replace(/[^\d.,]/g, ''); result(); });
+  };
+  run();
+  return actions(el, { code: (t) => { from = t.dataset.c; result(); }, retry: run });
+}
+
+// ---------------------------------------------------------------- about
+
+function about(el) {
+  const sources = [
+    ['الطقس والتوقعات والأمطار والسحب والعواصف', 'Open-Meteo — open-meteo.com'],
+    ['جودة الهواء', 'Open-Meteo Air Quality'],
+    ['الزلازل', 'USGS — earthquake.usgs.gov'],
+    ['أوقات الصلاة', 'Aladhan — aladhan.com'],
+    ['أسعار العملات', 'ExchangeRate-API — open.er-api.com'],
+    ['الأخبار', 'Google News RSS'],
+    ['حدود الخريطة', 'Natural Earth (ملكية عامة)'],
+  ];
+  el.innerHTML = `<div class="page">${header('حول الموقع', 'طقس فلسطين', { back: true })}
+    <section class="card"><h2>مصادر البيانات</h2>${sources.map(([w, s]) => `<div><div class="bold small">${w}</div><div class="muted tiny">${s}</div></div>`).join('')}</section>
+    <section class="card"><p class="muted small" style="margin:0">طبقة «العواصف» على الخريطة تعرض مؤشر CAPE (طاقة الحمل الكامنة) من نموذج الطقس، وهو يدل على ملاءمة الجو للعواصف الرعدية وليس رصداً مباشراً لمواقع البرق.</p></section>
+  </div>`;
+}
+
+export const views = {
+  '/': home,
+  '/hourly': hourly,
+  '/cities': cities,
+  '/farming': farming,
+  '/more': more,
+  '/prayer': prayer,
+  '/alerts': alerts,
+  '/news': news,
+  '/currency': currency,
+  '/about': about,
+};
