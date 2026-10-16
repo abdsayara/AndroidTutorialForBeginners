@@ -32,18 +32,23 @@ data class City(
     val area: String? = null,
     /** GPS accuracy in metres. */
     val accuracyM: Int? = null,
+    /** Metres above sea level, when the source gives it (search results). */
+    val elevation: Double? = null,
 ) {
     val isListed: Boolean get() = kind == PlaceKind.CITY
 }
 
 /** Builds a village / GPS place, naming its area after the nearest listed city when unknown. */
-fun placeAt(name: String?, lat: Double, lon: Double, kind: PlaceKind, area: String? = null, accuracyM: Int? = null): City {
+fun placeAt(
+    name: String?, lat: Double, lon: Double, kind: PlaceKind,
+    area: String? = null, accuracyM: Int? = null, elevation: Double? = null,
+): City {
     val near = nearestCity(lat, lon)
     return City(
         id = if (kind == PlaceKind.GPS) "gps" else "p${"%.4f".format(java.util.Locale.US, lat)}_${"%.4f".format(java.util.Locale.US, lon)}",
         name = name ?: "قرب ${near.name}",
         lat = lat, lon = lon, region = near.region, major = false,
-        kind = kind, area = area ?: near.name, accuracyM = accuracyM,
+        kind = kind, area = area ?: near.name, accuracyM = accuracyM, elevation = elevation,
     )
 }
 

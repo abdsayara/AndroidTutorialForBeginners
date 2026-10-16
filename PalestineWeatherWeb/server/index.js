@@ -159,7 +159,7 @@ export function createHandler({ cache, alerts, demo = false, apiCacheControl = '
         const r = await route(url.searchParams);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
-      } else if (pathname.startsWith('/api')) {
+      } else if (pathname === '/api' || pathname.startsWith('/api/')) {
         throw new HttpError(404, 'not found');
       } else {
         await serveStatic(res, url.pathname);

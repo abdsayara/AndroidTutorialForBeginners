@@ -39,7 +39,13 @@ data class DayPoint(
     val sunset: LocalDateTime?,
 )
 
-data class Forecast(val current: CurrentWeather, val hours: List<HourPoint>, val days: List<DayPoint>) {
+data class Forecast(
+    val current: CurrentWeather,
+    val hours: List<HourPoint>,
+    val days: List<DayPoint>,
+    /** Metres above sea level (negative below it), from Open-Meteo's 90 m terrain model. */
+    val elevation: Double? = null,
+) {
     /** Index of the current hour in [hours]. */
     val nowIndex: Int
         get() {
@@ -48,7 +54,7 @@ data class Forecast(val current: CurrentWeather, val hours: List<HourPoint>, val
         }
 }
 
-data class CityNow(val temp: Double, val wind: Double, val code: Int, val precipProb: Int)
+data class CityNow(val temp: Double, val wind: Double, val code: Int, val precipProb: Int, val elevation: Double? = null)
 
 /** Hourly values on a regular lat/lon grid over Palestine, for the map's rain, cloud and storm layers. */
 data class GridData(
@@ -99,6 +105,7 @@ object WeatherRepository {
                     wind = c.optDouble("wind_speed_10m", 0.0),
                     code = c.optInt("weather_code", 0),
                     precipProb = prob,
+                    elevation = o.optDouble("elevation").takeIf { !it.isNaN() },
                 )
             }
         }
@@ -194,7 +201,7 @@ object WeatherRepository {
                 sunset = dSet.getOrNull(i)?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() },
             )
         }
-        return Forecast(current, hours, days)
+        return Forecast(current, hours, days, o.optDouble("elevation").takeIf { !it.isNaN() })
     }
 
     /** Open-Meteo returns an object for one location and an array for several. */

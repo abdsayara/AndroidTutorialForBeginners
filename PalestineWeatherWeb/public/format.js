@@ -49,6 +49,14 @@ export function hourLabel(iso) {
 export const deg = (v) => (v == null ? '—' : `${Math.round(v)}°`);
 export const round = (v) => (v == null ? '—' : String(Math.round(v)));
 
+/** Height above / below sea level: "754 م فوق سطح البحر", "258 م تحت سطح البحر". */
+export function elevation(m) {
+  if (m == null) return null;
+  const v = Math.round(m);
+  if (v === 0) return 'عند مستوى سطح البحر';
+  return `${Math.abs(v)} م ${v > 0 ? 'فوق' : 'تحت'} سطح البحر`;
+}
+
 export function ago(ms) {
   if (!ms) return '';
   const min = Math.max(1, Math.round((Date.now() - ms) / 60000));

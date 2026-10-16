@@ -125,7 +125,11 @@ private fun App(initialSub: Sub?) {
                 Sub.CURRENCY -> CurrencyScreen(back)
                 Sub.ABOUT -> AboutScreen(back)
                 null -> when (tab) {
-                    Tab.HOME -> HomeScreen(city, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY })
+                    Tab.HOME -> HomeScreen(
+                        city, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },
+                        // Keep a village / GPS point's height so the cities page can show it too.
+                        onElevation = { e -> if (!city.isListed && city.elevation != e) { city = city.copy(elevation = e); prefs.select(city) } },
+                    )
                     Tab.MAP -> MapScreen(city, onOpenCity = ::selectCity)
                     Tab.CITIES -> CitiesScreen(prefs, city, onSelect = ::selectCity)
                     Tab.FARMING -> FarmingScreen(city, prefs)

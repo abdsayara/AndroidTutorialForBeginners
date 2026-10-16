@@ -57,6 +57,7 @@ import ps.weather.ui.components.PillButton
 import ps.weather.ui.components.PwIcons
 import ps.weather.ui.components.rememberLoad
 import ps.weather.ui.deg
+import ps.weather.ui.elevationText
 import ps.weather.ui.theme.Pw
 import ps.weather.ui.weatherText
 
@@ -179,7 +180,10 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(city.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Text("${city.region.label}${n?.let { " · " + weatherText(it.code) } ?: ""}", fontSize = 12.sp, color = Pw.Muted)
+                    Text(
+                        listOfNotNull(city.region.label, n?.let { weatherText(it.code) }, elevationText(n?.elevation)).joinToString(" · "),
+                        fontSize = 12.sp, color = Pw.Muted,
+                    )
                 }
                 Icon(
                     if (fav) PwIcons.StarFilled else PwIcons.Star,
@@ -216,6 +220,7 @@ private fun PlaceRow(place: City, selected: Boolean, onClick: () -> Unit) {
                 listOfNotNull(
                     if (place.kind == PlaceKind.GPS) "موقعك الدقيق" + (place.accuracyM?.let { " (±$it م)" } ?: "") else null,
                     place.area,
+                    elevationText(place.elevation),
                 ).joinToString(" · "),
                 fontSize = 12.sp, color = Pw.Muted,
             )

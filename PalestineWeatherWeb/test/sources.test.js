@@ -6,11 +6,13 @@ import { describePlace } from '../server/cities.js';
 
 test('parseForecast keeps nulls and maps arrays', () => {
   const f = S.parseForecast({
+    elevation: -258,
     current: { time: '2026-10-16T09:00', temperature_2m: 24.3, weather_code: 2, is_day: 1 },
     hourly: { time: ['2026-10-16T09:00'], temperature_2m: [24.3], precipitation_probability: [null], weather_code: [2], is_day: [1] },
     daily: { time: ['2026-10-16'], temperature_2m_max: [27], temperature_2m_min: [16], precipitation_probability_max: [10], sunrise: ['2026-10-16T06:13'] },
   });
   assert.equal(f.current.temp, 24.3);
+  assert.equal(f.elevation, -258);
   assert.equal(f.hours[0].precipProb, 0);
   assert.equal(f.days[0].max, 27);
   assert.equal(f.days[0].sunrise, '2026-10-16T06:13');
@@ -19,7 +21,7 @@ test('parseForecast keeps nulls and maps arrays', () => {
 test('parseCitiesNow accepts single object and arrays', () => {
   const one = S.parseCitiesNow({ current: { temperature_2m: 20, wind_speed_10m: 5, weather_code: 0 }, hourly: { precipitation_probability: [30] } },
     [{ id: 'a' }]);
-  assert.deepEqual(one.a, { temp: 20, wind: 5, code: 0, precipProb: 30 });
+  assert.deepEqual(one.a, { temp: 20, wind: 5, code: 0, precipProb: 30, elevation: null });
 });
 
 test('gridPoints covers Palestine on a 0.25° grid', () => {

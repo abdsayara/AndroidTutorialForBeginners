@@ -20,6 +20,9 @@ function rnd(...xs) {
 // Base temperature by place: warmer in the Jordan valley and south, cooler in the hills.
 const baseTemp = (lat, lon) => 30 - (lat - 29.5) * 2.2 - (lon > 35.0 && lon < 35.4 && lat > 31.4 ? 4 : 0) + (lon > 35.4 ? 6 : 0);
 
+// Rough terrain: coast near sea level, hills in the middle, the Jordan valley below sea level.
+const demoElevation = (lat, lon) => Math.round(lon > 35.42 ? -250 : lon < 34.75 ? 15 + (lon - 34.2) * 60 : 250 + (35.3 - Math.abs(lon - 35.2)) * 1.6 + (lat - 31) * 120);
+
 function forecastFor(lat, lon, now) {
   const local = new Date(now.getTime() + OFFSET);
   const start = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()));
@@ -58,6 +61,7 @@ function forecastFor(lat, lon, now) {
   const ci = local.getUTCHours();
   return {
     utc_offset_seconds: OFFSET / 1000,
+    elevation: demoElevation(lat, lon),
     current: {
       time: isoHour(local), temperature_2m: hourly.temperature_2m[ci], relative_humidity_2m: 45,
       apparent_temperature: hourly.temperature_2m[ci] + 1, is_day: hourly.is_day[ci], weather_code: hourly.weather_code[ci],
@@ -105,7 +109,7 @@ export function demoFetch(now = () => new Date()) {
       else if (q.get('forecast_hours') === '1') {
         out = lats.map((la, i) => {
           const f = forecastFor(la, lons[i], n);
-          return { current: f.current, hourly: { precipitation_probability: [f.hourly.precipitation_probability[0]] } };
+          return { elevation: f.elevation, current: f.current, hourly: { precipitation_probability: [f.hourly.precipitation_probability[0]] } };
         });
       } else out = lats.map((la, i) => forecastFor(la, lons[i], n));
       return json(many ? out : out[0]);
@@ -129,8 +133,8 @@ export function demoFetch(now = () => new Date()) {
       if (q.get('countryCode') !== 'PS') return json({});
       const name = q.get('name');
       return json({ results: [
-        { id: 1, name: `${name} (تجريبي)`, latitude: 31.9, longitude: 35.2, admin2: 'رام الله والبيرة', population: 3000 },
-        { id: 2, name: `${name} الشرقية (تجريبي)`, latitude: 32.25, longitude: 35.28, admin1: 'نابلس', population: 1200 },
+        { id: 1, name: `${name} (تجريبي)`, latitude: 31.9, longitude: 35.2, elevation: 812, admin2: 'رام الله والبيرة', population: 3000 },
+        { id: 2, name: `${name} الشرقية (تجريبي)`, latitude: 32.25, longitude: 35.28, elevation: 540, admin1: 'نابلس', population: 1200 },
       ] });
     }
     if (url.host === 'air-quality-api.open-meteo.com') return json({ current: { european_aqi: 34 } });

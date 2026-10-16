@@ -115,8 +115,9 @@ function homeBody(fc, aqi) {
 
 async function home(el, ctx, cancelled) {
   const city = ctx.city;
+  const subtitle = (elev) => [city.kind === 'gps' ? 'موقعك الحالي' : null, city.region ? null : city.area, elev, F.arabicDate()].filter(Boolean).join(' · ');
   el.innerHTML = `<div class="page">
-    ${header(city.name, [city.kind === 'gps' ? 'موقعك الحالي' : null, city.region ? null : city.area, F.arabicDate()].filter(Boolean).join(' · '), {
+    ${header(city.name, subtitle(null), {
       actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
     })}
@@ -131,6 +132,10 @@ async function home(el, ctx, cancelled) {
         api(`/api/air?${ctx.placeQuery()}`).catch(() => null),
       ]);
       if (cancelled()) return;
+      const sub = el.querySelector('.subtitle');
+      if (sub) sub.textContent = subtitle(F.elevation(fc.data.elevation));
+      // Remember it so the selected village / GPS row on the cities page can show it too.
+      if (!city.region && fc.data.elevation != null && city.elevation !== fc.data.elevation) ctx.setPlace({ ...city, elevation: fc.data.elevation }, { go: false });
       slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data?.aqi)}</div>`;
     } catch {
       if (!cancelled()) slot.innerHTML = errorBox();
@@ -206,7 +211,7 @@ async function cities(el, ctx, cancelled) {
   const placeRow = (p, i, current) => `<div class="city ${current ? 'current' : ''}">
       <button class="pick" data-action="pickPlace" data-i="${i}">
         <span class="bold" style="font-size:16px">${p.kind === 'gps' ? icon('locate', 16, 'style="display:inline;vertical-align:-2px;color:var(--green)"') + ' ' : ''}${esc(p.name)}</span>
-        <span class="muted tiny">${esc([p.kind === 'gps' ? `موقعك الدقيق${p.accuracy ? ` (±${p.accuracy} م)` : ''}` : null, p.area].filter(Boolean).join(' · '))}</span>
+        <span class="muted tiny">${esc([p.kind === 'gps' ? `موقعك الدقيق${p.accuracy ? ` (±${p.accuracy} م)` : ''}` : null, p.area, F.elevation(p.elevation)].filter(Boolean).join(' · '))}</span>
       </button>
     </div>`;
 
@@ -234,7 +239,7 @@ async function cities(el, ctx, cancelled) {
       return `<div class="city ${c.id === ctx.city.id ? 'current' : ''}">
         <button class="pick" data-action="pick" data-id="${c.id}">
           <span class="bold" style="font-size:16px">${esc(c.name)}</span>
-          <span class="muted tiny">${esc(ctx.regions[c.region])}${n ? ' · ' + F.weatherText(n.code) : ''}</span>
+          <span class="muted tiny">${esc([ctx.regions[c.region], n ? F.weatherText(n.code) : null, F.elevation(n?.elevation)].filter(Boolean).join(' · '))}</span>
         </button>
         <button class="icon-btn star" style="background:none" data-action="fav" data-id="${c.id}" aria-pressed="${fav}" aria-label="${fav ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}: ${esc(c.name)}">${fav ? starFilled() : icon('star', 20)}</button>
         <span class="t">${n ? F.deg(n.temp) : '—'}</span>

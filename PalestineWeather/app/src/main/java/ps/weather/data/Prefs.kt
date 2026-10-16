@@ -44,6 +44,7 @@ class Prefs(context: Context) {
                 kind = PlaceKind.valueOf(o.getString("kind")),
                 area = o.optString("area").takeIf { !o.isNull("area") },
                 accuracyM = if (o.has("acc")) o.getInt("acc") else null,
+                elevation = if (o.has("elev")) o.getDouble("elev") else null,
             )
         }
     }.getOrNull() ?: cityById(cityId)
@@ -56,6 +57,7 @@ class Prefs(context: Context) {
                 .put("id", place.id).put("name", place.name).put("lat", place.lat).put("lon", place.lon)
                 .put("region", place.region.name).put("kind", place.kind.name).put("area", place.area ?: JSONObject.NULL)
             place.accuracyM?.let { o.put("acc", it) }
+            place.elevation?.let { o.put("elev", it) }
             sp.edit().putString("place", o.toString()).apply()
         }
     }

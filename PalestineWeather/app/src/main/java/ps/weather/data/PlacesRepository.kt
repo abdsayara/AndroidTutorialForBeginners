@@ -43,7 +43,8 @@ object PlacesRepository {
             .filter { isArabic(it.optString("name")) }
             .map { o ->
                 val area = o.optString("area").takeIf { !o.isNull("area") && isArabic(it) }
-                placeAt(o.getString("name"), o.getDouble("lat"), o.getDouble("lon"), PlaceKind.VILLAGE, area)
+                val elevation = o.optDouble("elevation").takeIf { !it.isNaN() }
+                placeAt(o.getString("name"), o.getDouble("lat"), o.getDouble("lon"), PlaceKind.VILLAGE, area, elevation = elevation)
             }
     }
 

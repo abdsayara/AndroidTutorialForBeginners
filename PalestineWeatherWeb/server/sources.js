@@ -22,6 +22,8 @@ export function parseForecast(o) {
   const h = o.hourly ?? {};
   const d = o.daily ?? {};
   return {
+    // Metres above sea level (negative below it), from Open-Meteo's 90 m terrain model.
+    elevation: num(o.elevation),
     current: {
       temp: num(c.temperature_2m),
       apparent: num(c.apparent_temperature),
@@ -83,6 +85,7 @@ export function parseCitiesNow(o, cities = CITIES) {
       wind: num(x.current?.wind_speed_10m),
       code: num(x.current?.weather_code) ?? 0,
       precipProb: num(x.hourly?.precipitation_probability?.[0]) ?? 0,
+      elevation: num(x.elevation),
     };
   });
   return out;
@@ -316,7 +319,7 @@ export function parseSearch(responses) {
     for (const r of o?.results ?? []) {
       if (!insidePalestine(r.latitude, r.longitude) || seen.has(r.id) || !isArabicName(r.name)) continue;
       seen.add(r.id);
-      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: arabic(r.admin2, r.admin1), population: r.population ?? 0 });
+      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: arabic(r.admin2, r.admin1), elevation: num(r.elevation), population: r.population ?? 0 });
     }
   }
   return out.sort((a, b) => b.population - a.population).slice(0, 20);

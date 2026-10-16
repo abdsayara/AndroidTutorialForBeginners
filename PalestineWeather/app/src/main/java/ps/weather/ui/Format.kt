@@ -46,6 +46,14 @@ fun hourLabel(t: LocalDateTime): String {
 
 fun deg(v: Double): String = "${v.roundToInt()}°"
 
+/** Height above / below sea level: "754 م فوق سطح البحر", "258 م تحت سطح البحر". */
+fun elevationText(m: Double?): String? {
+    if (m == null) return null
+    val v = m.roundToInt()
+    if (v == 0) return "عند مستوى سطح البحر"
+    return "${kotlin.math.abs(v)} م ${if (v > 0) "فوق" else "تحت"} سطح البحر"
+}
+
 fun ago(at: ZonedDateTime?): String {
     if (at == null) return ""
     val d = Duration.between(at.toInstant(), java.time.Instant.now())

@@ -22,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -39,6 +40,7 @@ import ps.weather.data.WeatherRepository
 import ps.weather.ui.aqiText
 import ps.weather.ui.arabicDate
 import ps.weather.ui.clock
+import ps.weather.ui.components.Load
 import ps.weather.ui.components.LoadBox
 import ps.weather.ui.components.PwIcons
 import ps.weather.ui.components.RoundIconButton
@@ -46,6 +48,7 @@ import ps.weather.ui.components.StatTile
 import ps.weather.ui.components.WeatherIcon
 import ps.weather.ui.components.rememberLoad
 import ps.weather.ui.deg
+import ps.weather.ui.elevationText
 import ps.weather.ui.hourLabel
 import ps.weather.ui.relativeDayName
 import ps.weather.ui.theme.Pw
@@ -56,8 +59,10 @@ import java.time.LocalDate
 import kotlin.math.roundToInt
 
 @Composable
-fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit) {
+fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onElevation: (Double) -> Unit = {}) {
     val (load, refresh) = rememberLoad(city.id) { WeatherRepository.forecast(city.lat, city.lon) }
+    val elevation = (load as? Load.Ok)?.value?.elevation ?: city.elevation
+    LaunchedEffect(elevation) { elevation?.let(onElevation) }
     val aqi by produceState<Int?>(null, city.id) { value = WeatherRepository.airQuality(city.lat, city.lon) }
 
     LazyColumn(
@@ -75,6 +80,7 @@ fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit) {
                         listOfNotNull(
                             if (city.kind == PlaceKind.GPS) "موقعك الحالي" else null,
                             if (city.isListed) null else city.area,
+                            elevationText(elevation),
                             arabicDate(LocalDate.now()),
                         ).joinToString(" · "),
                         fontSize = 13.sp, color = Pw.Muted,
