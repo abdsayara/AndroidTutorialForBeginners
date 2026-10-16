@@ -6,9 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -18,11 +20,11 @@ import ps.weather.ui.theme.Pw
 import kotlin.math.cos
 import kotlin.math.sin
 
-private enum class Kind { SUN, MOON, PARTLY, CLOUD, RAIN, SNOW, STORM, FOG }
+private enum class Kind { SUN, MOON, PARTLY, PARTLY_NIGHT, CLOUD, RAIN, SNOW, STORM, FOG }
 
 private fun kindOf(code: Int, isDay: Boolean): Kind = when (code) {
     0, 1 -> if (isDay) Kind.SUN else Kind.MOON
-    2 -> Kind.PARTLY
+    2 -> if (isDay) Kind.PARTLY else Kind.PARTLY_NIGHT
     3 -> Kind.CLOUD
     45, 48 -> Kind.FOG
     in 51..67, in 80..82 -> Kind.RAIN
@@ -47,15 +49,13 @@ fun WeatherIcon(
         val stroke = Stroke(width = s * 0.08f, cap = StrokeCap.Round)
         when (kind) {
             Kind.SUN -> sun(Offset(s / 2, s / 2), s * 0.2f, s * 0.14f, sunColor, stroke)
-            Kind.MOON -> {
-                val p = Path().apply {
-                    addOval(androidx.compose.ui.geometry.Rect(Offset(s * 0.5f, s * 0.5f), s * 0.3f))
-                }
-                drawPath(p, cloudColor, style = stroke)
-                drawCircle(sunColor, s * 0.06f, Offset(s * 0.62f, s * 0.38f))
-            }
+            Kind.MOON -> moon(Offset(s * 0.5f, s * 0.5f), s * 0.34f, cloudColor)
             Kind.PARTLY -> {
                 sun(Offset(s * 0.36f, s * 0.34f), s * 0.13f, s * 0.09f, sunColor, stroke)
+                cloud(Offset(s * 0.1f, s * 0.38f), s * 0.85f, cloudColor)
+            }
+            Kind.PARTLY_NIGHT -> {
+                moon(Offset(s * 0.34f, s * 0.32f), s * 0.2f, cloudColor.copy(alpha = 0.75f))
                 cloud(Offset(s * 0.1f, s * 0.38f), s * 0.85f, cloudColor)
             }
             Kind.CLOUD -> cloud(Offset(s * 0.05f, s * 0.2f), s * 0.9f, cloudColor)
@@ -91,6 +91,13 @@ private fun DrawScope.sun(c: Offset, r: Float, ray: Float, color: Color, stroke:
         val to = Offset(c.x + cos(a).toFloat() * (r + ray * 1.2f), c.y + sin(a).toFloat() * (r + ray * 1.2f))
         drawLine(color, from, to, stroke.width, StrokeCap.Round)
     }
+}
+
+/** Filled crescent: a disc with an offset disc cut out of its upper right. */
+private fun DrawScope.moon(c: Offset, r: Float, color: Color) {
+    val disc = Path().apply { addOval(Rect(c, r)) }
+    val bite = Path().apply { addOval(Rect(Offset(c.x + r * 0.55f, c.y - r * 0.4f), r * 0.85f)) }
+    drawPath(Path.combine(PathOperation.Difference, disc, bite), color)
 }
 
 /** Filled cloud inside a box whose top-left is [o] and width [w] (height ≈ 0.6 w). */

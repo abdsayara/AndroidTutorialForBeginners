@@ -169,7 +169,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
             val bearing = PrayerRepository.qiblaBearing(city.lat, city.lon)
             SectionCard {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Icon(PwIcons.Forward, null, tint = Pw.Green, modifier = Modifier.size(36.dp).rotate(bearing.toFloat() + 90f))
+                    Icon(PwIcons.ArrowUp, null, tint = Pw.Green, modifier = Modifier.size(36.dp).rotate(bearing.toFloat()))
                     Column {
                         Text("اتجاه القبلة", fontSize = 12.sp, color = Pw.Muted)
                         Text("${bearing.toInt()}° من الشمال", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
@@ -258,10 +258,10 @@ private fun AlertCard(a: AlertRecord) {
     }
     val icon = when (a.type) {
         AlertType.RAIN -> PwIcons.Drop
-        AlertType.FROST -> PwIcons.Moon
-        AlertType.HEAT -> PwIcons.Compass
+        AlertType.FROST -> PwIcons.Snowflake
+        AlertType.HEAT -> PwIcons.Thermometer
         AlertType.WIND -> PwIcons.Wind
-        AlertType.QUAKE -> PwIcons.Regions
+        AlertType.QUAKE -> PwIcons.Wave
     }
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Pw.Card).padding(14.dp),

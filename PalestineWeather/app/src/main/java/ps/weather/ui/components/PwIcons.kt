@@ -53,5 +53,9 @@ object PwIcons {
     val Compass = icon("compass", circle(12f, 12f, 10f), "M12 12l5-7-2 8z")
     val News = icon("news", "M4 5h13v14H6a2 2 0 0 1-2-2z", "M17 9h3v8a2 2 0 0 1-2 2", "M8 9h5M8 13h5")
     val Coins = icon("coins", circle(9f, 9f, 6f), "M15.5 9.6A6 6 0 1 1 9.6 15.5")
+    val Thermometer = icon("thermometer", "M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z")
+    val Snowflake = icon("snowflake", "M12 2v20M4 7l16 10M20 7L4 17M9 3l3 2 3-2M9 21l3-2 3 2")
+    val Wave = icon("wave", "M2 12h4l2-6 3 12 3-9 2 3h6")
+    val ArrowUp = icon("arrowUp", "M12 20V4M5 11l7-7 7 7")
     val Trash = icon("trash", "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3")
 }

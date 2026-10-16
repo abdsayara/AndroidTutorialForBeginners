@@ -44,7 +44,7 @@ export const starFilled = (size = 20) =>
 
 function kind(code, isDay) {
   if (code === 0 || code === 1) return isDay ? 'sun' : 'moon';
-  if (code === 2) return 'partly';
+  if (code === 2) return isDay ? 'partly' : 'partly-night';
   if (code === 3) return 'cloud';
   if (code === 45 || code === 48) return 'fog';
   if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
@@ -74,6 +74,7 @@ export function weatherIcon(code, { isDay = true, size = 24, cloudColor = 'var(-
     case 'sun': body = sun(12, 12, 4.2, sunColor); break;
     case 'moon': body = `<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" fill="${cloudColor}"/>`; break;
     case 'partly': body = sun(8.5, 8, 2.8, sunColor) + cloud(2, cloudColor); break;
+    case 'partly-night': body = `<path d="M12 8.5A4.5 4.5 0 0 1 6.5 3a4.5 4.5 0 1 0 5.5 5.5z" fill="${cloudColor}" opacity="0.75"/>` + cloud(2, cloudColor); break;
     case 'cloud': body = cloud(0, cloudColor); break;
     case 'fog': body = [8, 12, 16].map((y) => `<line x1="4" y1="${y}" x2="20" y2="${y}" stroke="${cloudColor}" stroke-width="2" stroke-linecap="round"/>`).join(''); break;
     case 'rain': body = cloud(-3, cloudColor) + [8, 12, 16].map((x) => `<line x1="${x}" y1="18" x2="${x - 1}" y2="21" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/>`).join(''); break;
