@@ -9,7 +9,7 @@
     id: 'momentum', unit: 1, order: 1, lesson: '1-1', lessonTitle: 'الزخم الخطي', page: 5,
     titleAr: 'الزخم الخطي: كتلة الجسم × سرعته', titleEn: 'Linear Momentum', tags: 'زخم كمية تحرك p=mv طاقة حركية نشاط 1-1 سطح مائل ممحاة',
     formula: 'P = m\\,v ,\\qquad K = \\frac{P^2}{2m}',
-    book: 'القانون (1-1) ص5: الزخم = كتلة الجسم × سرعته، وهو كمية متجهة باتجاه السرعة، ووحدته kg.m/s. مثال (1) ص6: سيارة 1000 kg بسرعة 20 m/s شرقاً، وكرة 2 kg طاقتها الحركية 16 J.',
+    book: 'القانون (1-1) ص5: الزخم = كتلة الجسم × سرعته، وهو كمية متجهة باتجاه السرعة، ووحدته كغم.م/ث. مثال (1) ص6: سيارة 1000 kg بسرعة 20 m/s شرقاً، وكرة 2 kg طاقتها الحركية 16 J.',
     summary: 'كلما كانت كتلة الجسم المتحرك أو سرعته أكبر كانت إعاقة حركته أصعب؛ ويعبَّر عن ذلك بالزخم P = mv. وترتبط الطاقة الحركية بالزخم بالعلاقة K = P²/2m.',
     vars: [['m', 'كتلة الجسم', '\\mathrm{kg}', '0.1 – 2000'], ['v', 'سرعة الجسم', '\\mathrm{m/s}', '0 – 40'], ['P', 'الزخم الخطي', '\\mathrm{kg\\,m/s}', '—'], ['K', 'الطاقة الحركية', '\\mathrm{J}', '—']],
     assumptions: ['مسافة إزاحة الممحاة في النشاط (1-1) تتناسب مع زخم الكرة: ' + Q.SIMPLE + '.'],
@@ -35,13 +35,13 @@
     },
     graph(p, d) { const vm = Math.max(40, d.v * 1.2); return { view: { xmin: 0, xmax: vm, ymin: 0, ymax: Math.max(1, p.m * vm) * 1.05 }, xLabel: 'v (m/s)', yLabel: 'P (kg.m/s)', caption: 'P تتناسب طردياً مع v لكتلة ثابتة؛ ميل الخط يساوي الكتلة m.', draw(G) { const c = G.colors(); G.fn((x) => p.m * x, { color: c.c1, width: 3, domain: [0, vm] }); G.point(d.v, d.P, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.m !== b.m) o.push('زيادة الكتلة تزيد الزخم بالنسبة نفسها عند السرعة نفسها.'); if (a.v !== b.v) o.push('مضاعفة السرعة تضاعف الزخم وتضاعف الطاقة الحركية أربع مرات.'); return o; },
-    learn: ['**الزخم (ص5):** كمية فيزيائية متجهة تساوي حاصل ضرب كتلة الجسم في سرعته، وتكون باتجاه السرعة: P = mv.', '**الوحدة:** kg.m/s، وتكافئ N.s.', '**العلاقة مع الطاقة الحركية:** K = ½mv² = P²/2m.'],
+    learn: ['**الزخم (ص5):** كمية فيزيائية متجهة تساوي حاصل ضرب كتلة الجسم في سرعته، وتكون باتجاه السرعة: P = mv.', '**الوحدة:** كغم.م/ث، وتكافئ نيوتن.ث.', '**العلاقة مع الطاقة الحركية:** K = ½mv² = P²/2m.'],
     challenges: [
       { q: 'مثال (1): ما زخم سيارة كتلتها 1000 kg تسير بسرعة 20 m/s؟ اضبط القيم.', hint: 'المعطى: الكتلة والسرعة.', init: { by: 'v', m: 500, v: 10 }, check: (p) => p.by === 'v' && p.m === 1000 && p.v === 20, why: () => 'P = 2×10⁴ kg.m/s شرقاً.' },
       { q: 'مثال (1): كرة كتلتها 2 kg طاقتها الحركية 16 J؛ أوجد زخمها.', hint: 'اختر «الكتلة والطاقة الحركية».', init: { by: 'v', m: 1000, v: 20 }, check: (p) => p.by === 'K' && p.m === 2 && p.K === 16, why: () => 'P = √(2×2×16) = 8 kg.m/s.' }
     ],
     tutor: [
-      { q: 'ما وحدة الزخم؟', k: ['وحده', 'وحدة'], a: () => K.tutor('اضرب وحدة الكتلة في وحدة السرعة.', 'kg.m/s، وتكافئ N.s.') },
+      { q: 'ما وحدة الزخم؟', k: ['وحده', 'وحدة'], a: () => K.tutor('اضرب وحدة الكتلة في وحدة السرعة.', 'كغم.م/ث، وتكافئ نيوتن.ث.') },
       { q: 'ما العلاقة بين الزخم والطاقة الحركية؟', k: ['طاقه', 'حركيه'], a: (p, d) => K.tutor('اكتب K = ½mv² وعوّض v = P/m.', 'K = P²/2m = ' + n(d.Ke) + ' J.') },
       { q: 'مركبتان متساويتان في الكتلة وسرعة إحداهما ضعف الأخرى، أيهما أسهل إيقافاً؟', k: ['مركبتان', 'ايقاف', 'اسهل'], a: () => K.tutor('أيهما زخمها أقل؟', 'الأبطأ، لأن زخمها نصف زخم الأخرى فتحتاج دفعاً أقل.') }
     ]
@@ -49,7 +49,7 @@
 
   /* ======================= 2-1 و3-1 الدفع ونظرية الدفع–الزخم ص6–9 ======================= */
   K.reg({
-    id: 'impulse', unit: 1, order: 2, lesson: '3-1', lessonTitle: 'الدفع ونظرية الدفع–الزخم', page: 8,
+    id: 'impulse', ar: { I: 'د' }, unit: 1, order: 2, lesson: '3-1', lessonTitle: 'الدفع ونظرية الدفع–الزخم', page: 8,
     titleAr: 'الدفع: المساحة تحت منحنى القوة–الزمن', titleEn: 'Impulse and the Impulse–Momentum Theorem', tags: 'دفع قوة زمن مساحة نظرية الدفع الزخم نشاط 2-1 سيارة فرامل',
     formula: 'I = F\\,\\Delta t = \\Delta P = m v_f - m v_i',
     book: 'القوانين (1-2) و(1-5) ص6–8. نشاط (2-1) ص8: قوة 10 N تؤثر 6 s، وقوة 30 N تؤثر 2 s. مثال (2) ص9: سيارة 1200 kg تقل سرعتها من 20 إلى 8 m/s خلال 6 s.',
@@ -76,7 +76,7 @@
       if (p.mode === 'car') {
         const y = H * 0.6; ctx.strokeStyle = cols.axis; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(20, y + 4); ctx.lineTo(W - 20, y + 4); ctx.stroke();
         K.cart(ctx, W * 0.45, y, 110, 40, cols.c1, p.m + ' kg', cols);
-        K.vec(ctx, W * 0.45 + 60, y - 50, Math.min(W * 0.3, p.vi * 6), 0, cols.c3, 'vi = ' + p.vi, cols); K.vec(ctx, W * 0.45 + 60, y - 20, Math.min(W * 0.3, p.vf * 6), 0, cols.c5, 'vf = ' + p.vf, cols);
+        K.vec(ctx, W * 0.45 + 60, y - 50, Math.min(W * 0.3, p.vi * 6), 0, cols.c3, 'v_i = ' + p.vi, cols); K.vec(ctx, W * 0.45 + 60, y - 20, Math.min(W * 0.3, p.vf * 6), 0, cols.c5, 'v_f = ' + p.vf, cols);
         K.vec(ctx, W * 0.45 - 60, y - 20, -Math.min(W * 0.3, Math.abs(d.F) / 40), 0, cols.c2, 'F = ' + n(d.F, 0) + ' N', cols);
       } else {
         D.txt(ctx, 'دفع متساوٍ؟ قارن المساحتين في الرسم البياني', W / 2, H * 0.2, { color: cols.text, size: nr ? 13 : 15, w: '700' });
@@ -88,7 +88,7 @@
       return { view: { xmin: 0, xmax: p.dt * 1.2, ymin: 0, ymax: Math.max(p.vi, p.vf, 1) * 1.2 }, xLabel: 't (s)', yLabel: 'v (m/s)', caption: 'السرعة مع الزمن تحت قوة ثابتة.', draw(G) { const c = G.colors(); G.segment(0, p.vi, p.dt, p.vf, { color: c.c1, width: 3 }); } };
     },
     explain(a, b, da, db) { const o = []; if (b.mode === 'compare' && (a.F1 !== b.F1 || a.t1 !== b.t1 || a.F2 !== b.F2 || a.t2 !== b.t2)) o.push('الدفع ' + db.I1 + ' و ' + db.I2 + ' N.s: ما يحدد الدفع هو حاصل الضرب F Δt وليس القوة وحدها.'); if (b.mode === 'car' && a.dt !== b.dt) o.push('زيادة زمن التوقف تقلل القوة المؤثرة للتغير نفسه في الزخم (فكرة الوسادة الهوائية).'); return o; },
-    learn: ['**الدفع (ص6):** I = F Δt، ووحدته N.s، ويساوي المساحة تحت منحنى القوة–الزمن.', '**نظرية الدفع–الزخم (ص8):** ΔP = F Δt، فالقوة المحصلة هي المعدل الزمني للتغير في الزخم (1-4).', '**تطبيق:** الوسادة الهوائية وحزام الأمان يزيدان زمن التوقف فتقل القوة على الراكب.'],
+    learn: ['**الدفع (ص6):** I = F Δt، ووحدته نيوتن.ث، ويساوي المساحة تحت منحنى القوة–الزمن.', '**نظرية الدفع–الزخم (ص8):** ΔP = F Δt، فالقوة المحصلة هي المعدل الزمني للتغير في الزخم (1-4).', '**تطبيق:** الوسادة الهوائية وحزام الأمان يزيدان زمن التوقف فتقل القوة على الراكب.'],
     challenges: [
       { q: 'نشاط (2-1): اجعل دفع القوتين متساوياً بقيم الكتاب (10 N لمدة 6 s و30 N لمدة 2 s).', hint: 'F × t متساوٍ.', init: { mode: 'compare', F1: 10, t1: 6, F2: 20, t2: 2 }, check: (p, d) => p.mode === 'compare' && d.I1 === d.I2, why: (p, d) => 'الدفعان ' + d.I1 + ' N.s.' },
       { q: 'مثال (2): احسب متوسط القوة على السيارة 1200 kg التي تتباطأ من 20 إلى 8 m/s خلال 6 s.', hint: 'اختر حالة السيارة واضبط القيم.', init: { mode: 'compare' }, check: (p, d) => p.mode === 'car' && p.m === 1200 && p.vi === 20 && p.vf === 8 && p.dt === 6, why: () => 'F = −2400 N (عكس الحركة).' }
@@ -121,7 +121,7 @@
     compute(p) { const v2 = Q.recoil(p.m1, p.m2, p.v1); return { v2: v2, p1: p.m1 * p.v1, p2: p.m2 * v2 }; },
     live(p, d) { return '0 = ' + p.m1 + ' \\times ' + p.v1 + ' + ' + p.m2 + '\\,v_{2f} \\Rightarrow v_{2f} = ' + q(d.v2, 'm/s', 3); },
     results(p, d) { return [['سرعة ارتداد القارب', q(d.v2, 'm/s', 3), true, 'pos'], ['زخم الصندوق', q(d.p1, 'kg\\,m/s')], ['زخم القارب والطالب', q(d.p2, 'kg\\,m/s')], ['الزخم الكلي', q(d.p1 + d.p2, 'kg\\,m/s')]]; },
-    steps(p, d) { return ['النظام ساكن قبل القذف: ΣPi = 0.', '0 = m₁v₁f + m₂v₂f = ' + p.m1 + ' × ' + p.v1 + ' + ' + p.m2 + ' v₂f.', 'v₂f = ' + n(d.v2, 3) + ' m/s (الإشارة السالبة: عكس اتجاه الصندوق).']; },
+    steps(p, d) { return ['النظام ساكن قبل القذف: ΣP_i = 0.', '0 = m₁v_1f + m₂v_2f = ' + p.m1 + ' × ' + p.v1 + ' + ' + p.m2 + ' v_2f.', 'v_2f = ' + n(d.v2, 3) + ' m/s (الإشارة السالبة: عكس اتجاه الصندوق).']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const st = d.st || { t: 0 }; const t = Math.min(st.t, 3); const y = H * 0.62, sc = Math.min(30, W / 30);
       ctx.fillStyle = 'rgba(56,189,248,.25)'; ctx.fillRect(0, y, W, H - y);
@@ -129,14 +129,14 @@
       ctx.fillStyle = '#92400e'; ctx.beginPath(); ctx.moveTo(bx - 70, y - 20); ctx.lineTo(bx + 70, y - 20); ctx.lineTo(bx + 50, y + 10); ctx.lineTo(bx - 50, y + 10); ctx.fill();
       ctx.fillStyle = cols.c5; ctx.beginPath(); ctx.arc(bx - 10, y - 55, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(bx - 18, y - 45, 16, 25);
       ctx.fillStyle = cols.c4; ctx.fillRect(Math.min(W - 30, cx), y - 50 - (t > 0 ? 6 * t : 0), 22, 22);
-      K.vec(ctx, bx, y - 80, d.v2 * 12, 0, cols.c1, 'v₂f', cols); K.vec(ctx, Math.min(W - 30, cx) + 11, y - 90, p.v1 * 4, 0, cols.c2, 'v₁f', cols);
+      K.vec(ctx, bx, y - 80, d.v2 * 12, 0, cols.c1, 'v_2f', cols); K.vec(ctx, Math.min(W - 30, cx) + 11, y - 90, p.v1 * 4, 0, cols.c2, 'v_1f', cols);
       D.txt(ctx, 'ΣP = ' + n(d.p1 + d.p2, 3) + ' kg.m/s', W / 2, H * 0.12, { color: cols.text, size: 16, w: '700' });
     },
     graph(p, d) { return { view: K.barView([d.p1, d.p2, 0]), xLabel: '', yLabel: 'P (kg.m/s)', caption: 'زخم الصندوق يساوي زخم القارب مقداراً ويعاكسه اتجاهاً، فالمجموع صفر.', draw(G) { const c = G.colors(); K.bars(G, [['الصندوق', d.p1, c.c2], ['القارب', d.p2, c.c1], ['المجموع', d.p1 + d.p2, c.c3]]); } }; },
     explain(a, b, da, db) { const o = []; if (a.m1 !== b.m1 || a.v1 !== b.v1) o.push('زيادة زخم الصندوق تزيد سرعة ارتداد القارب: ' + n(db.v2, 3) + ' m/s.'); if (a.m2 !== b.m2) o.push('قارب أثقل يرتد بسرعة أقل للزخم نفسه.'); return o; },
     learn: ['**قانون حفظ الزخم (1-6):** في النظام المعزول، الزخم الكلي قبل التفاعل يساوي الزخم الكلي بعده.', '**مهد نيوتن (نشاط 3-1):** إذا سقطت كرة من طرف تندفع كرة واحدة من الطرف الآخر بالسرعة نفسها تقريباً.', '**مثال (3) ص11:** 0 = 6×10 + 100 v ⇒ v = −0.60 m/s.'],
     challenges: [
-      { q: 'مثال (3): أوجد سرعة ارتداد القارب (الطالب 35 kg والقارب 65 kg والصندوق 6 kg بسرعة 10 m/s).', hint: 'كتلة القارب مع الطالب 100 kg.', init: { m1: 4, v1: 5, m2: 150 }, check: (p) => p.m1 === 6 && p.v1 === 10 && p.m2 === 100, why: () => 'v₂f = −0.60 m/s.' },
+      { q: 'مثال (3): أوجد سرعة ارتداد القارب (الطالب 35 kg والقارب 65 kg والصندوق 6 kg بسرعة 10 m/s).', hint: 'كتلة القارب مع الطالب 100 kg.', init: { m1: 4, v1: 5, m2: 150 }, check: (p) => p.m1 === 6 && p.v1 === 10 && p.m2 === 100, why: () => 'v_2f = −0.60 m/s.' },
       { q: 'اجعل القارب يرتد بسرعة 1 m/s أو أكثر.', hint: 'زد زخم الصندوق أو قلّل كتلة القارب.', init: { m1: 6, v1: 10, m2: 100 }, check: (p, d) => Math.abs(d.v2) >= 1, why: (p, d) => 'السرعة ' + n(Math.abs(d.v2), 3) + ' m/s.' }
     ],
     tutor: [
@@ -195,7 +195,7 @@
 
   /* ======================= التصادم في بعد واحد (السكة الهوائية) ص18–24 ======================= */
   K.reg({
-    id: 'collision-1d', unit: 2, order: 2, lesson: '2-2', lessonTitle: 'التصادم المرن وغير المرن وعديم المرونة', page: 21,
+    id: 'collision-1d', ar: { e: 'م_ر' }, unit: 2, order: 2, lesson: '2-2', lessonTitle: 'التصادم المرن وغير المرن وعديم المرونة', page: 21,
     titleAr: 'التصادم في بعد واحد على السكة الهوائية', titleEn: 'One-Dimensional Collisions on an Air Track', tags: 'تصادم مرن غير مرن عديم المرونة سكة هوائية عربات حفظ الزخم الطاقة الحركية نشاط 2-2 مثال 1 مثال 2',
     formula: 'm_1 v_{1i} + m_2 v_{2i} = m_1 v_{1f} + m_2 v_{2f}',
     book: 'نشاط (2-2) ص18 (السكة الهوائية)، والقوانين (2-1) و(2-2) و(2-3) و(2-4). مثال (1) ص21: 4 kg بسرعة 2 m/s و2 kg بسرعة −2 m/s مرن ⇒ −2/3 و 10/3 m/s. مثال (2) ص22: 2 kg بسرعة −6 m/s و3 kg بسرعة 4 m/s، وسرعة الأولى بعده 4.5 m/s.',
@@ -223,12 +223,12 @@
     },
     live(p, d) { return p.m1 + '(' + p.u1 + ') + ' + p.m2 + '(' + p.u2 + ') = ' + p.m1 + '(' + K.n(d.v1, 3) + ') + ' + p.m2 + '(' + K.n(d.v2, 3) + ')'; },
     results(p, d) {
-      if (!d.meet) return [['الحالة', 'العربتان لا تلتقيان: اجعل v₁ᵢ > v₂ᵢ', false, 'neg']];
-      return [['v₁f', q(d.v1, 'm/s', 4)], ['v₂f', q(d.v2, 'm/s', 4)], ['ΣPi = ΣPf', q(d.Pi, 'kg\\,m/s') + ' = ' + q(d.Pf, 'kg\\,m/s'), true, 'pos'], ['ΣKi', q(d.Ki, 'J')], ['ΣKf', q(d.Kf, 'J')], ['ΔK', q(d.dK, 'J'), true, Math.abs(d.dK) < 1e-9 ? 'pos' : 'neg']];
+      if (!d.meet) return [['الحالة', 'العربتان لا تلتقيان: اجعل v_1i > v_2i', false, 'neg']];
+      return [['v_1f', q(d.v1, 'm/s', 4)], ['v_2f', q(d.v2, 'm/s', 4)], ['ΣP_i = ΣP_f', q(d.Pi, 'kg\\,m/s') + ' = ' + q(d.Pf, 'kg\\,m/s'), true, 'pos'], ['ΣK_i', q(d.Ki, 'J')], ['ΣK_f', q(d.Kf, 'J')], ['ΔK', q(d.dK, 'J'), true, Math.abs(d.dK) < 1e-9 ? 'pos' : 'neg']];
     },
     steps(p, d) {
       const o = ['حفظ الزخم: ' + p.m1 + '(' + p.u1 + ') + ' + p.m2 + '(' + p.u2 + ') = ' + K.n(d.Pi) + ' kg.m/s.'];
-      if (p.type === 'elastic') o.push('مرن: v₁ᵢ − v₂ᵢ = −(v₁f − v₂f) ⇒ ' + (p.u1 - p.u2) + ' = −(' + K.n(d.v1, 3) + ' − ' + K.n(d.v2, 3) + ').');
+      if (p.type === 'elastic') o.push('مرن: v_1i − v_2i = −(v_1f − v_2f) ⇒ ' + (p.u1 - p.u2) + ' = −(' + K.n(d.v1, 3) + ' − ' + K.n(d.v2, 3) + ').');
       if (p.type === 'perfect') o.push('التحام: v_f = ΣP ÷ (m₁ + m₂) = ' + K.n(d.v1, 3) + ' m/s.');
       o.push('ΔK = ' + K.n(d.dK, 3) + ' J.'); return o;
     },
@@ -239,7 +239,7 @@
       const tc = d.meet ? (x20 - w2 / 2 - (x10 + w1 / 2)) / ((p.u1 - p.u2) * sc) : Infinity; const t = st.t;
       let x1, x2; if (t < tc) { x1 = x10 + p.u1 * sc * t; x2 = x20 + p.u2 * sc * t; } else { const c1 = x10 + p.u1 * sc * tc, c2 = x20 + p.u2 * sc * tc; x1 = c1 + d.v1 * sc * (t - tc); x2 = c2 + d.v2 * sc * (t - tc); }
       K.cart(ctx, x1, y, w1, 34, cols.c1, p.m1 + ' kg', cols); K.cart(ctx, x2, y, w2, 34, cols.c2, p.m2 + ' kg', cols);
-      const after = t >= tc; K.vec(ctx, x1, y - 50, (after ? d.v1 : p.u1) * 8, 0, cols.c1, (after ? 'v₁f' : 'v₁ᵢ'), cols); K.vec(ctx, x2, y - 70, (after ? d.v2 : p.u2) * 8, 0, cols.c2, (after ? 'v₂f' : 'v₂ᵢ'), cols);
+      const after = t >= tc; K.vec(ctx, x1, y - 50, (after ? d.v1 : p.u1) * 8, 0, cols.c1, (after ? 'v_1f' : 'v_1i'), cols); K.vec(ctx, x2, y - 70, (after ? d.v2 : p.u2) * 8, 0, cols.c2, (after ? 'v_2f' : 'v_2i'), cols);
       D.txt(ctx, { elastic: 'تصادم مرن', inelastic: 'تصادم غير مرن', perfect: 'تصادم عديم المرونة' }[p.type] + (after ? ' — بعد التصادم' : ' — قبل التصادم'), W / 2, H * 0.12, { color: cols.text, size: 15, w: '700' });
     },
     graphModes: ['الزخم', 'الطاقة الحركية'],
@@ -248,22 +248,22 @@
       return { view: K.barView([d.Pi, d.Pf]), xLabel: '', yLabel: 'P (kg.m/s)', caption: 'الزخم الكلي قبل التصادم يساوي الزخم الكلي بعده.', draw(G) { const c = G.colors(); K.bars(G, [['قبل', d.Pi, c.c1], ['بعد', d.Pf, c.c2]]); } };
     },
     explain(a, b, da, db) { const o = []; if (a.type !== b.type) o.push(b.type === 'elastic' ? 'المرن: تُحفظ الطاقة الحركية.' : b.type === 'perfect' ? 'عديم المرونة: تلتحم العربتان وتتحركان بسرعة واحدة، وأكبر فقد للطاقة.' : 'غير المرن: تُفقد جزء من الطاقة الحركية.'); return o; },
-    learn: ['**حفظ الزخم (2-1):** m₁v₁ᵢ + m₂v₂ᵢ = m₁v₁f + m₂v₂f.', '**المرن (2-2) و(2-3):** تُحفظ الطاقة الحركية، و v₁ᵢ − v₂ᵢ = −(v₁f − v₂f).', '**عديم المرونة (2-4):** m₁v₁ᵢ + m₂v₂ᵢ = (m₁ + m₂)v_f.', '**مثال (2):** ΣKi = 60 J، ΣKf = 33.75 J، فالتصادم غير مرن، والقوة على الكرة الثانية −1050 N خلال 0.02 s.'],
+    learn: ['**حفظ الزخم (2-1):** m₁v_1i + m₂v_2i = m₁v_1f + m₂v_2f.', '**المرن (2-2) و(2-3):** تُحفظ الطاقة الحركية، و v_1i − v_2i = −(v_1f − v_2f).', '**عديم المرونة (2-4):** m₁v_1i + m₂v_2i = (m₁ + m₂)v_f.', '**مثال (2):** ΣK_i = 60 J، ΣK_f = 33.75 J، فالتصادم غير مرن، والقوة على الكرة الثانية −1050 N خلال 0.02 s.'],
     challenges: [
-      { q: 'مثال (1): أوجد السرعتين بعد تصادم مرن بين 4 kg (2 m/s) و2 kg (−2 m/s).', hint: 'اختر «مرن» واضبط القيم.', init: { type: 'perfect', m1: 2, m2: 2, u1: 3, u2: 0 }, check: (p) => p.type === 'elastic' && p.m1 === 4 && p.m2 === 2 && p.u1 === 2 && p.u2 === -2, why: () => 'v₁f = −2/3 m/s و v₂f = 10/3 m/s.' },
-      { q: 'مثال (2): كرة 2 kg بسرعة 6 m/s غرباً (−6) وكرة 3 kg بسرعة 4 m/s شرقاً؛ اجعل سرعة الأولى بعد التصادم 4.5 m/s.', hint: 'تصادم غير مرن، وجرّب e.', init: { type: 'elastic', m1: 4, m2: 2, u1: 2, u2: -2 }, check: (p, d) => p.type === 'inelastic' && p.m1 === 2 && p.m2 === 3 && p.u1 === -6 && p.u2 === 4 && Math.abs(d.v1 - 4.5) < 0.01, why: () => 'v₂f = −3 m/s، و ΔK = −26.25 J.' },
+      { q: 'مثال (1): أوجد السرعتين بعد تصادم مرن بين 4 kg (2 m/s) و2 kg (−2 m/s).', hint: 'اختر «مرن» واضبط القيم.', init: { type: 'perfect', m1: 2, m2: 2, u1: 3, u2: 0 }, check: (p) => p.type === 'elastic' && p.m1 === 4 && p.m2 === 2 && p.u1 === 2 && p.u2 === -2, why: () => 'v_1f = −2/3 m/s و v_2f = 10/3 m/s.' },
+      { q: 'مثال (2): كرة 2 kg بسرعة 6 m/s غرباً (−6) وكرة 3 kg بسرعة 4 m/s شرقاً؛ اجعل سرعة الأولى بعد التصادم 4.5 m/s.', hint: 'تصادم غير مرن، وجرّب e.', init: { type: 'elastic', m1: 4, m2: 2, u1: 2, u2: -2 }, check: (p, d) => p.type === 'inelastic' && p.m1 === 2 && p.m2 === 3 && p.u1 === -6 && p.u2 === 4 && Math.abs(d.v1 - 4.5) < 0.01, why: () => 'v_2f = −3 m/s، و ΔK = −26.25 J.' },
       { q: 'اجعل العربتين تلتحمان وتتوقفان تماماً بعد التصادم.', hint: 'الزخم الكلي يجب أن يساوي صفراً.', init: { type: 'elastic', m1: 4, m2: 2, u1: 2, u2: -2 }, check: (p, d) => p.type === 'perfect' && d.meet && Math.abs(d.Pi) < 1e-9, why: () => 'زخماهما متساويان ومتعاكسان.' }
     ],
     tutor: [
-      { q: 'هل الطاقة الحركية محفوظة هنا؟', k: ['محفوظه', 'طاقه'], a: (p, d) => K.tutor('قارن ΣKi بـ ΣKf.', Math.abs(d.dK) < 1e-9 ? 'نعم، التصادم مرن.' : 'لا؛ نقصت ' + K.n(-d.dK, 3) + ' J.') },
-      { q: 'كيف أجد السرعتين بعد التصادم المرن؟', k: ['مرن', 'سرعتين', 'احسب'], a: (p, d) => K.tutor('استخدم معادلتين: حفظ الزخم والسرعة النسبية (2-3).', 'v₁f = ' + K.n(d.v1, 3) + ' و v₂f = ' + K.n(d.v2, 3) + ' m/s.') },
+      { q: 'هل الطاقة الحركية محفوظة هنا؟', k: ['محفوظه', 'طاقه'], a: (p, d) => K.tutor('قارن ΣK_i بـ ΣK_f.', Math.abs(d.dK) < 1e-9 ? 'نعم، التصادم مرن.' : 'لا؛ نقصت ' + K.n(-d.dK, 3) + ' J.') },
+      { q: 'كيف أجد السرعتين بعد التصادم المرن؟', k: ['مرن', 'سرعتين', 'احسب'], a: (p, d) => K.tutor('استخدم معادلتين: حفظ الزخم والسرعة النسبية (2-3).', 'v_1f = ' + K.n(d.v1, 3) + ' و v_2f = ' + K.n(d.v2, 3) + ' m/s.') },
       { q: 'لماذا تلتحم العربتان؟', k: ['تلتحم', 'التحام'], a: () => K.tutor('ما نوع التصادم الذي يتحرك فيه الجسمان معاً؟', 'في التصادم عديم المرونة يلتصق الجسمان ويتحركان بسرعة واحدة.') }
     ]
   });
 
   /* ======================= مثال (3) البندول القذفي ص25 ======================= */
   K.reg({
-    id: 'ballistic-pendulum', unit: 2, order: 3, lesson: '2-2', lessonTitle: 'التصادم عديم المرونة', page: 25,
+    id: 'ballistic-pendulum', ar: { m: 'ك_ر', M: 'ك_خ' }, unit: 2, order: 3, lesson: '2-2', lessonTitle: 'التصادم عديم المرونة', page: 25,
     titleAr: 'البندول القذفي: قياس سرعة رصاصة', titleEn: 'The Ballistic Pendulum', tags: 'بندول قذفي رصاصة كتلة خشبية عديم المرونة ارتفاع سرعة مثال 3 مشروع',
     formula: 'v_f = \\sqrt{2 g h} ,\\qquad m v_{1i} = (m + M) v_f',
     book: 'مثال (3) ص25: رصاصة 30 g تستقر في كتلة خشبية 4.97 kg فترتفع المجموعة 8 cm؛ v_f = 1.26 m/s و v_{1i} = 210 m/s، والطاقة المفقودة 657.5 J. مشروع (1): تصميم نموذج للبندول القذفي.',
@@ -281,8 +281,8 @@
     isDone: (st) => st.t >= 3,
     compute(p) { const vf = Math.sqrt(2 * K.g * p.h); const v = (p.m + p.M) * vf / p.m; const Ki = Q.ke(p.m, v), Kf = Q.ke(p.m + p.M, vf); return { vf: vf, v: v, Ki: Ki, Kf: Kf, dK: Kf - Ki }; },
     live(p, d) { return 'v_{1i} = \\frac{m + M}{m}\\sqrt{2gh} = \\frac{' + K.n(p.m + p.M) + '}{' + p.m + '} \\times ' + K.n(d.vf, 3) + ' = ' + q(d.v, 'm/s', 4); },
-    results(p, d) { return [['سرعة المجموعة بعد التصادم v_f', q(d.vf, 'm/s', 3)], ['سرعة الرصاصة v₁ᵢ', q(d.v, 'm/s', 4), true, 'pos'], ['الطاقة الحركية قبل', q(d.Ki, 'J')], ['الطاقة الحركية بعد', q(d.Kf, 'J')], ['الطاقة المفقودة', q(-d.dK, 'J')]]; },
-    steps(p, d) { return ['بعد التصادم: ½(m+M)v_f² = (m+M)gh ⇒ v_f = √(2gh) = ' + K.n(d.vf, 3) + ' m/s.', 'حفظ الزخم: m v₁ᵢ = (m + M) v_f ⇒ v₁ᵢ = ' + K.n(d.v, 4) + ' m/s.', 'ΔK = ' + K.n(d.Kf, 3) + ' − ' + K.n(d.Ki, 3) + ' = ' + K.n(d.dK, 3) + ' J.']; },
+    results(p, d) { return [['سرعة المجموعة بعد التصادم v_f', q(d.vf, 'm/s', 3)], ['سرعة الرصاصة v_1i', q(d.v, 'm/s', 4), true, 'pos'], ['الطاقة الحركية قبل', q(d.Ki, 'J')], ['الطاقة الحركية بعد', q(d.Kf, 'J')], ['الطاقة المفقودة', q(-d.dK, 'J')]]; },
+    steps(p, d) { return ['بعد التصادم: ½(m+M)v_f² = (m+M)gh ⇒ v_f = √(2gh) = ' + K.n(d.vf, 3) + ' m/s.', 'حفظ الزخم: m v_1i = (m + M) v_f ⇒ v_1i = ' + K.n(d.v, 4) + ' m/s.', 'ΔK = ' + K.n(d.Kf, 3) + ' − ' + K.n(d.Ki, 3) + ' = ' + K.n(d.dK, 3) + ' J.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const st = d.st || { t: 0 }; const t = st.t; const px = W * 0.55, py = H * 0.12, L = H * 0.55; const hit = 0.6;
       const thMax = Math.acos(1 - Math.min(1.5, p.h / 0.5)); const th = t < hit ? 0 : thMax * Math.sin((t - hit) * 2.2);
@@ -292,19 +292,19 @@
       if (t < hit) { const x = W * 0.05 + (bx - 40 - W * 0.05) * t / hit; ctx.fillStyle = cols.text; ctx.fillRect(x, by + 20, 14, 5); }
       ctx.strokeStyle = cols.c3; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(W * 0.3, py + L + 46); ctx.lineTo(W * 0.95, py + L + 46); ctx.moveTo(W * 0.3, py + L + 46 - Math.min(H * 0.3, p.h * H * 1.2)); ctx.lineTo(W * 0.95, py + L + 46 - Math.min(H * 0.3, p.h * H * 1.2)); ctx.stroke(); ctx.setLineDash([]);
       D.txt(ctx, 'h = ' + K.n(p.h * 100, 1) + ' cm', W * 0.2, py + L + 46 - Math.min(H * 0.15, p.h * H * 0.6), { color: cols.c3, size: 13, w: '700' });
-      D.txt(ctx, 'v₁ᵢ = ' + K.n(d.v, 1) + ' m/s', W * 0.2, H * 0.12, { color: cols.c2, size: 15, w: '700' });
+      D.txt(ctx, 'v_1i = ' + K.n(d.v, 1) + ' m/s', W * 0.2, H * 0.12, { color: cols.c2, size: 15, w: '700' });
     },
-    graph(p, d) { const hm = 0.3; return { view: { xmin: 0, xmax: hm * 100, ymin: 0, ymax: (p.m + p.M) / p.m * Math.sqrt(2 * K.g * hm) * 1.1 }, xLabel: 'h (cm)', yLabel: 'v₁ᵢ (m/s)', caption: 'سرعة الرصاصة تتناسب مع الجذر التربيعي للارتفاع.', draw(G) { const c = G.colors(); G.fn((x) => (p.m + p.M) / p.m * Math.sqrt(2 * K.g * x / 100), { color: c.c1, width: 3, domain: [0, hm * 100] }); G.point(p.h * 100, d.v, { color: c.c2 }); } }; },
+    graph(p, d) { const hm = 0.3; return { view: { xmin: 0, xmax: hm * 100, ymin: 0, ymax: (p.m + p.M) / p.m * Math.sqrt(2 * K.g * hm) * 1.1 }, xLabel: 'h (cm)', yLabel: 'v_1i (m/s)', caption: 'سرعة الرصاصة تتناسب مع الجذر التربيعي للارتفاع.', draw(G) { const c = G.colors(); G.fn((x) => (p.m + p.M) / p.m * Math.sqrt(2 * K.g * x / 100), { color: c.c1, width: 3, domain: [0, hm * 100] }); G.point(p.h * 100, d.v, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.h !== b.h) o.push('ارتفاع أكبر يعني سرعة مجموعة أكبر، فالرصاصة كانت أسرع: ' + K.n(db.v, 1) + ' m/s.'); if (a.m !== b.m || a.M !== b.M) o.push('النسبة (m + M)/m تحدد كم مرة تكون سرعة الرصاصة أكبر من سرعة المجموعة.'); return o; },
-    learn: ['**البندول القذفي (ص25):** كتلة خشبية كبيرة معلقة بحبلين متوازيين، تستقر فيها الرصاصة.', '**مرحلتان:** تصادم عديم المرونة (الزخم محفوظ) ثم تأرجح (الطاقة الميكانيكية محفوظة).', '**مثال (3):** v_f = √(2×10×0.08) = 1.26 m/s، و0.03 v₁ᵢ = 5 × 1.26 ⇒ v₁ᵢ = 210 m/s.'],
+    learn: ['**البندول القذفي (ص25):** كتلة خشبية كبيرة معلقة بحبلين متوازيين، تستقر فيها الرصاصة.', '**مرحلتان:** تصادم عديم المرونة (الزخم محفوظ) ثم تأرجح (الطاقة الميكانيكية محفوظة).', '**مثال (3):** v_f = √(2×10×0.08) = 1.26 m/s، و0.03 v_1i = 5 × 1.26 ⇒ v_1i = 210 m/s.'],
     challenges: [
-      { q: 'أعد مثال الكتاب: رصاصة 30 g، كتلة 4.97 kg، ارتفاع 8 cm.', hint: 'h = 0.08 m.', init: { m: 0.01, M: 2, h: 0.05 }, check: (p) => p.m === 0.03 && Math.abs(p.M - 4.97) < 1e-9 && Math.abs(p.h - 0.08) < 1e-9, why: () => 'v₁ᵢ ≈ 210 m/s.' },
+      { q: 'أعد مثال الكتاب: رصاصة 30 g، كتلة 4.97 kg، ارتفاع 8 cm.', hint: 'h = 0.08 m.', init: { m: 0.01, M: 2, h: 0.05 }, check: (p) => p.m === 0.03 && Math.abs(p.M - 4.97) < 1e-9 && Math.abs(p.h - 0.08) < 1e-9, why: () => 'v_1i ≈ 210 m/s.' },
       { q: 'اجعل سرعة الرصاصة أكبر من 400 m/s.', hint: 'زد الارتفاع أو الكتلة الخشبية، أو قلّل كتلة الرصاصة.', init: { m: 0.03, M: 4.97, h: 0.08 }, check: (p, d) => d.v > 400, why: (p, d) => K.n(d.v, 1) + ' m/s.' }
     ],
     tutor: [
       { q: 'لماذا نستخدم مرحلتين في الحل؟', k: ['مرحلتين', 'لماذا'], a: () => K.tutor('هل الطاقة الحركية محفوظة أثناء استقرار الرصاصة؟', 'أثناء التصادم يُحفظ الزخم فقط (عديم المرونة)، وبعده أثناء التأرجح تُحفظ الطاقة الميكانيكية.') },
       { q: 'أين ذهبت معظم طاقة الرصاصة؟', k: ['طاقه', 'ذهبت'], a: (p, d) => K.tutor('قارن الطاقة قبل وبعد.', 'فُقد ' + K.n(-d.dK, 1) + ' J حرارة وتشوهاً في الخشب.') },
-      { q: 'كيف أحسب سرعة الرصاصة؟', k: ['احسب', 'سرعه'], a: (p, d) => K.tutor('ابدأ من الارتفاع h.', 'v_f = √(2gh) = ' + K.n(d.vf, 3) + '، ثم v₁ᵢ = (m+M)v_f/m = ' + K.n(d.v, 1) + ' m/s.') }
+      { q: 'كيف أحسب سرعة الرصاصة؟', k: ['احسب', 'سرعه'], a: (p, d) => K.tutor('ابدأ من الارتفاع h.', 'v_f = √(2gh) = ' + K.n(d.vf, 3) + '، ثم v_1i = (m+M)v_f/m = ' + K.n(d.v, 1) + ' m/s.') }
     ]
   });
 
@@ -313,7 +313,7 @@
     id: 'collision-2d', unit: 2, order: 4, lesson: '3-2', lessonTitle: 'التصادم في بعدين', page: 27,
     titleAr: 'التصادم في بعدين: التحام سيارتين عند تقاطع', titleEn: 'Two-Dimensional Collision at an Intersection', tags: 'تصادم بعدين التحام سيارتين زاوية مركبات الزخم شرق شمال مثال 4 حوادث',
     formula: 'm_1 v_{1i} = (m_1 + m_2) v_f \\cos\\theta ,\\quad m_2 v_{2i} = (m_1 + m_2) v_f \\sin\\theta',
-    book: 'القانونان (2-5) و(2-6) ص26. مثال (4) ص27: سيارة شرقاً بسرعة 13 m/s وأخرى مماثلة الكتلة شمالاً، التحمتا وتحرك الحطام بزاوية 55° شمال الشرق: v_f = 11.33 m/s و v_{2i} = 18.56 m/s (66.8 km/h).',
+    book: 'القانونان (2-5) و(2-6) ص26. مثال (4) ص27: سيارة شرقاً بسرعة 13 m/s وأخرى مماثلة الكتلة شمالاً، التحمتا وتحرك الحطام بزاوية 55° شمال الشرق: v_f = 11.33 m/s و v_{2i} = 18.56 m/s (66.8 كم/ساعة).',
     summary: 'في التصادم في بعدين يُحفظ الزخم على كل محور على حدة. عند الالتحام يتحرك الحطام بسرعة واحدة، ومن زاوية حركته يمكن معرفة سرعة كل سيارة قبل التصادم.',
     vars: [['m_1, m_2', 'كتلتا السيارتين', '\\mathrm{kg}', '500 – 3000'], ['v_{1i}', 'سرعة السيارة المتجهة شرقاً', '\\mathrm{m/s}', '0 – 30'], ['v_{2i}', 'سرعة السيارة المتجهة شمالاً', '\\mathrm{m/s}', '0 – 30'], ['\\theta', 'زاوية حركة الحطام شمال الشرق', '^\\circ', '—']],
     assumptions: ['إهمال الاحتكاك أثناء التصادم القصير.'],
@@ -325,27 +325,27 @@
     ],
     compute(p) { const M = p.m1 + p.m2; const px = p.m1 * p.v1, py = p.m2 * p.v2; const vf = Math.hypot(px, py) / M; const th = Math.atan2(py, px) * 180 / Math.PI; return { vf: vf, th: th, px: px, py: py, kmh: p.v2 * 3.6 }; },
     live(p, d) { return 'v_f = \\frac{\\sqrt{(' + p.m1 + '\\times' + p.v1 + ')^2 + (' + p.m2 + '\\times' + p.v2 + ')^2}}{' + (p.m1 + p.m2) + '} = ' + q(d.vf, 'm/s', 4) + ' ,\\ \\theta = ' + K.n(d.th, 2) + '^\\circ'; },
-    results(p, d) { return [['سرعة الحطام v_f', q(d.vf, 'm/s', 4)], ['الزاوية θ شمال الشرق', K.n(d.th, 2) + '^\\circ', true, 'pos'], ['سرعة السيارة الثانية', K.n(p.v2, 2) + '\\ \\mathrm{m/s} = ' + K.n(d.kmh, 1) + '\\ \\mathrm{km/h}']]; },
-    steps(p, d) { return ['محور x: m₁v₁ᵢ = (m₁ + m₂) v_f cosθ = ' + K.n(d.px) + ' kg.m/s.', 'محور y: m₂v₂ᵢ = (m₁ + m₂) v_f sinθ = ' + K.n(d.py) + ' kg.m/s.', 'tanθ = ' + K.n(d.py) + ' ÷ ' + K.n(d.px) + ' ⇒ θ = ' + K.n(d.th, 2) + '°.']; },
+    results(p, d) { return [['سرعة الحطام v_f', q(d.vf, 'm/s', 4)], ['الزاوية θ شمال الشرق', K.n(d.th, 2) + '^\\circ', true, 'pos'], ['سرعة السيارة الثانية', K.n(p.v2, 2) + '\\ \\mathrm{m/s} = ' + K.n(d.kmh, 1) + '\\ \\mathrm{كم/ساعة}']]; },
+    steps(p, d) { return ['محور x: m₁v_1i = (m₁ + m₂) v_f cosθ = ' + K.n(d.px) + ' kg.m/s.', 'محور y: m₂v_2i = (m₁ + m₂) v_f sinθ = ' + K.n(d.py) + ' kg.m/s.', 'tanθ = ' + K.n(d.py) + ' ÷ ' + K.n(d.px) + ' ⇒ θ = ' + K.n(d.th, 2) + '°.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const cx = W * 0.45, cy = H * 0.62; ctx.fillStyle = 'rgba(148,163,184,.25)'; ctx.fillRect(0, cy - 30, W, 60); ctx.fillRect(cx - 30, 0, 60, H);
-      K.cart(ctx, cx - 140, cy + 10, 60, 26, cols.c1, '1', cols); K.vec(ctx, cx - 110, cy - 20, p.v1 * 5, 0, cols.c1, 'v₁ᵢ', cols);
-      ctx.save(); ctx.translate(cx + 8, cy + 120); ctx.rotate(-Math.PI / 2); K.cart(ctx, 0, 0, 60, 26, cols.c2, '2', cols); ctx.restore(); K.vec(ctx, cx + 40, cy + 110, 0, -p.v2 * 5, cols.c2, 'v₂ᵢ', cols);
-      const L = Math.min(W * 0.35, d.vf * 12); const a = d.th * Math.PI / 180; K.vec(ctx, cx, cy, Math.cos(a) * L, -Math.sin(a) * L, cols.c3, 'vf', cols, 4);
+      K.cart(ctx, cx - 140, cy + 10, 60, 26, cols.c1, '1', cols); K.vec(ctx, cx - 110, cy - 20, p.v1 * 5, 0, cols.c1, 'v_1i', cols);
+      ctx.save(); ctx.translate(cx + 8, cy + 120); ctx.rotate(-Math.PI / 2); K.cart(ctx, 0, 0, 60, 26, cols.c2, '2', cols); ctx.restore(); K.vec(ctx, cx + 40, cy + 110, 0, -p.v2 * 5, cols.c2, 'v_2i', cols);
+      const L = Math.min(W * 0.35, d.vf * 12); const a = d.th * Math.PI / 180; K.vec(ctx, cx, cy, Math.cos(a) * L, -Math.sin(a) * L, cols.c3, 'v_f', cols, 4);
       ctx.strokeStyle = cols.muted; ctx.beginPath(); ctx.arc(cx, cy, 40, -a, 0); ctx.stroke(); D.txt(ctx, 'θ = ' + K.n(d.th, 1) + '°', cx + 60, cy - 14, { color: cols.text, size: 13, w: '700', align: 'left' });
-      D.txt(ctx, 'N ↑   E →', W - 60, 24, { color: cols.muted, size: 12, w: '700' });
+      D.txt(ctx, 'شمال ↑   شرق →', W - 60, 24, { color: cols.muted, size: 12, w: '700' });
     },
-    graph(p, d) { return { view: { xmin: 0, xmax: 30, ymin: 0, ymax: 90 }, xLabel: 'v₂ᵢ (m/s)', yLabel: 'θ (°)', caption: 'زاوية الحطام مع سرعة السيارة الثانية (v₁ᵢ والكتلتان ثابتة).', draw(G) { const c = G.colors(); G.fn((x) => Math.atan2(p.m2 * x, p.m1 * p.v1) * 180 / Math.PI, { color: c.c1, width: 3, domain: [0, 30] }); G.point(p.v2, d.th, { color: c.c2 }); } }; },
+    graph(p, d) { return { view: { xmin: 0, xmax: 30, ymin: 0, ymax: 90 }, xLabel: 'v_2i (m/s)', yLabel: 'θ (°)', caption: 'زاوية الحطام مع سرعة السيارة الثانية (v_1i والكتلتان ثابتة).', draw(G) { const c = G.colors(); G.fn((x) => Math.atan2(p.m2 * x, p.m1 * p.v1) * 180 / Math.PI, { color: c.c1, width: 3, domain: [0, 30] }); G.point(p.v2, d.th, { color: c.c2 }); } }; },
     explain(a, b, da, db) { return a.v2 !== b.v2 || a.v1 !== b.v1 ? ['زاوية الحطام ' + K.n(db.th, 1) + '°: كلما زاد زخم السيارة الشمالية مال الحطام نحو الشمال.'] : []; },
-    learn: ['**في بعدين:** يُحفظ الزخم على محوري x و y كلّ على حدة (2-5) و(2-6).', '**عند الالتحام:** m₁v₁ᵢₓ + m₂v₂ᵢₓ = (m₁ + m₂)v_f cosθ ، و m₁v₁ᵢᵧ + m₂v₂ᵢᵧ = (m₁ + m₂)v_f sinθ.', '**مثال (4):** v₂ᵢ = 2 × 11.33 × sin55° = 18.56 m/s = 66.8 km/h، فادعاء السائق (60 km/h) غير صحيح.'],
+    learn: ['**في بعدين:** يُحفظ الزخم على محوري x و y كلّ على حدة (2-5) و(2-6).', '**عند الالتحام:** m₁v_1i = (m₁ + m₂)v_f cosθ على محور x ، و m₂v_2i = (m₁ + m₂)v_f sinθ على محور y.', '**مثال (4):** v_2i = 2 × 11.33 × sin55° = 18.56 m/s = 66.8 كم/ساعة، فادعاء السائق (60 كم/ساعة) غير صحيح.'],
     challenges: [
-      { q: 'مثال (4): سيارتان متماثلتان، الأولى 13 m/s شرقاً؛ اجعل الحطام يتحرك بزاوية 55° شمال الشرق.', hint: 'غيّر سرعة السيارة الثانية حتى θ ≈ 55°.', init: { m1: 1000, m2: 1000, v1: 13, v2: 10 }, check: (p, d) => p.m1 === p.m2 && p.v1 === 13 && Math.abs(d.th - 55) < 0.2, why: (p, d) => 'v₂ᵢ ≈ ' + K.n(p.v2, 1) + ' m/s ≈ ' + K.n(d.kmh, 1) + ' km/h أكبر من 60 km/h.' },
+      { q: 'مثال (4): سيارتان متماثلتان، الأولى 13 m/s شرقاً؛ اجعل الحطام يتحرك بزاوية 55° شمال الشرق.', hint: 'غيّر سرعة السيارة الثانية حتى θ ≈ 55°.', init: { m1: 1000, m2: 1000, v1: 13, v2: 10 }, check: (p, d) => p.m1 === p.m2 && p.v1 === 13 && Math.abs(d.th - 55) < 0.2, why: (p, d) => 'v_2i ≈ ' + K.n(p.v2, 1) + ' m/s ≈ ' + K.n(d.kmh, 1) + ' كم/ساعة أكبر من 60 كم/ساعة.' },
       { q: 'اجعل الحطام يتحرك بزاوية 45° تماماً.', hint: 'يجب أن يتساوى زخما السيارتين.', init: { m1: 1000, m2: 1500, v1: 13, v2: 13 }, check: (p, d) => Math.abs(d.th - 45) < 0.05, why: () => 'زخما السيارتين متساويان.' }
     ],
     tutor: [
       { q: 'كيف أطبّق حفظ الزخم في بعدين؟', k: ['بعدين', 'محور', 'كيف'], a: () => K.tutor('هل يؤثر الزخم على x في الزخم على y؟', 'طبّق حفظ الزخم على كل محور على حدة، ثم اجمع المركبتين بفيثاغورس.') },
-      { q: 'هل كان السائق صادقاً في مثال (4)؟', k: ['السائق', 'صادق', 'ادعاء'], a: () => K.tutor('حوّل 18.56 m/s إلى km/h.', 'لا؛ 18.56 m/s = 66.8 km/h أكبر من 60 km/h.') },
-      { q: 'كيف أحسب الزاوية؟', k: ['زاويه', 'احسب'], a: (p, d) => K.tutor('ما النسبة بين المركبتين؟', 'tanθ = m₂v₂ᵢ ÷ m₁v₁ᵢ ⇒ θ = ' + K.n(d.th, 2) + '°.') }
+      { q: 'هل كان السائق صادقاً في مثال (4)؟', k: ['السائق', 'صادق', 'ادعاء'], a: () => K.tutor('حوّل 18.56 m/s إلى كم/ساعة.', 'لا؛ 18.56 m/s = 66.8 كم/ساعة أكبر من 60 كم/ساعة.') },
+      { q: 'كيف أحسب الزاوية؟', k: ['زاويه', 'احسب'], a: (p, d) => K.tutor('ما النسبة بين المركبتين؟', 'tanθ = m₂v_2i ÷ m₁v_1i ⇒ θ = ' + K.n(d.th, 2) + '°.') }
     ]
   });
 })(typeof window !== 'undefined' ? window : globalThis);

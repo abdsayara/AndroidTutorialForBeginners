@@ -37,7 +37,7 @@ test('الصف الثاني عشر العلمي مسجّل بمادة الفيز
   const g = ML.grades.find((x) => x.id === 'g12'); assert.ok(g); assert.deepEqual(J(g.subjects), ['g12-physics']);
   const subj = ML.subjects['g12-physics']; assert.equal(subj.slug, 'physics'); assert.equal(subj.units.length, 8);
   assert.deepEqual(J(subj.units.map((u) => u.pages)), ['4–14', '15–32', '33–54', '57–71', '72–93', '96–109', '110–122', '123–143']);
-  assert.ok(ML.isLatinBook({ subject: 'g12-physics' }));
+  assert.ok(!ML.isLatinBook({ subject: 'g12-physics' })); // الصيغة العربية نفسها لمختبرات العاشر
 });
 
 test('كل فصل فيه محاكيات، وكل محاكاة: صفحة داخل فصلها، فرضيات، رسم بياني، تعلّم، تحديات، مساعد', () => {

@@ -50,7 +50,7 @@
 
   /* ======================= 4-6 مجال ملف دائري ص100–103 ======================= */
   K.reg({
-    id: 'circular-coil', unit: 6, order: 2, lesson: '4-6', lessonTitle: 'المجال المغناطيسي لملف دائري', page: 101,
+    id: 'circular-coil', ar: { R: 'نق' }, unit: 6, order: 2, lesson: '4-6', lessonTitle: 'المجال المغناطيسي لملف دائري', page: 101,
     titleAr: 'المجال في مركز ملف دائري', titleEn: 'Field at the Center of a Circular Coil', tags: 'ملف دائري حلقة مركز لفات نصف قطر ملفان متحدا المركز نشاط 2-6 مثال 2 مثال 3',
     formula: 'B = \\frac{\\mu_0 I N}{2R}',
     book: 'نشاط (2-6) تخطيط مجال ملف دائري، والقانون (6-3) ص101. مثال (2) ص102: 250 لفة نصف قطرها 3.14 cm وتيار 2 A مع عقارب الساعة ⇒ B = 1 × 10⁻² T للداخل. مثال (3) ص102–103: ملفان متحدا المركز 100 لفة، R₁ = 7 cm و I₁ = 5 A ، و R₂ = 2 cm.',
@@ -86,7 +86,7 @@
     learn: ['**نشاط (2-6):** انحناء خطوط المجال يقل بالاقتراب من المركز حتى تصبح مستقيمة.', '**قاعدة اليد اليمنى للملف:** الإبهام باتجاه التيار في الملف، وانحناء الأصابع يعطي اتجاه المجال في المركز.', '**(6-3) ص101:** B = μ₀IN/(2R).'],
     challenges: [
       { q: 'مثال (2): ملف 250 لفة نصف قطره 3.14 cm ، والتيار 2 A مع عقارب الساعة.', hint: 'N = 250 ، R = 3.14 ، I = 2.', init: { mode: 'one', N: 100, R: 5, I: 2 }, check: (p) => p.mode === 'one' && p.N === 250 && Math.abs(p.R - 3.14) < 1e-9 && Math.abs(p.I - 2) < 1e-9, why: () => 'B = 1×10⁻² T للداخل.' },
-      { q: 'مثال (3-C): اجعل المجال المحصل في المركز المشترك صفراً تقريباً.', hint: 'B₂ = B₁ مقداراً وتعاكسه: I₂ سالب.', init: { mode: 'two', I2: 0.5 }, check: (p, d) => p.mode === 'two' && Math.abs(d.B) < 0.01 * d.B1, why: () => 'I₂ ≈ 1.43 A عكس عقارب الساعة.' }
+      { q: 'مثال (3-جـ): اجعل المجال المحصل في المركز المشترك صفراً تقريباً.', hint: 'B₂ = B₁ مقداراً وتعاكسه: I₂ سالب.', init: { mode: 'two', I2: 0.5 }, check: (p, d) => p.mode === 'two' && Math.abs(d.B) < 0.01 * d.B1, why: () => 'I₂ ≈ 1.43 A عكس عقارب الساعة.' }
     ],
     tutor: [
       { q: 'كيف أحدد اتجاه المجال في مركز الملف؟', k: ['اتجاه', 'مركز'], a: () => K.tutor('استخدم اليد اليمنى مع اتجاه التيار في الملف.', 'التيار مع عقارب الساعة ⇒ المجال للداخل، وعكسها ⇒ للخارج.') },
@@ -134,7 +134,7 @@
 
   /* ======================= 6-6 الملف الحلزوني ص105–106 ======================= */
   K.reg({
-    id: 'solenoid', unit: 6, order: 4, lesson: '6-6', lessonTitle: 'المجال المغناطيسي لملف حلزوني', page: 105,
+    id: 'solenoid', ar: { n: 'ن_ل' }, unit: 6, order: 4, lesson: '6-6', lessonTitle: 'المجال المغناطيسي لملف حلزوني', page: 105,
     titleAr: 'المجال داخل ملف حلزوني', titleEn: 'Magnetic Field of a Solenoid', tags: 'ملف حلزوني لفات طول مجال منتظم مغناطيس مستقيم n عدد اللفات لوحدة الطول مثال 5 مثال 6',
     formula: 'B = \\frac{\\mu_0 I N}{L} = \\mu_0 n I ,\\qquad n = \\frac{N}{L}',
     book: 'الشكلان (11-6) و(12-6) والقانون (6-5) ص105–106. مثال (5) ص106: 2000 لفة وطول 60 cm وتيار 3 A ⇒ B = 4π × 10⁻³ T. مثال (6) ص106: سلك 440 cm على ملف قطره 14 cm وطوله 55 cm ⇒ N = 10 ، و I = 1.4 A ⇒ B = 3.2 × 10⁻⁵ T.',
@@ -149,12 +149,12 @@
     compute(p) { return { n: p.N / (p.L / 100), B: Q.Bsolenoid(p.N, p.L / 100, p.I) }; },
     live(p, d) { return 'B = \\frac{4\\pi \\times 10^{-7} \\times ' + p.I + ' \\times ' + p.N + '}{' + p.L / 100 + '} = ' + q(d.B, 'T', 3); },
     results(p, d) { return [['عدد اللفات لوحدة الطول n', q(d.n, 'turn/m', 4)], ['المجال داخل الملف B', q(d.B, 'T', 3), true, 'pos'], ['المجال خارج الملف', 'صغير جداً مقارنة بداخله', false]]; },
-    steps(p, d) { return ['n = N/L = ' + p.N + ' ÷ ' + p.L / 100 + ' = ' + n(d.n) + ' لفة/m.', 'B = μ₀ n I = 4π×10⁻⁷ × ' + n(d.n) + ' × ' + p.I + ' = ' + sct(d.B, 3) + ' T.']; },
+    steps(p, d) { return ['n = N/L = ' + p.N + ' ÷ ' + p.L / 100 + ' = ' + n(d.n) + ' لفة/م.', 'B = μ₀ n I = 4π×10⁻⁷ × ' + n(d.n) + ' × ' + p.I + ' = ' + sct(d.B, 3) + ' T.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const cy = H * 0.5, len = (W - 120) * (0.3 + 0.7 * p.L / 100), x0 = (W - len) / 2, h = Math.min(H * 0.2, 60); const turns = Math.max(4, Math.min(40, Math.round(p.N / 25)));
       for (let k = 0; k < turns; k++) { const x = x0 + len * (k + 0.5) / turns; ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(x, cy, 6, h, 0, 0, Math.PI * 2); ctx.stroke(); }
       const nl = Math.min(5, 1 + Math.round(d.B / 0.004)); for (let j = 0; j < nl; j++) { const y = cy + (j - (nl - 1) / 2) * (h * 1.4 / Math.max(1, nl)); D.arrow(ctx, x0 - 20, y, x0 + len + 20, y, cols.c1, 2); }
-      lbl(ctx, 'N', x0 + len + 40, cy, cols.c2, cols, 15); lbl(ctx, 'S', x0 - 40, cy, cols.c1, cols, 15);
+      lbl(ctx, 'ش', x0 + len + 40, cy, cols.c2, cols, 15); lbl(ctx, 'ج', x0 - 40, cy, cols.c1, cols, 15);
       lbl(ctx, 'L = ' + p.L + ' cm', W / 2, cy + h + 22, cols.text, cols, 13);
       D.txt(ctx, 'B = ' + sct(d.B, 3) + ' T', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 14 : 16, w: '700' });
     },

@@ -32,12 +32,12 @@
       ctx.fillStyle = cols.text; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
       let a = (st.tc !== null ? st.tc : st.t) * d.w; let x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
       if (st.tc !== null) { const dt = st.t - st.tc; const sc = R / p.r; x += -Math.sin(a) * p.v * dt * sc; y += Math.cos(a) * p.v * dt * sc; }
-      else { ctx.strokeStyle = cols.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke(); K.vec(ctx, x, y, (cx - x) * 0.35, (cy - y) * 0.35, cols.c2, 'Fc', cols); }
+      else { ctx.strokeStyle = cols.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke(); K.vec(ctx, x, y, (cx - x) * 0.35, (cy - y) * 0.35, cols.c2, 'F_c', cols); }
       ctx.fillStyle = cols.c1; ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2); ctx.fill();
       K.vec(ctx, x, y, -Math.sin(a) * 40, Math.cos(a) * 40, cols.c3, 'v', cols);
       D.txt(ctx, p.cut ? 'قُطع الخيط: حركة في خط مستقيم مماسي' : 'حركة دائرية بقوة مركزية', W / 2, H * 0.08, { color: cols.text, size: 15, w: '700' });
     },
-    graph(p, d) { return { view: { xmin: 0, xmax: 3, ymin: 0, ymax: Math.max(1, p.m * 9 / p.r * 1.1) }, xLabel: 'v (m/s)', yLabel: 'Fc (N)', caption: 'القوة المركزية تتناسب مع مربع السرعة.', draw(G) { const c = G.colors(); G.fn((v) => p.m * v * v / p.r, { color: c.c1, width: 3, domain: [0, 3] }); G.point(p.v, d.F, { color: c.c2 }); } }; },
+    graph(p, d) { return { view: { xmin: 0, xmax: 3, ymin: 0, ymax: Math.max(1, p.m * 9 / p.r * 1.1) }, xLabel: 'v (m/s)', yLabel: 'F_c (N)', caption: 'القوة المركزية تتناسب مع مربع السرعة.', draw(G) { const c = G.colors(); G.fn((v) => p.m * v * v / p.r, { color: c.c1, width: 3, domain: [0, 3] }); G.point(p.v, d.F, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.cut !== b.cut) o.push(b.cut ? 'زالت القوة المركزية فتحرّكت السيارة في خط مستقيم مماسي (القصور الذاتي).' : 'أعدت ربط الخيط.'); if (a.v !== b.v) o.push('مضاعفة السرعة تضاعف القوة المركزية أربع مرات.'); return o; },
     learn: ['**القوة المركزية (ص34):** قوة باتجاه المركز تلزم لتحريك جسم في مسار دائري، a_c = v²/r ، F_c = m v²/r = m r ω².', 'في النشاط: دون خيط تتحرك السيارة في خط مستقيم، ومع الخيط في دائرة، وعند تحرير الخيط تعود إلى خط مستقيم مماسي.'],
     challenges: [
@@ -68,7 +68,7 @@
     compute(p) { return { tau: Q.torque(p.r, p.F, p.th), arm: p.r * Math.sin(p.th * Math.PI / 180) }; },
     live(p, d) { return '\\tau = r F \\sin\\theta = ' + p.r + ' \\times ' + p.F + ' \\times \\sin ' + p.th + '^\\circ = ' + q(d.tau, 'N\\,m', 3); },
     results(p, d) { return [['العزم τ', q(Math.abs(d.tau), 'N\\,m', 3), true, 'pos'], ['ذراع القوة r sinθ', q(d.arm, 'm', 3)], ['الاتجاه (قاعدة اليد اليمنى)', d.tau > 1e-9 ? 'خارج الورقة (عكس عقارب الساعة)' : d.tau < -1e-9 ? 'داخل الورقة' : 'لا دوران', false]]; },
-    steps(p, d) { return ['τ = r F sinθ = ' + p.r + ' × ' + p.F + ' × sin' + p.th + '° = ' + n(d.tau) + ' N.m.', 'وحدة العزم N.m، وهو كمية متجهة عمودية على مستوى r و F.']; },
+    steps(p, d) { return ['τ = r F sinθ = ' + p.r + ' × ' + p.F + ' × sin' + p.th + '° = ' + n(d.tau) + ' N.m.', 'وحدة العزم نيوتن.م، وهو كمية متجهة عمودية على مستوى r و F.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const hx = W * 0.15, hy = H * 0.5, Ld = W * 0.7; ctx.fillStyle = 'rgba(180,83,9,.35)'; ctx.fillRect(hx, hy - 14, Ld, 28); ctx.fillStyle = cols.text; ctx.beginPath(); ctx.arc(hx, hy, 8, 0, Math.PI * 2); ctx.fill();
       D.txt(ctx, 'المفصلة (المحور)', hx, hy + 34, { color: cols.muted, size: 12, w: '700' });
@@ -80,7 +80,7 @@
     },
     graph(p, d) { return { view: { xmin: 0, xmax: 180, ymin: 0, ymax: Math.max(1, p.r * p.F) * 1.15 }, xLabel: 'θ (°)', yLabel: 'τ (N.m)', caption: 'أكبر عزم عند θ = 90°، والعزم صفر عند 0° و 180°.', draw(G) { const c = G.colors(); G.fn((x) => p.r * p.F * Math.sin(x * Math.PI / 180), { color: c.c1, width: 3, domain: [0, 180] }); G.point(p.th, d.tau, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.r !== b.r) o.push('كلما ابتعدت نقطة التأثير عن المفصلة زاد العزم، لذلك تُوضع المقابض بعيداً عن المفصلة.'); if (a.th !== b.th) o.push(Math.abs(Math.sin(b.th * Math.PI / 180)) < 1e-9 ? 'القوة باتجاه المحور: لا عزم ولا دوران.' : 'العزم يتناسب مع sinθ.'); return o; },
-    learn: ['**العزم (3-1):** τ = r × F ، τ = rF sinθ، ووحدته N.m.', '**قاعدة اليد اليمنى:** الأصابع باتجاه r ثم تُدار نحو F فيشير الإبهام إلى اتجاه العزم.', '**الفرق عن الشغل:** للعزم والشغل الوحدة نفسها (N.m)، لكن العزم متجه والشغل قياسي.'],
+    learn: ['**العزم (3-1):** τ = r × F ، τ = rF sinθ، ووحدته نيوتن.م.', '**قاعدة اليد اليمنى:** الأصابع باتجاه r ثم تُدار نحو F فيشير الإبهام إلى اتجاه العزم.', '**الفرق عن الشغل:** للعزم والشغل الوحدة نفسها (N.m)، لكن العزم متجه والشغل قياسي.'],
     challenges: [
       { q: 'مثال (1): اجعل القوة نحو المحور فلا يدور الباب.', hint: 'الزاوية بين r و F تساوي 180°.', init: { th: 90 }, check: (p) => p.th === 180 || p.th === 0, why: () => 'τ = rF sin180° = 0.' },
       { q: 'افتح الباب بأقل قوة ممكنة لعزم 8 N.m.', hint: 'اجعل r أكبر ما يمكن و θ = 90°.', init: { r: 0.2, F: 40, th: 90 }, check: (p, d) => Math.abs(d.tau - 8) < 1e-6 && p.F === 8, why: () => 'r = 1 m و F = 8 N.' }
@@ -101,7 +101,7 @@
     two: ['كتلتان 5 kg و 7 kg على ساق مهملة (مثال 2)', null, 'x']
   };
   K.reg({
-    id: 'moment-of-inertia', unit: 3, order: 3, lesson: '2-3', lessonTitle: 'القصور الدوراني', page: 38,
+    id: 'moment-of-inertia', ar: { I: 'ع_ق', R: 'نق', _i: 'ي' }, unit: 3, order: 3, lesson: '2-3', lessonTitle: 'القصور الدوراني', page: 38,
     titleAr: 'القصور الدوراني لأجسام مختلفة', titleEn: 'Moment of Inertia', tags: 'قصور دوراني عزم القصور جدول 1 سلك طوق قرص كرة اسطوانة كتلتان محور مثال 2',
     formula: 'I = \\sum m_i r_i^2',
     book: 'القانونان (3-2) و(3-3) ص37، وجدول (1) ص38. مثال (2) ص38: كتلتان 5 kg و 7 kg تفصلهما 4 m؛ حول المنتصف I = 48 kg.m²، وحول محور على بعد 0.5 m يسار الكتلة 5 kg I = 143 kg.m².',
@@ -137,7 +137,7 @@
     graph(p, d) { if (p.shape === 'two') return { view: { xmin: -2, xmax: 4, ymin: 0, ymax: 160 }, xLabel: 'x (m)', yLabel: 'I (kg.m²)', caption: 'أقل قصور عندما يمر المحور بمركز الكتلة.', draw(G) { const c = G.colors(); G.fn((x) => 5 * x * x + 7 * (4 - x) * (4 - x), { color: c.c1, width: 3, domain: [-2, 4] }); G.point(p.x, d.I, { color: c.c2 }); } };
       const items = ['rodC', 'diskPerp', 'sphere', 'shell', 'ringPerp'].map((k) => [k, SHAPES[k][1] * p.M * p.R * p.R]); return { view: { xmin: 0, xmax: 5, ymin: 0, ymax: p.M * p.R * p.R * 1.3 }, xLabel: '', yLabel: 'I (kg.m²)', caption: 'لأجسام بالكتلة ونصف القطر نفسيهما: كلما توزعت الكتلة بعيداً عن المحور زاد القصور.', draw(G) { const c = G.colors(); K.bars(G, items.map((x, i) => [['سلك', 'قرص', 'كرة', 'قشرة', 'طوق'][i], x[1], [c.c1, c.c3, c.c5, c.c4, c.c2][i]])); } }; },
     explain(a, b, da, db) { const o = []; if (a.x !== b.x) o.push('تغيّر موقع المحور غيّر القصور إلى ' + n(db.I, 3) + ' kg.m²: القصور يعتمد على المحور.'); if (a.shape !== b.shape) o.push(SHAPES[b.shape][0] + ': I = ' + n(db.I, 3) + ' kg.m².'); return o; },
-    learn: ['**القصور الدوراني (3-2) و(3-3):** I = Σ m r²، ووحدته kg.m²، وهو مقدار موجب دائماً.', '**جدول (1) ص38:** يعطي القصور لأجسام منتظمة حول محاور مختلفة.', '**نشاط (4-3):** الكتلة ثابتة للجسم، أما القصور الدوراني فيعتمد على محور الدوران.'],
+    learn: ['**القصور الدوراني (3-2) و(3-3):** I = Σ m r²، ووحدته كغم.م²، وهو مقدار موجب دائماً.', '**جدول (1) ص38:** يعطي القصور لأجسام منتظمة حول محاور مختلفة.', '**نشاط (4-3):** الكتلة ثابتة للجسم، أما القصور الدوراني فيعتمد على محور الدوران.'],
     challenges: [
       { q: 'مثال (2): احسب القصور حول محور في منتصف الساق.', hint: 'x = 2 m.', init: { shape: 'two', x: 0 }, check: (p) => p.shape === 'two' && p.x === 2, why: () => 'I = 20 + 28 = 48 kg.m².' },
       { q: 'مثال (2): احسب القصور حول محور على بعد 0.5 m يسار الكتلة 5 kg.', hint: 'x = −0.5 m.', init: { shape: 'two', x: 2 }, check: (p) => p.shape === 'two' && p.x === -0.5, why: () => 'I = 1.3 + 142 = 143 kg.m².' },
@@ -152,10 +152,10 @@
 
   /* ======================= القانون الثاني لنيوتن في الحركة الدورانية والطاقة الحركية الدورانية ص39–43 ======================= */
   K.reg({
-    id: 'rotational-dynamics', unit: 3, order: 4, lesson: '3-3', lessonTitle: 'القانون الثاني لنيوتن والطاقة الحركية الدورانية', page: 42,
+    id: 'rotational-dynamics', ar: { I: 'ع_ق' }, unit: 3, order: 4, lesson: '3-3', lessonTitle: 'القانون الثاني لنيوتن والطاقة الحركية الدورانية', page: 42,
     titleAr: 'القانون الثاني لنيوتن للدوران: تسارع أسطوانة تحت تأثير قوتين', titleEn: 'Newton\'s Second Law for Rotation', tags: 'تسارع زاوي عزم محصل قصور دوراني طاقة حركية دورانية اسطوانة حجر رحى مثال 5 مثال 6',
     formula: '\\tau_{net} = I\\,\\alpha ,\\quad \\omega = \\omega_1 + \\alpha t ,\\quad K = \\tfrac{1}{2} I \\omega^2',
-    book: 'القانونان (3-4) و(3-5). مثال (5) ص42: أسطوانة F₁ = 5 N و F₂ = 7 N، I = 0.2 kg.m²، r = 0.3 m، من السكون لمدة 2 s: τ_net = 3.6 N.m، α = 18 rad/s²، ω = 36 rad/s، K = 0.13 kJ.',
+    book: 'القانونان (3-4) و(3-5). مثال (5) ص42: أسطوانة F₁ = 5 N و F₂ = 7 N، I = 0.2 kg.m²، r = 0.3 m، من السكون لمدة 2 s: Στ = 3.6 N.m، α = 18 rad/s²، ω = 36 rad/s، K = 0.13 kJ.',
     summary: 'يتناسب التسارع الزاوي طردياً مع محصلة العزوم وعكسياً مع القصور الدوراني حول المحور نفسه. وتزداد السرعة الزاوية بمعدل ثابت تحت عزم ثابت، والطاقة الحركية الدورانية ½Iω².',
     vars: [['F_1, F_2', 'قوتان مماسيتان في الاتجاه نفسه', '\\mathrm{N}', '0 – 20'], ['r', 'نصف قطر الأسطوانة', '\\mathrm{m}', '0.1 – 1'], ['I', 'القصور الدوراني', '\\mathrm{kg\\,m^2}', '0.05 – 2'], ['t', 'زمن التأثير', '\\mathrm{s}', '0 – 10']],
     assumptions: ['تبدأ الأسطوانة من السكون، والقوتان مماسيتان ثابتتان في اتجاه الدوران نفسه، دون احتكاك في المحور.'],
@@ -170,7 +170,7 @@
     compute(p) { const tau = (p.F1 + p.F2) * p.r; const al = tau / p.I; const w = al * p.T; return { tau: tau, al: al, w: w, th: 0.5 * al * p.T * p.T, Ke: Q.rotKE(p.I, w) }; },
     live(p, d) { return '\\alpha = \\frac{\\tau_{net}}{I} = \\frac{' + K.n(d.tau, 3) + '}{' + p.I + '} = ' + q(d.al, 'rad/s^2', 4); },
     results(p, d) { return [['محصلة العزوم', q(d.tau, 'N\\,m', 3)], ['التسارع الزاوي α', q(d.al, 'rad/s^2', 4), true, 'pos'], ['السرعة الزاوية بعد ' + p.T + ' s', q(d.w, 'rad/s', 4)], ['الإزاحة الزاوية θ', q(d.th, 'rad', 4)], ['الطاقة الحركية الدورانية', q(d.Ke, 'J', 4)]]; },
-    steps(p, d) { return ['τ_net = (F₁ + F₂) r = (' + p.F1 + ' + ' + p.F2 + ') × ' + p.r + ' = ' + n(d.tau) + ' N.m.', 'α = τ_net / I = ' + n(d.al) + ' rad/s².', 'ω = α t = ' + n(d.w) + ' rad/s.', 'K = ½ I ω² = ' + n(d.Ke) + ' J.']; },
+    steps(p, d) { return ['Στ = (F₁ + F₂) r = (' + p.F1 + ' + ' + p.F2 + ') × ' + p.r + ' = ' + n(d.tau) + ' N.m.', 'α = Στ / I = ' + n(d.al) + ' rad/s².', 'ω = α t = ' + n(d.w) + ' rad/s.', 'K = ½ I ω² = ' + n(d.Ke) + ' J.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const cx = W / 2, cy = H * 0.52, R = Math.min(W, H) * 0.28; const ang = d.th;
       ctx.fillStyle = 'rgba(37,99,235,.18)'; ctx.strokeStyle = cols.c1; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -180,7 +180,7 @@
     },
     graph(p, d) { const tm = 10; return { view: { xmin: 0, xmax: tm, ymin: 0, ymax: Math.max(1, d.al * tm) * 1.05 }, xLabel: 't (s)', yLabel: 'ω (rad/s)', caption: 'السرعة الزاوية تزداد خطياً تحت عزم ثابت؛ الميل = α.', draw(G) { const c = G.colors(); G.fn((t) => d.al * t, { color: c.c1, width: 3, domain: [0, tm] }); G.point(p.T, d.w, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.I !== b.I) o.push('زيادة القصور تقلل التسارع الزاوي للعزم نفسه (α = τ/I).'); if (a.F1 !== b.F1 || a.F2 !== b.F2 || a.r !== b.r) o.push('محصلة العزوم الآن ' + n(db.tau) + ' N.m.'); return o; },
-    learn: ['**(3-4):** τ_net = I α، نظير F = m a في الحركة الانتقالية.', '**(3-5):** K = ½ I ω².', '**مثال (6) ص43:** حجر رحى I = 1.6×10⁻³ kg.m² يصل إلى 1200 دورة/دقيقة خلال 15 s: ω₂ = 40π rad/s، α = 8.38 rad/s²، τ = 0.0134 N.m.'],
+    learn: ['**(3-4):** Στ = I α، نظير F = m a في الحركة الانتقالية.', '**(3-5):** K = ½ I ω².', '**مثال (6) ص43:** حجر رحى I = 1.6×10⁻³ kg.m² يصل إلى 1200 دورة/دقيقة خلال 15 s: ω₂ = 40π rad/s، α = 8.38 rad/s²، τ = 0.0134 N.m.'],
     challenges: [
       { q: 'مثال (5): أعد قيم الكتاب وأوجد السرعة الزاوية بعد 2 s.', hint: 'F₁ = 5، F₂ = 7، r = 0.3، I = 0.2، t = 2.', init: { F1: 2, F2: 2, r: 0.5, I: 1, T: 5 }, check: (p) => p.F1 === 5 && p.F2 === 7 && Math.abs(p.r - 0.3) < 1e-9 && Math.abs(p.I - 0.2) < 1e-9 && p.T === 2, why: () => 'ω = 36 rad/s، K ≈ 130 J.' },
       { q: 'ضاعف القصور الدوراني مع بقاء العزم: ماذا يحدث للتسارع الزاوي؟ اجعل α = 9 rad/s².', hint: 'من قيم المثال اجعل I = 0.4.', init: { F1: 5, F2: 7, r: 0.3, I: 0.2, T: 2 }, check: (p, d) => Math.abs(d.al - 9) < 1e-6, why: () => 'α يقل إلى النصف.' }
@@ -194,7 +194,7 @@
 
   /* ======================= 4-3 حفظ الزخم الزاوي ص43–46 ======================= */
   K.reg({
-    id: 'angular-momentum', unit: 3, order: 5, lesson: '4-3', lessonTitle: 'الزخم الزاوي وحفظه', page: 46,
+    id: 'angular-momentum', ar: { I: 'ع_ق', L: 'خ_ز' }, unit: 3, order: 5, lesson: '4-3', lessonTitle: 'الزخم الزاوي وحفظه', page: 46,
     titleAr: 'حفظ الزخم الزاوي: المتزلجة تضم ذراعيها', titleEn: 'Conservation of Angular Momentum', tags: 'زخم زاوي حفظ متزلجة ذراعين قصور دوراني سرعة زاوية جسم بخيط ثقب الارض مثال 7 مثال 8 مثال 9',
     formula: 'L = I \\omega ,\\qquad I_1 \\omega_1 = I_2 \\omega_2',
     book: 'القوانين (3-10) و(3-11) و(3-12). مثال (9) ص46: متزلجة 1.9 دورة/ث، I₁ = 1.33 kg.m²، تضم ذراعيها فيصبح I₂ = 0.48 kg.m²: ω₁ = 12 rad/s و ω₂ ≅ 33 rad/s. مثال (8) ص45: v₂ = 4 m/s.',
@@ -222,7 +222,7 @@
     },
     graph(p, d) { return { view: { xmin: 0.2, xmax: 3, ymin: 0, ymax: d.L / 0.2 * 1.05 }, xLabel: 'I₂ (kg.m²)', yLabel: 'ω₂ (rad/s)', caption: 'ω₂ تتناسب عكسياً مع I₂ لأن L ثابت.', draw(G) { const c = G.colors(); G.fn((x) => d.L / x, { color: c.c1, width: 3, domain: [0.2, 3] }); G.point(p.I2, d.w2, { color: c.c2 }); } }; },
     explain(a, b, da, db) { return a.I2 !== b.I2 ? [b.I2 < a.I2 ? 'ضمّت المتزلجة ذراعيها فقلّ القصور وزادت السرعة الزاوية إلى ' + n(db.w2, 1) + ' rad/s.' : 'مدّت ذراعيها فزاد القصور وقلّت السرعة الزاوية.'] : []; },
-    learn: ['**الزخم الزاوي (3-10):** L = Iω، كمية متجهة.', '**(3-11):** τ_net = ΔL/Δt.', '**الحفظ (3-12):** I₁ω₁ = I₂ω₂ بشرطين: محصلة العزوم الخارجية صفر، وثبات محور الدوران.', '**مثال (7):** لو انكمشت الأرض إلى نصف قطرها لأصبح طول اليوم 6 ساعات.'],
+    learn: ['**الزخم الزاوي (3-10):** L = Iω، كمية متجهة.', '**(3-11):** Στ = ΔL/Δt.', '**الحفظ (3-12):** I₁ω₁ = I₂ω₂ بشرطين: محصلة العزوم الخارجية صفر، وثبات محور الدوران.', '**مثال (7):** لو انكمشت الأرض إلى نصف قطرها لأصبح طول اليوم 6 ساعات.'],
     challenges: [
       { q: 'مثال (9): أعد قيم المتزلجة وأوجد ω₂.', hint: 'f₁ = 1.9، I₁ = 1.33، I₂ = 0.48.', init: { I1: 2, f1: 1, I2: 1 }, check: (p) => Math.abs(p.I1 - 1.33) < 1e-9 && Math.abs(p.f1 - 1.9) < 1e-9 && Math.abs(p.I2 - 0.48) < 1e-9, why: () => 'ω₁ = 12 rad/s و ω₂ ≅ 33 rad/s.' },
       { q: 'اجعل السرعة الزاوية تتضاعف بعد ضمّ الذراعين.', hint: 'I₂ = I₁/2.', init: { I1: 1.2, f1: 1, I2: 1 }, check: (p, d) => Math.abs(d.w2 / d.w1 - 2) < 0.01, why: () => 'نصف القصور ⇒ ضعف السرعة الزاوية.' }

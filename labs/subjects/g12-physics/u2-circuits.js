@@ -7,11 +7,11 @@
 
   /* ======================= 2-5 معادلة الدارة البسيطة ص73–75 ======================= */
   K.reg({
-    id: 'simple-circuit', unit: 5, order: 1, lesson: '2-5', lessonTitle: 'معادلة الدارة الكهربائية البسيطة', page: 74,
+    id: 'simple-circuit', ar: { r: 'م_د', P: 'قد' }, unit: 5, order: 1, lesson: '2-5', lessonTitle: 'معادلة الدارة الكهربائية البسيطة', page: 74,
     titleAr: 'معادلة الدارة الكهربائية البسيطة وتوزيع التيار', titleEn: 'Simple Circuit Equation', tags: 'دارة بسيطة قوة دافعة مقاومة داخلية توازي توالي تيار مثال 1 قدرة داخلة مستنفدة',
     formula: 'I = \\frac{\\sum \\varepsilon}{\\sum R} ,\\qquad \\varepsilon I = I^2 r + I^2 R',
     book: 'القوانين (5-1) و(5-2) و(5-3) ص73–74. مثال (1) ص74–75: بطارية 12 V مع 3 Ω على التوالي ومجموعة (4 و48 و16 Ω) على التوازي ⇒ I = 2 A ، I₁ = 1.5 A ، I₂ = 1/8 A ، I₃ = 3/8 A.',
-    summary: 'القدرة التي تعطيها البطارية εI تُستنفد حرارةً في المقاومة الداخلية والمقاومات الخارجية، ومن حفظ الطاقة نحصل على معادلة الدارة البسيطة I = Σε/ΣR. يتوزع التيار في المقاومات المتوازية عكسياً مع مقاوماتها.',
+    summary: 'القدرة التي تعطيها البطارية ε I تُستنفد حرارةً في المقاومة الداخلية والمقاومات الخارجية، ومن حفظ الطاقة نحصل على معادلة الدارة البسيطة I = Σε/ΣR. يتوزع التيار في المقاومات المتوازية عكسياً مع مقاوماتها.',
     vars: [['\\varepsilon', 'القوة الدافعة للبطارية', '\\mathrm{V}', '1 – 24'], ['r', 'المقاومة الداخلية', '\\Omega', '0 – 2'], ['R_s', 'المقاومة على التوالي', '\\Omega', '1 – 20'], ['R_1, R_2, R_3', 'المقاومات المتوازية', '\\Omega', '1 – 60']],
     assumptions: ['أسلاك التوصيل بلا مقاومة.'],
     params: [
@@ -27,12 +27,12 @@
       return { Rp: Rp, SR: SR, I: I, Vp: Vp, I1: Vp / p.R1, I2: Vp / p.R2, I3: Vp / p.R3, Pin: p.e * I, Pout: I * I * SR };
     },
     live(p, d) { return 'I = \\frac{\\sum\\varepsilon}{\\sum R} = \\frac{' + p.e + '}{' + p.r + ' + ' + p.Rs + ' + ' + n(d.Rp) + '} = ' + q(d.I, 'A', 4); },
-    results(p, d) { return [['مكافئة التوازي', q(d.Rp, '\\Omega', 4)], ['التيار الكلي I', q(d.I, 'A', 4), true, 'pos'], ['I₁ ، I₂ ، I₃', ML.phys.sci(d.I1, 4) + ' ,\\ ' + ML.phys.sci(d.I2, 4) + ' ,\\ ' + ML.phys.sci(d.I3, 4) + '\\ \\mathrm{A}'], ['القدرة الداخلة εI', q(d.Pin, 'W', 4)], ['القدرة المستنفدة I²ΣR', q(d.Pout, 'W', 4)]]; },
+    results(p, d) { return [['مكافئة التوازي', q(d.Rp, '\\Omega', 4)], ['التيار الكلي I', q(d.I, 'A', 4), true, 'pos'], ['I₁ ، I₂ ، I₃', ML.phys.sci(d.I1, 4) + ' ,\\ ' + ML.phys.sci(d.I2, 4) + ' ,\\ ' + ML.phys.sci(d.I3, 4) + '\\ \\mathrm{A}'], ['القدرة الداخلة ε I', q(d.Pin, 'W', 4)], ['القدرة المستنفدة I²ΣR', q(d.Pout, 'W', 4)]]; },
     steps(p, d) { return ['1/R = 1/' + p.R1 + ' + 1/' + p.R2 + ' + 1/' + p.R3 + ' ⇒ R = ' + n(d.Rp) + ' Ω.', 'ΣR = ' + p.r + ' + ' + p.Rs + ' + ' + n(d.Rp) + ' = ' + n(d.SR) + ' Ω.', 'I = Σε/ΣR = ' + p.e + ' ÷ ' + n(d.SR) + ' = ' + n(d.I) + ' A.', 'جهد التوازي = ' + n(d.Vp) + ' V ⇒ I₁ = ' + n(d.I1) + ' ، I₂ = ' + n(d.I2) + ' ، I₃ = ' + n(d.I3) + ' A.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const xL = W * 0.1, xR = W * 0.9, yT = H * 0.38, yB = H * 0.85; const xm = xL + (xR - xL) * 0.4;
       K.wire(ctx, [[xL, yT], [xL, yB], [W / 2 - 10, yB]], cols); K.wire(ctx, [[W / 2 + 10, yB], [xR, yB], [xR, yT]], cols); K.battery(ctx, W / 2, yB, true, 'ε = ' + p.e + ' V, r = ' + p.r + ' Ω', cols);
-      K.resistor(ctx, xL, yT, xm, yT, 'Rs = ' + p.Rs + ' Ω', cols, cols.c4);
+      K.resistor(ctx, xL, yT, xm, yT, 'R_s = ' + p.Rs + ' Ω', cols, cols.c4);
       const x0 = xm, x1 = xR; K.wire(ctx, [[x0, yT - 75], [x0, yT + 75]], cols); K.wire(ctx, [[x1, yT - 75], [x1, yT + 75]], cols);
       [[p.R1, d.I1, cols.c1], [p.R2, d.I2, cols.c2], [p.R3, d.I3, cols.c3]].forEach(([R, I, c], i) => K.resistor(ctx, x0 + 12, yT - 75 + 75 * i, x1 - 12, yT - 75 + 75 * i, R + ' Ω : ' + n(I, 3) + ' A', cols, c));
       [[x0, x0 + 12], [x1 - 12, x1]].forEach(([a, b]) => [0, 1, 2].forEach((i) => K.wire(ctx, [[a, yT - 75 + 75 * i], [b, yT - 75 + 75 * i]], cols)));
@@ -40,10 +40,10 @@
     },
     graph(p, d) { const v = [d.I, d.I1, d.I2, d.I3]; return { view: K.barView(v), xLabel: '', yLabel: 'I (A)', caption: 'التيار الكلي يساوي مجموع تيارات الفروع المتوازية، والفرع ذو المقاومة الأصغر يأخذ تياراً أكبر.', draw(G) { const c = G.colors(); K.bars(G, [['I', d.I, c.c4], ['I₁', d.I1, c.c1], ['I₂', d.I2, c.c2], ['I₃', d.I3, c.c3]]); } }; },
     explain(a, b, da, db) { const o = []; if (a.r !== b.r) o.push('زيادة المقاومة الداخلية تقلل التيار وتستنفد جزءاً أكبر من قدرة البطارية داخلها.'); if (a.e !== b.e) o.push('التيار يتناسب طردياً مع القوة الدافعة عند ثبوت المقاومات.'); return o; },
-    learn: ['**القوة الدافعة (5-1) ص73:** ε = ΔW/ΔQ، الشغل الذي تبذله البطارية لنقل وحدة الشحنات الموجبة داخلها، وتقاس بالفولت.', '**(5-2):** القدرة التي تعطيها البطارية P = εI.', '**(5-3) ص74:** من حفظ الطاقة εI = I²r + I²R ⇒ I = Σε/ΣR؛ البطارية المعاكسة لاتجاه التيار تُطرح قوتها الدافعة.'],
+    learn: ['**القوة الدافعة (5-1) ص73:** ε = ΔW/ΔQ، الشغل الذي تبذله البطارية لنقل وحدة الشحنات الموجبة داخلها، وتقاس بالفولت.', '**(5-2):** القدرة التي تعطيها البطارية P = ε I.', '**(5-3) ص74:** من حفظ الطاقة ε I = I²r + I²R ⇒ I = Σε/ΣR؛ البطارية المعاكسة لاتجاه التيار تُطرح قوتها الدافعة.'],
     challenges: [
       { q: 'مثال (1): بطارية 12 V (r = 0) مع 3 Ω، ثم 4 و48 و16 Ω على التوازي. أوجد تيار كل مقاومة.', hint: 'اضبط R₂ = 48.', init: { e: 12, r: 0, Rs: 3, R1: 4, R2: 24, R3: 16 }, check: (p) => p.e === 12 && p.r === 0 && p.Rs === 3 && p.R1 === 4 && p.R2 === 48 && p.R3 === 16, why: () => 'I = 2 A ، I₁ = 1.5 A ، I₂ = 1/8 A ، I₃ = 3/8 A.' },
-      { q: 'بالبطارية 12 V اجعل التيار الكلي 3 A تماماً.', hint: 'ΣR يجب أن تساوي 4 Ω.', init: { e: 12, r: 0, Rs: 3, R1: 4, R2: 24, R3: 16 }, check: (p, d) => p.e === 12 && Math.abs(d.I - 3) < 1e-9, why: () => 'ΣR = 12/3 = 4 Ω، مثلاً Rs = 1 مع توازٍ مكافئته 3 Ω.' }
+      { q: 'بالبطارية 12 V اجعل التيار الكلي 3 A تماماً.', hint: 'ΣR يجب أن تساوي 4 Ω.', init: { e: 12, r: 0, Rs: 3, R1: 4, R2: 24, R3: 16 }, check: (p, d) => p.e === 12 && Math.abs(d.I - 3) < 1e-9, why: () => 'ΣR = 12/3 = 4 Ω، مثلاً R_s = 1 مع توازٍ مكافئته 3 Ω.' }
     ],
     tutor: [
       { q: 'لماذا القدرة الداخلة تساوي المستنفدة؟', k: ['قدره', 'داخله', 'مستنفده'], a: () => K.tutor('ما المبدأ الذي يحكم تحولات الطاقة؟', 'حفظ الطاقة: ما تعطيه البطارية يتحول حرارةً في المقاومات.') },
@@ -59,8 +59,8 @@
     formula: 'V_a + \\sum \\Delta V_{ab} = V_b ,\\qquad \\Delta V = \\mp IR ,\\ \\pm\\varepsilon',
     book: 'القانون (5-4) وقواعد الإشارات ص76–77. مثال (3) ص77: بطاريتان 12 V و9 V متعاكستان ومقاومات 10 و(5+6) و3 Ω ⇒ I = 0.125 A ، وتغيرات الجهد −1.25 ، −9 ، −1.375 ، +12 ، −0.375 V ومجموعها صفر.',
     summary: 'عند العبور في مقاومة باتجاه التيار يقل الجهد بمقدار IR، وبعكسه يزداد. وعند العبور في بطارية من السالب إلى الموجب يزداد الجهد بمقدار ε. مجموع التغيرات عبر مسار مغلق يساوي صفراً.',
-    vars: [['\\varepsilon_1', 'البطارية بين d و w', '\\mathrm{V}', '1 – 24'], ['\\varepsilon_2', 'البطارية بين b و h (معاكسة)', '\\mathrm{V}', '0 – 24'], ['R_{ab}, R_{hd}, R_{wa}', 'المقاومات', '\\Omega', '1 – 20'], ['I', 'التيار', '\\mathrm{A}', '—']],
-    assumptions: ['المقاومات الداخلية للبطاريات مضمّنة في مقاومات الفروع.', 'نبدأ المسار من النقطة a ونعدّ جهدها صفراً.'],
+    vars: [['\\varepsilon_1', 'البطارية بين د و هـ', '\\mathrm{V}', '1 – 24'], ['\\varepsilon_2', 'البطارية بين ب و جـ (معاكسة)', '\\mathrm{V}', '0 – 24'], ['R_{ab}, R_{hd}, R_{wa}', 'المقاومات', '\\Omega', '1 – 20'], ['I', 'التيار', '\\mathrm{A}', '—']],
+    assumptions: ['المقاومات الداخلية للبطاريات مضمّنة في مقاومات الفروع.', 'نبدأ المسار من النقطة أ ونعدّ جهدها صفراً.'],
     params: [
       { key: 'e1', label: '\\varepsilon_1\\ (\\mathrm{V})', min: 1, max: 24, step: 1, value: 12 },
       { key: 'e2', label: '\\varepsilon_2\\ (\\mathrm{V})', min: 0, max: 24, step: 1, value: 6 },
@@ -70,8 +70,8 @@
     ],
     compute(p) {
       const SR = p.Ra + p.Rb + p.Rc; const I = (p.e1 - p.e2) / SR;
-      const dV = [['a→b', -I * p.Ra], ['b→h', -p.e2], ['h→d', -I * p.Rb], ['d→w', p.e1], ['w→a', -I * p.Rc]];
-      let v = 0; const pts = [['a', 0]]; dV.forEach(([lab, x]) => { v += x; pts.push([lab.slice(-1), v]); });
+      const dV = [['أ→ب', -I * p.Ra], ['ب→جـ', -p.e2], ['جـ→د', -I * p.Rb], ['د→هـ', p.e1], ['هـ→أ', -I * p.Rc]];
+      let v = 0; const pts = [['أ', 0]]; dV.forEach(([lab, x]) => { v += x; pts.push([lab.split('→')[1], v]); });
       return { SR: SR, I: I, dV: dV, pts: pts, sum: dV.reduce((s, x) => s + x[1], 0) };
     },
     live(p, d) { return 'I = \\frac{' + p.e1 + ' - ' + p.e2 + '}{' + d.SR + '} = ' + q(d.I, 'A', 4) + ' ,\\quad \\sum\\Delta V = ' + n(Math.abs(d.sum) < 1e-12 ? 0 : d.sum); },
@@ -84,13 +84,13 @@
       K.resistor(ctx, xR, yB, xL, yB, 'R = ' + p.Rb + ' Ω', cols, cols.c1);
       K.wire(ctx, [[xL, yB], [xL, yB - 50]], cols); ctx.save(); ctx.translate(xL, yB - 60); ctx.rotate(Math.PI); K.battery(ctx, 0, 0, false, '', cols); ctx.restore(); lbl(ctx, 'ε₁ = ' + p.e1 + ' V', xL + 46, yB - 60, cols.c2, cols);
       K.wire(ctx, [[xL, yB - 70], [xL, yM]], cols); K.resistor(ctx, xL, yM, xL, yT, p.Rc + ' Ω', cols, cols.c1);
-      [['a', xL, yT], ['b', xR, yT], ['h', xR, yB], ['d', xL, yB], ['w', xL, yM]].forEach(([t, x, y]) => { ctx.fillStyle = cols.text; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill(); lbl(ctx, t, x + (x < W / 2 ? -14 : 14), y - 12, cols.c5, cols, 14); });
+      [['أ', xL, yT], ['ب', xR, yT], ['جـ', xR, yB], ['د', xL, yB], ['هـ', xL, yM]].forEach(([t, x, y]) => { ctx.fillStyle = cols.text; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill(); lbl(ctx, t, x + (x < W / 2 ? -14 : 14), y - 12, cols.c5, cols, 14); });
       const cw = d.I >= 0; D.arrow(ctx, W / 2 + (cw ? -30 : 30), yT - 22, W / 2 + (cw ? 30 : -30), yT - 22, cols.c2, 3); lbl(ctx, 'I = ' + n(Math.abs(d.I), 4) + ' A', W / 2, yT - 40, cols.c2, cols, 13);
       D.txt(ctx, 'ΣΔV = 0', W / 2, yM, { color: cols.c3, size: 16, w: '700' });
     },
-    graph(p, d) { const vs = d.pts.map((x) => x[1]); const lo = Math.min(...vs), hi = Math.max(...vs); return { view: { xmin: -0.3, xmax: 5.3, ymin: lo - 2, ymax: hi + 2 }, xLabel: 'a → b → h → d → w → a', yLabel: 'V (V)', caption: 'الجهد عند كل نقطة بدءاً من Vₐ = 0: يعود المسار إلى الصفر (القانون الثاني لكيرتشوف).', draw(G) { const c = G.colors(); for (let i = 0; i < 5; i++) G.segment(i, vs[i], i + 1, vs[i + 1], { color: c.c1, width: 3 }); d.pts.forEach(([t, v], i) => { G.point(i, v, { color: c.c2 }); G.text(i, v, t, { color: c.c5, dy: -12, align: 'center', bold: true }); }); G.hline(0, { color: c.muted, dash: [5, 4] }); } }; },
+    graph(p, d) { const vs = d.pts.map((x) => x[1]); const lo = Math.min(...vs), hi = Math.max(...vs); return { view: { xmin: -0.3, xmax: 5.3, ymin: lo - 2, ymax: hi + 2 }, xLabel: 'أ → ب → جـ → د → هـ → أ', yLabel: 'V (V)', caption: 'الجهد عند كل نقطة بدءاً من V_a = 0: يعود المسار إلى الصفر (القانون الثاني لكيرتشوف).', draw(G) { const c = G.colors(); for (let i = 0; i < 5; i++) G.segment(i, vs[i], i + 1, vs[i + 1], { color: c.c1, width: 3 }); d.pts.forEach(([t, v], i) => { G.point(i, v, { color: c.c2 }); G.text(i, v, t, { color: c.c5, dy: -12, align: 'center', bold: true }); }); G.hline(0, { color: c.muted, dash: [5, 4] }); } }; },
     explain(a, b, da, db) { const o = []; if (a.e2 !== b.e2) o.push('البطارية المعاكسة تُطرح من القوة الدافعة الكلية، فيتغير التيار.'); return o; },
-    learn: ['**(5-4) ص76:** Vₐ + ΣΔV_ab = V_b، ونحسب ΔV في اتجاه الحركة.', '**الإشارات ص76–77:** مقاومة مع التيار −IR، وعكسه +IR؛ بطارية من − إلى + : +ε، ومن + إلى − : −ε.', 'عند الرجوع إلى نقطة البداية مجموع التغيرات صفر، وهذا هو القانون الثاني لكيرتشوف (حفظ الطاقة).'],
+    learn: ['**(5-4) ص76:** V_a + ΣΔV_ab = V_b، ونحسب ΔV في اتجاه الحركة.', '**الإشارات ص76–77:** مقاومة مع التيار −IR، وعكسه +IR؛ بطارية من − إلى + : +ε، ومن + إلى − : −ε.', 'عند الرجوع إلى نقطة البداية مجموع التغيرات صفر، وهذا هو القانون الثاني لكيرتشوف (حفظ الطاقة).'],
     challenges: [
       { q: 'مثال (3): أعد قيم الكتاب (12 V و9 V ومقاومات 10 و11 و3 Ω) وأوجد التيار وتغيرات الجهد.', hint: 'اضبط ε₂ = 9.', init: { e1: 12, e2: 6, Ra: 10, Rb: 11, Rc: 3 }, check: (p) => p.e1 === 12 && p.e2 === 9 && p.Ra === 10 && p.Rb === 11 && p.Rc === 3, why: () => 'I = 0.125 A، والتغيرات −1.25 ، −9 ، −1.375 ، +12 ، −0.375 V ومجموعها صفر.' },
       { q: 'اجعل التيار في الحلقة صفراً.', hint: 'متى تلغي البطاريتان بعضهما؟', init: { e1: 12, e2: 6 }, check: (p, d) => Math.abs(d.I) < 1e-12, why: () => 'ε₁ = ε₂ فتكون Σε = 0.' }
@@ -104,7 +104,7 @@
 
   /* ======================= 4-5 فرق الجهد بين قطبي مصدر ص80–81 ======================= */
   K.reg({
-    id: 'terminal-voltage', unit: 5, order: 3, lesson: '4-5', lessonTitle: 'فرق الجهد بين قطبي مصدر كهربائي', page: 81,
+    id: 'terminal-voltage', ar: { r: 'م_د' }, unit: 5, order: 3, lesson: '4-5', lessonTitle: 'فرق الجهد بين قطبي مصدر كهربائي', page: 81,
     titleAr: 'فرق الجهد بين قطبي البطارية: تفريغ وشحن', titleEn: 'Terminal Voltage of a Battery', tags: 'فرق جهد قطبي بطارية مقاومة داخلية هبوط الجهد شحن تفريغ قوة دافعة مثال 7',
     formula: 'V_{ab} = \\varepsilon - Ir \\ (\\text{تفريغ}) ,\\qquad V_{ab} = \\varepsilon + Ir \\ (\\text{شحن})',
     book: 'ص80–81: البطارية مصدر قوة دافعة على التوالي مع مقاومة داخلية. مثال (7) ص81: بطارية ε = 25 V و r = 0.2 Ω ⇒ 23.4 V عندما تعطي 8 A ، و26.6 V عندما تُشحن بـ 8 A.',
@@ -126,16 +126,16 @@
       ctx.strokeStyle = cols.muted; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5; D.rr(ctx, cx - bw / 2, y - 45, bw, 90, 12); ctx.stroke(); ctx.setLineDash([]);
       K.wire(ctx, [[cx - bw / 2 - 30, y], [cx - bw / 4 - 8, y]], cols); K.battery(ctx, cx - bw / 4, y, true, 'ε = ' + p.e + ' V', cols); K.wire(ctx, [[cx - bw / 4 + 8, y], [cx + 10, y]], cols);
       K.resistor(ctx, cx + 10, y, cx + bw / 2 + 30, y, 'r = ' + p.r + ' Ω', cols, cols.c4);
-      lbl(ctx, 'b', cx - bw / 2 - 40, y, cols.c5, cols, 15); lbl(ctx, 'a', cx + bw / 2 + 40, y, cols.c5, cols, 15);
+      lbl(ctx, 'ب', cx - bw / 2 - 40, y, cols.c5, cols, 15); lbl(ctx, 'أ', cx + bw / 2 + 40, y, cols.c5, cols, 15);
       const dir = p.mode === 'dis' ? 1 : -1; D.arrow(ctx, cx - 40 * dir, y + 70, cx + 40 * dir, y + 70, cols.c2, 3); lbl(ctx, 'I = ' + p.I + ' A ' + (p.mode === 'dis' ? '(تفريغ)' : '(شحن)'), cx, y + 90, cols.c2, cols, 13);
-      D.txt(ctx, 'Vab = ' + n(d.V) + ' V', cx, H * 0.12, { color: cols.text, size: K.narrow(W) ? 14 : 17, w: '700' });
+      D.txt(ctx, 'V_ab = ' + n(d.V) + ' V', cx, H * 0.12, { color: cols.text, size: K.narrow(W) ? 14 : 17, w: '700' });
     },
-    graph(p, d) { const Im = 20; return { view: { xmin: 0, xmax: Im, ymin: Math.max(0, p.e - Im * p.r - 2), ymax: p.e + Im * p.r + 2 }, xLabel: 'I (A)', yLabel: 'Vab (V)', caption: 'تفريغ: V = ε − Ir (ميل سالب يساوي r)، وشحن: V = ε + Ir. عند I = 0 يكون V = ε.', draw(G) { const c = G.colors(); G.fn((I) => p.e - I * p.r, { color: c.c1, width: p.mode === 'dis' ? 3 : 1.5, domain: [0, Im] }); G.fn((I) => p.e + I * p.r, { color: c.c2, width: p.mode === 'ch' ? 3 : 1.5, domain: [0, Im] }); G.hline(p.e, { color: c.muted, dash: [5, 4] }); G.point(p.I, d.V, { color: c.c5 }); } }; },
+    graph(p, d) { const Im = 20; return { view: { xmin: 0, xmax: Im, ymin: Math.max(0, p.e - Im * p.r - 2), ymax: p.e + Im * p.r + 2 }, xLabel: 'I (A)', yLabel: 'V_ab (V)', caption: 'تفريغ: V = ε − Ir (ميل سالب يساوي r)، وشحن: V = ε + Ir. عند I = 0 يكون V = ε.', draw(G) { const c = G.colors(); G.fn((I) => p.e - I * p.r, { color: c.c1, width: p.mode === 'dis' ? 3 : 1.5, domain: [0, Im] }); G.fn((I) => p.e + I * p.r, { color: c.c2, width: p.mode === 'ch' ? 3 : 1.5, domain: [0, Im] }); G.hline(p.e, { color: c.muted, dash: [5, 4] }); G.point(p.I, d.V, { color: c.c5 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.mode !== b.mode) o.push(b.mode === 'ch' ? 'عند الشحن يزيد فرق الجهد بين القطبين على القوة الدافعة.' : 'عند التفريغ يقل فرق الجهد عن القوة الدافعة.'); if (a.I !== b.I && b.I === 0) o.push('دون تيار: فرق الجهد يساوي القوة الدافعة (دارة مفتوحة).'); return o; },
-    learn: ['**تفريغ ص80:** Vₐb = ε − Ir، والمقدار Ir يسمى الهبوط في الجهد.', '**شحن ص81:** Vₐb = ε + Ir.', 'القوة الدافعة لأي مصدر هي فرق الجهد بين طرفيه عندما تكون الدارة مفتوحة (I = 0).'],
+    learn: ['**تفريغ ص80:** V_ab = ε − Ir، والمقدار Ir يسمى الهبوط في الجهد.', '**شحن ص81:** V_ab = ε + Ir.', 'القوة الدافعة لأي مصدر هي فرق الجهد بين طرفيه عندما تكون الدارة مفتوحة (I = 0).'],
     challenges: [
-      { q: 'مثال (7-A): بطارية 25 V و r = 0.2 Ω تعطي 8 A. ما فرق الجهد بين قطبيها؟', hint: 'تفريغ، ε = 25 ، r = 0.2 ، I = 8.', init: { mode: 'dis', e: 12, r: 0.5, I: 4 }, check: (p) => p.mode === 'dis' && p.e === 25 && Math.abs(p.r - 0.2) < 1e-9 && p.I === 8, why: () => '25 − 1.6 = 23.4 V.' },
-      { q: 'مثال (7-B): البطارية نفسها تُشحن بتيار 8 A.', hint: 'اختر «شحن».', init: { mode: 'dis', e: 25, r: 0.2, I: 8 }, check: (p) => p.mode === 'ch' && p.e === 25 && Math.abs(p.r - 0.2) < 1e-9 && p.I === 8, why: () => '25 + 1.6 = 26.6 V.' }
+      { q: 'مثال (7-أ): بطارية 25 V و r = 0.2 Ω تعطي 8 A. ما فرق الجهد بين قطبيها؟', hint: 'تفريغ، ε = 25 ، r = 0.2 ، I = 8.', init: { mode: 'dis', e: 12, r: 0.5, I: 4 }, check: (p) => p.mode === 'dis' && p.e === 25 && Math.abs(p.r - 0.2) < 1e-9 && p.I === 8, why: () => '25 − 1.6 = 23.4 V.' },
+      { q: 'مثال (7-ب): البطارية نفسها تُشحن بتيار 8 A.', hint: 'اختر «شحن».', init: { mode: 'dis', e: 25, r: 0.2, I: 8 }, check: (p) => p.mode === 'ch' && p.e === 25 && Math.abs(p.r - 0.2) < 1e-9 && p.I === 8, why: () => '25 + 1.6 = 26.6 V.' }
     ],
     tutor: [
       { q: 'لماذا يقل فرق الجهد عن القوة الدافعة عند التفريغ؟', k: ['يقل', 'تفريغ'], a: () => K.tutor('أين يُستنفد جزء من طاقة البطارية؟', 'جزء من القوة الدافعة يستنفد حرارةً في المقاومة الداخلية (Ir).') },
@@ -151,7 +151,7 @@
     const [Va, Vc, Ve] = Q.solve(A, [p.e / p.r, 0, 0]); return { Va: Va, Vc: Vc, Ve: Ve, Ig: (Vc - Ve) / RG, I: (p.e - Va) / p.r };
   }
   K.reg({
-    id: 'wheatstone', unit: 5, order: 4, lesson: '5-5', lessonTitle: 'قياس مقاومة مجهولة', page: 82,
+    id: 'wheatstone', ar: { r: 'م_د' }, unit: 5, order: 4, lesson: '5-5', lessonTitle: 'قياس مقاومة مجهولة', page: 82,
     titleAr: 'قياس مقاومة مجهولة: قانون أوم وقنطرة ويتستون', titleEn: 'Measuring Resistance: Ohm Method and Wheatstone Bridge', tags: 'مقاومة مجهولة قنطرة ويتستون جلفانوميتر اتزان اميتر فولتميتر قانون اوم مثال 8 مثال 9',
     formula: 'R = \\frac{V}{I} ,\\qquad \\frac{R_1}{R_2} = \\frac{R_3}{R_4}\\ (\\text{اتزان القنطرة})',
     book: 'القانون (5-5) ومثال (8) ص81–82: قراءة الفولتميتر 18 V والأميتر 1.2 A ⇒ R = 15 Ω. قنطرة ويتستون ص82، ومثال (9) ص83: R₂ = 15 ، R₃ = 20 ، R₄ = 60 Ω ⇒ R₁ = 5 Ω عند الاتزان، وتيار البطارية 0.6 A.',
@@ -193,16 +193,16 @@
       ctx.fillStyle = cols.bg; ctx.strokeStyle = cols.text; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, ym, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       const ang = Math.max(-1, Math.min(1, d.Ig / 0.02)) * 1.1; ctx.strokeStyle = d.bal ? cols.c3 : cols.c2; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx, ym + 14); ctx.lineTo(cx + Math.sin(ang) * 20, ym + 14 - Math.cos(ang) * 20); ctx.stroke(); D.txt(ctx, 'G', cx, ym + 34 + 6, { color: cols.text, size: 12, w: '700' });
       K.wire(ctx, [B, [cx, yb + 40], [cx - dx - 40, yb + 40], [cx - dx - 40, ya], A], cols); K.battery(ctx, cx - dx - 40, (ya + yb) / 2 + 60, false, p.e + ' V', cols);
-      [['a', A], ['b', B], ['c', C], ['e', E]].forEach(([t, P]) => lbl(ctx, t, P[0] + (t === 'c' ? -14 : t === 'e' ? 14 : 14), P[1] + (t === 'a' ? -8 : t === 'b' ? 10 : 0), cols.c5, cols, 13));
+      [['أ', A, 14, -8], ['ب', B, 14, 10], ['جـ', C, -14, 0], ['د', E, 14, 0]].forEach(([t, P, dx, dy]) => lbl(ctx, t, P[0] + dx, P[1] + dy, cols.c5, cols, 13));
       D.txt(ctx, d.bal ? 'متزنة: Ig = 0' : 'Ig = ' + ML.phys.sct(d.Ig, 3) + ' A', cx, H * 0.94, { color: d.bal ? cols.c3 : cols.c2, size: nr ? 13 : 15, w: '700' });
     },
     graph(p, d) {
       if (p.mode === 'ohm') return { view: { xmin: 0, xmax: 5, ymin: 0, ymax: Math.max(30, d.R * 5) * 1.05 }, xLabel: 'I (A)', yLabel: 'V (V)', caption: 'ميل منحنى V–I يساوي المقاومة.', draw(G) { const c = G.colors(); G.fn((I) => d.R * I, { color: c.c1, width: 3, domain: [0, 5] }); G.point(p.I, p.V, { color: c.c2 }); } };
       const f = (R1) => bridge(Object.assign({}, p, { R1: R1 })).Ig; let mx = 1e-6; for (let R = 0.5; R <= 30; R += 0.5) mx = Math.max(mx, Math.abs(f(R)));
-      return { view: { xmin: 0, xmax: 30, ymin: -mx * 1.15, ymax: mx * 1.15 }, xLabel: 'R₁ (Ω)', yLabel: 'Ig (A)', caption: 'تيار الجلفانوميتر ينعدم عند R₁ = R₂R₃/R₄ = ' + n(d.Rx) + ' Ω.', draw(G) { const c = G.colors(); G.fn(f, { color: c.c1, width: 3, domain: [0.5, 30] }); G.hline(0, { color: c.muted }); G.point(p.R1, d.Ig, { color: c.c2 }); } };
+      return { view: { xmin: 0, xmax: 30, ymin: -mx * 1.15, ymax: mx * 1.15 }, xLabel: 'R₁ (Ω)', yLabel: 'I_g (A)', caption: 'تيار الجلفانوميتر ينعدم عند R₁ = R₂R₃/R₄ = ' + n(d.Rx) + ' Ω.', draw(G) { const c = G.colors(); G.fn(f, { color: c.c1, width: 3, domain: [0.5, 30] }); G.hline(0, { color: c.muted }); G.point(p.R1, d.Ig, { color: c.c2 }); } };
     },
     explain(a, b, da, db) { const o = []; if (a.R1 !== b.R1 && db.bal) o.push('انعدمت قراءة الجلفانوميتر: القنطرة متزنة.'); return o; },
-    learn: ['**قانون أوم (5-5) ص81:** R = V/I؛ الخطأ يقل باستخدام فولتميتر مقاومته كبيرة جداً.', '**قنطرة ويتستون ص82:** عند الاتزان Ig = 0 فيتساوى جهد النقطتين c و e، ومنه R₁/R₂ = R₃/R₄.'],
+    learn: ['**قانون أوم (5-5) ص81:** R = V/I؛ الخطأ يقل باستخدام فولتميتر مقاومته كبيرة جداً.', '**قنطرة ويتستون ص82:** عند الاتزان Ig = 0 فيتساوى جهد النقطتين جـ و د، ومنه R₁/R₂ = R₃/R₄.'],
     challenges: [
       { q: 'مثال (8): قراءة الفولتميتر 18 V والأميتر 1.2 A. ما المقاومة المجهولة؟', hint: 'اختر «قانون أوم».', init: { mode: 'bridge' }, check: (p) => p.mode === 'ohm' && p.V === 18 && Math.abs(p.I - 1.2) < 1e-9, why: () => 'R = 18/1.2 = 15 Ω.' },
       { q: 'مثال (9): R₂ = 15 و R₃ = 20 و R₄ = 60 Ω. غيّر R₁ حتى تتزن القنطرة.', hint: 'R₁ = R₂R₃/R₄.', init: { mode: 'bridge', R1: 10, R2: 15, R3: 20, R4: 60, e: 12, r: 1.25 }, check: (p, d) => p.mode === 'bridge' && p.R2 === 15 && p.R3 === 20 && p.R4 === 60 && d.bal, why: () => 'R₁ = 5 Ω، وتيار البطارية 12/20 = 0.6 A.' }

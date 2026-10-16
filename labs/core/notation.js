@@ -45,6 +45,11 @@
     B: 'ب', D: 'د', G: 'جـ', I: 'م', K: 'ك', O: 'و', S: 'م', X: 'س', Y: 'ص', Z: 'ع', J: 'ج'
   };
   const GREEK_PHYS = { rho: 'ث', alpha: 'م_د', beta: 'م_ح', omega: 'ع_ز', lambda: 'ط', varphi: 'φ', phi: 'φ', delta: 'δ', theta: 'هـ', mu: 'م' };
+  // فيزياء الثاني عشر بالصيغة العربية نفسها: ت (التيار)، جـ (فرق الجهد)، م (المقاومة)، قد (القوة الدافعة)، غ (المجال المغناطيسي)، ش (الشحنة)، خ (الزخم)، ن (عدد اللفات)
+  const PHYS12 = Object.assign({}, PHYS, { x: 'س', y: 'ص', I: 'ت', V: 'جـ', R: 'م', r: 'نق', B: 'غ', P: 'خ', p: 'خ', Q: 'ش', q: 'ش', e: 'ش_إ', E: 'م_ك', N: 'ن', n: 'ن', L: 'ل', A: 'أ', J: 'ت_ك', K: 'ط_ح', f: 'د', T: 'ز_د', W: 'ش_غ', I_g: 'ت_ج' });
+  const GREEK12 = Object.assign({}, GREEK_PHYS, { varepsilon: 'ق_د', epsilon: 'ق_د', tau: 'عز', sigma: 'ص', rho: 'م_ن', mu: 'م', omega: 'ع_ز', alpha: 'ت_ز', lambda: 'ك_ل' });
+  // رموز بأدلة سفلية شائعة في الكتاب
+  const OWN12 = { '_f': 'نهائية', '_i': 'ابتدائية', '_c': 'م', a_c: 'ت_م', F_c: 'ق_م', v_d: 'ع_انسياقية', n_e: 'ن', q_e: 'ش_إ', N_e: 'ن_إ', R_eq: 'م_مك', R_s: 'م_ت', L_in: 'ح', I_g: 'ت_ج', E_th: 'ط_ح', F_ext: 'ق_خ', F_B: 'ق_غ', V_ab: 'جـ_أب', V_a: 'جـ_أ', V_b: 'جـ_ب', '\\Omega': 'أوم', mu_0: 'م_٠', v_1i: 'ع١_ابتدائية', v_2i: 'ع٢_ابتدائية', v_1f: 'ع١_نهائية', v_2f: 'ع٢_نهائية', v_i: 'ع_ابتدائية', v_f: 'ع_نهائية', varepsilon_ave: 'ق_د متوسطة', varepsilon_max: 'ق_د عظمى', I_a: 'ت_أ', I_b: 'ت_ب', I_c: 'ت_جـ', F_ab: 'ق_أب', F_cb: 'ق_جـب', R_ab: 'م_أب', R_hd: 'م_جـد', R_wa: 'م_هـأ', E_th: 'ط' };
   const GREEK_MATH = { theta: 'هـ', alpha: 'أ', beta: 'ب', varphi: 'φ', phi: 'φ', omega: 'ع', lambda: 'ل' };
   // كلمات/دلائل سفلية
   const WORDS = {
@@ -64,6 +69,7 @@
   };
   const FUNCS = { sin: 'جا', cos: 'جتا', tan: 'ظا', cot: 'ظتا', sec: 'قا', csc: 'قتا', log: 'لو', ln: 'لو_هـ', det: '', max: 'أكبر', min: 'أصغر' };
   ML.notation = { MATH, PHYS, UNITS, WORDS, FUNCS };
+  const UNITS12 = Object.assign({}, UNITS, { C: 'كولوم', V: 'فولت', T: 'تسلا', Wb: 'ويبر', H: 'هنري', mH: 'ملي هنري', kHz: 'كيلوهيرتز', e: 'إلكترون', turn: 'لفة', F: 'فاراد' });
   WORDS.C = 'س'; WORDS.F = 'ف'; WORDS.K = 'كلفن'; UNITS.Hg = 'زئبق'; UNITS.pm = 'بيكومتر'; UNITS.Gm = 'جيجامتر'; UNITS.Mm = 'ميغامتر';
 
   // العلوم الحياتية: الرموز اللاتينية تبقى كما في الكتاب (A، T، G، C، U، DNA، G1، FSH…)، والأرقام المستقلة عربية
@@ -72,8 +78,8 @@
   // فتبقى الصيغ والأرقام كما هي، ويُعزل السالب فقط ليبقى على يسار العدد داخل النص العربي
   const isChem = (sim) => (sim ? sim.subject === 'g10-chem' : ML.curSubject === 'g10-chem');
   ML.isChem = isChem;
-  // كتب تكتب القوانين بالحروف اللاتينية والأرقام الغربية: الكيمياء (العاشر) والفيزياء (الثاني عشر)
-  const LATIN_BOOK = { 'g10-chem': 1, 'g12-physics': 1 };
+  // كتب تكتب القوانين بالحروف اللاتينية والأرقام الغربية: الكيمياء (العاشر)
+  const LATIN_BOOK = { 'g10-chem': 1 };
   const isLatinBook = (sim) => !!LATIN_BOOK[sim ? sim.subject : ML.curSubject];
   ML.isLatinBook = isLatinBook;
   const chemNeg = (s) => String(s).replace(/(^|[^0-9A-Za-z)\]\u2066])([-−])([0-9][0-9.,]*)/g, '$1\u2066$2$3\u2069');
@@ -83,6 +89,7 @@
   const bioDigits = (t) => { let out = '', k = 0; String(t).replace(LAT_TOK, (m, i) => { out += toAD(t.slice(k, i).replace(/(\d)\.(\d)/g, '$1,$2')) + m; k = i + m.length; return m; }); return out + toAD(t.slice(k).replace(/(\d)\.(\d)/g, '$1,$2')); };
   function varMap(sim) {
     if (isBio(sim)) return { base: {}, greek: {}, own: (sim && sim.ar) || {}, bio: true };
+    if (sim && sim.subject === 'g12-physics') return { base: PHYS12, greek: GREEK12, own: Object.assign({}, OWN12, sim.ar || {}), units: UNITS12, g12: true };
     const subj = sim && sim.subject === 'g10-physics' ? 'p' : 'm';
     return { base: subj === 'p' ? PHYS : MATH, greek: subj === 'p' ? GREEK_PHYS : GREEK_MATH, own: (sim && sim.ar) || {} };
   }
@@ -103,13 +110,13 @@
     return [s.slice(i + 1, j), j + 1];
   }
   // وحدات داخل \mathrm{...}
-  function unitTeX(u) {
-    let out = '', i = 0;
+  function unitTeX(u, U) {
+    U = U || UNITS; let out = '', i = 0;
     while (i < u.length) {
       const ch = u[i];
-      if (/[A-Za-z]/.test(ch)) { let j = i; while (j < u.length && /[A-Za-z]/.test(u[j])) j++; const w = u.slice(i, j); out += UNITS[w] !== undefined ? T(UNITS[w]) : (WORDS[w] !== undefined ? T(WORDS[w]) : T(w.split('').map((c) => UNITS[c] || c).join(''))); i = j; continue; }
+      if (/[A-Za-z]/.test(ch)) { let j = i; while (j < u.length && /[A-Za-z]/.test(u[j])) j++; const w = u.slice(i, j); out += U[w] !== undefined ? T(U[w]) : (WORDS[w] !== undefined ? T(WORDS[w]) : T(w.split('').map((c) => U[c] || c).join(''))); i = j; continue; }
       if (/[0-9]/.test(ch)) { let j = i; while (j < u.length && /[0-9.]/.test(u[j])) j++; out += numTeX(u.slice(i, j)); i = j; continue; }
-      if (ch === '\\') { let j = i + 1; while (j < u.length && /[A-Za-z]/.test(u[j])) j++; if (j === i + 1) j++; out += u.slice(i, j); i = j; continue; }
+      if (ch === '\\') { let j = i + 1; while (j < u.length && /[A-Za-z]/.test(u[j])) j++; if (j === i + 1) j++; const cmd = u.slice(i + 1, j); out += U !== UNITS && cmd === 'Omega' ? T('أوم') : U !== UNITS && cmd === 'mu' ? T('ميكرو') : u.slice(i, j); i = j; continue; }
       if (ch === ' ') { out += '\\,'; i++; continue; }
       out += ch; i++;
     }
@@ -188,6 +195,7 @@
     sim = sim === undefined ? ML.curSim : sim;
     if (isLatinBook(sim)) return tex;
     const vm = varMap(sim); const s = moveUnaryMinus(String(tex)); let out = ''; let i = 0; let prevLetter = false; let argN = 0; // معاملات بلا أقواس: \\tfrac12 ، x^2
+    const symG = (x) => (vm.g12 && x.indexOf('_') > 0 ? '{' + symTeX(x) + '}' : symTeX(x));
     const mapLetter = (c) => vm.own[c] || vm.base[c] || c;
     while (i < s.length) {
       const ch = s[i];
@@ -200,16 +208,16 @@
         if (/^(frac|tfrac|dfrac|binom)$/.test(cmd) && s[j] !== '{') { out += '\\' + cmd; i = j; argN = 2; continue; }
         if (cmd === 'sqrt' && s[j] !== '{' && s[j] !== '[') { out += '\\' + cmd; i = j; argN = 1; continue; }
         if ((cmd === 'text' || cmd === 'textrm' || cmd === 'textbf') && s[j] === '{') { const [g, e] = readGroup(s, j); out += '\\' + cmd + '{' + textArabic(g, vm.bio) + '}'; i = e; prevLetter = false; continue; }
-        if ((cmd === 'mathrm' || cmd === 'mathrm' || cmd === 'operatorname') && s[j] === '{') { const [g, e] = readGroup(s, j); out += unitTeX(g); i = e; prevLetter = false; continue; }
+        if ((cmd === 'mathrm' || cmd === 'mathrm' || cmd === 'operatorname') && s[j] === '{') { const [g, e] = readGroup(s, j); out += unitTeX(g, vm.units); i = e; prevLetter = false; continue; }
         if (cmd === 'mathbb' && s[j] === '{') { const [g, e] = readGroup(s, j); out += T({ R: 'ح', Z: 'ص', N: 'ط', Q: 'ن' }[g] || g); i = e; prevLetter = false; continue; }
         if ((cmd === 'begin' || cmd === 'end') && s[j] === '{') { const [g, e] = readGroup(s, j); out += '\\' + cmd + '{' + g + '}'; i = e; continue; }
-        if (FUNCS[cmd] !== undefined) { const f = FUNCS[cmd]; out += (prevLetter ? '\\,' : '') + (f ? '{' + symTeX(f) + '}' : ''); i = j; prevLetter = true; continue; }
+        if (FUNCS[cmd] !== undefined) { const f = FUNCS[cmd]; out += (prevLetter ? '\\,' : '') + (f ? '{' + symG(f) + '}' : ''); i = j; prevLetter = true; continue; }
         if (s[j] === '_') { // \\rho_b ونحوه
           let sub, e; if (s[j + 1] === '{') { const g = readGroup(s, j + 1); sub = g[0].replace(/\\text\{([^}]*)\}/, '$1'); e = g[1]; } else { sub = s[j + 1]; e = j + 2; }
-          const key = cmd + '_' + sub; if (vm.own[key] !== undefined) { out += (prevLetter ? '\\,' : '') + symTeX(vm.own[key]); i = e; prevLetter = true; continue; }
+          const key = cmd + '_' + sub; if (vm.own[key] !== undefined) { out += (prevLetter ? '\\,' : '') + symG(vm.own[key]); i = e; prevLetter = true; continue; }
         }
-        if (vm.own['\\' + cmd]) { out += symTeX(vm.own['\\' + cmd]); i = j; prevLetter = true; continue; }
-        if (vm.greek[cmd] && /[؀-ۿ]/.test(vm.greek[cmd])) { out += (prevLetter ? '\\,' : '') + symTeX(vm.greek[cmd]); i = j; prevLetter = true; continue; }
+        if (vm.own['\\' + cmd]) { out += symG(vm.own['\\' + cmd]); i = j; prevLetter = true; continue; }
+        if (vm.greek[cmd] && /[؀-ۿ]/.test(vm.greek[cmd])) { out += (prevLetter ? '\\,' : '') + symG(vm.greek[cmd]); i = j; prevLetter = true; continue; }
         out += '\\' + cmd; i = j; prevLetter = false; continue;
       }
       if (/[A-Za-z]/.test(ch)) {
@@ -220,7 +228,7 @@
           let sub, e;
           if (s[j + 1] === '{') { const g = readGroup(s, j + 1); sub = g[0].replace(/\\text\{([^}]*)\}/, '$1'); e = g[1]; } else { sub = s[j + 1]; e = j + 2; }
           const key = w + '_' + sub;
-          if (vm.own[key] !== undefined) { out += (prevLetter ? '\\,' : '') + symTeX(vm.own[key]); i = e; prevLetter = true; continue; }
+          if (vm.own[key] !== undefined) { out += (prevLetter ? '\\,' : '') + symG(vm.own[key]); i = e; prevLetter = true; continue; }
         }
         // كلمة في دليل سفلي
         const inSub = out.endsWith('_{') || out.endsWith('_');
@@ -228,7 +236,7 @@
         if (w.length > 1 && WORDS[w] !== undefined && (inSub || w.length > 2)) { out += WORDS[w] ? T(WORDS[w]) : ''; i = j; prevLetter = false; continue; }
         if (inSub && vm.own['_' + w] !== undefined) { out += T(vm.own['_' + w]); i = j; continue; }
         if (inSub && w.length === 1 && WORDS[w] !== undefined && !vm.own[w]) { out += T(WORDS[w]); i = j; continue; }
-        const parts = w.split('').map((c) => symTeX(mapLetter(c)));
+        const parts = w.split('').map((c) => symG(mapLetter(c)));
         out += (prevLetter ? '\\,' : '') + parts.join('\\,'); i = j; prevLetter = true; continue;
       }
       if (/[0-9]/.test(ch) && argN > 0) { out += '{' + numTeX(ch) + '}'; i++; argN--; continue; }
@@ -256,6 +264,17 @@
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const UNIT_RE = new RegExp('(\\d[\\d.,⁰-⁹⁻×\\s]*|\\()\\s?(' + UNIT_TXT.map((u) => escRe(u[0])).join('|') + ')(?![A-Za-z²³])', 'g');
   const UNIT_MAP = Object.fromEntries(UNIT_TXT);
+  // وحدات الكهرباء والمغناطيسية (الثاني عشر)
+  const UNIT_TXT12 = [
+    ['Ω.m', 'أوم.م'], ['kg.m/s', 'كغم.م/ث'], ['kg.m²', 'كغم.م²'], ['N.s', 'نيوتن.ث'], ['N.m', 'نيوتن.م'], ['N/C', 'نيوتن/كولوم'], ['V/m', 'فولت/م'], ['A/m²', 'أمبير/م²'], ['A/s', 'أمبير/ث'],
+    ['rad/s²', 'راديان/ث²'], ['rad/s', 'راديان/ث'], ['T.m/A', 'تسلا.م/أمبير'], ['g/m', 'غم/م'], ['mm²', 'ملم²'], ['e/m³', 'إلكترون/م³'], ['μC', 'ميكروكولوم'], ['mH', 'ملي هنري'], ['kHz', 'كيلوهيرتز'], ['kW', 'كيلوواط'],
+    ['Wb', 'ويبر'], ['Ω', 'أوم'], ['V', 'فولت'], ['A', 'أمبير'], ['T', 'تسلا'], ['H', 'هنري'], ['C', 'كولوم'], ['rad', 'راديان']
+  ].concat(UNIT_TXT);
+  // الثاني عشر: الوحدة بعد مسافة من العدد (2 m) أو وحدها بين قوسين (m)، أما 2m و (m+M) فرموز
+  const U12 = UNIT_TXT12.map((u) => escRe(u[0])).join('|');
+  const UNIT_NUM12 = new RegExp('(\\d[\\d.,⁰-⁹¹²³⁻×]*)\\s(' + U12 + ')(?![A-Za-z²³])', 'g');
+  const UNIT_PAR12 = new RegExp('\\((' + U12 + ')\\)', 'g');
+  const UNIT_MAP12 = Object.fromEntries(UNIT_TXT12);
   // في النص العادي: السالب ملاصق للعدد على يساره (−٤) داخل النص العربي
   const isoNeg = (s) => String(s).replace(/(^|[^٠-٩A-Za-z0-9)\]⁦])([-−])([٠-٩][٠-٩,]*)/g, '$1⁦$2$3⁩');
   ML.isoNeg = isoNeg;
@@ -265,9 +284,10 @@
     if (isLatinBook(sim)) return chemNeg(str);
     if (isBio(sim)) return isoNeg(bioDigits(String(str)).replace(/(?<![٠-٩]),|,(?![٠-٩])/g, '،'));
     let s = String(str);
-    s = s.replace(UNIT_RE, (m0, pre, u) => (pre === '(' ? pre : pre.replace(/\s+$/, '') + ' ') + UNIT_MAP[u]);
+    const vm = varMap(sim); const UM = vm.g12 ? UNIT_MAP12 : UNIT_MAP;
+    if (vm.g12) s = s.replace(UNIT_NUM12, (m0, num, u) => num + ' ' + UM[u]).replace(UNIT_PAR12, (m0, u) => '(' + UM[u] + ')');
+    else s = s.replace(UNIT_RE, (m0, pre, u) => (pre === '(' ? pre : pre.replace(/\s+$/, '') + ' ') + UM[u]);
     // رموز لاتينية مفردة (مع دليل سفلي اختياري): F, F₁, a_c, PV/T
-    const vm = varMap(sim);
     s = s.replace(/(^|[^A-Za-z])([A-Za-z])((?:_[A-Za-z0-9]+)|[₀-₉]+)?(?![A-Za-z])/g, (m0, pre, c, sub) => {
       if (sub && /^[₀-₉]/.test(sub) && /[HNOC]/.test(c)) return m0; // صيغ كيميائية H₂ ، O₂
       if (sub && sub[0] === '_' && vm.own[c + sub] !== undefined) return pre + vm.own[c + sub].replace('_', ' ');
@@ -283,12 +303,12 @@
     s = s.replace(/(^|[^A-Za-z])([A-Za-z]{2,3})(?![A-Za-z])/g, (m0, pre, w) => {
       if (ACR.test(w)) return m0;
       const up = /^[A-Z]+$/.test(w);
-      return pre + w.split('').map((c) => { const r = vm.own[c] || vm.base[c] || c; return r.replace('_', ' '); }).join(up ? '' : ' ');
+      return pre + w.split('').map((c) => { const r = vm.own[c] || vm.base[c] || c; return r.replace('_', ' '); }).join(up && !vm.g12 ? '' : ' ');
     });
     s = s.replace(/(^|[^A-Za-z])Pa(?![A-Za-z])/g, '$1باسكال');
     // كلمات/اختصارات شائعة في التسميات
     s = s.replace(/\bLST\b/g, 'ت.ن').replace(/\bPV\b/g, 'ض ح');
-    s = s.replace(/[θφαβδλρωμ]/g, (c) => { const k = { 'θ': 'theta', 'φ': 'varphi', 'α': 'alpha', 'β': 'beta', 'δ': 'delta', 'λ': 'lambda', 'ρ': 'rho', 'ω': 'omega', 'μ': 'mu' }[c]; const r = vm.own['\\' + k] || vm.greek[k]; return r && /[\u0600-\u06FF]/.test(r) ? r.replace('_', ' ') : c; });
+    s = s.replace(/[θφαβδλρωμετσ]/g, (c, off) => { const k = { 'θ': 'theta', 'φ': 'varphi', 'α': 'alpha', 'β': 'beta', 'δ': 'delta', 'λ': 'lambda', 'ρ': 'rho', 'ω': 'omega', 'μ': 'mu', 'ε': 'varepsilon', 'τ': 'tau', 'σ': 'sigma' }[c]; const r = vm.own['\\' + k] || vm.greek[k]; const nx = s[off + 1] || '', pv = s[off - 1] || ''; return r && /[\u0600-\u06FF]/.test(r) ? (vm.g12 && /[\u0600-\u06FF]/.test(pv) ? ' ' : '') + r.replace('_', ' ') + (vm.g12 && /[\u0600-\u06FFA-Za-z]/.test(nx) ? ' ' : '') : c; });
     s = s.replace(/[₀-₉]/g, (c) => SUBD[c]);
     s = s.replace(/(?<![٠-٩]),|,(?![٠-٩])/g, '،').replace(/(\d)\.(\d)/g, '$1,$2');
     return isoNeg(toAD(s));
@@ -323,22 +343,16 @@
     // صيغة الكتاب: النص المعرّب يُرسم من اليمين لليسار؛ فقط المقاطع اللاتينية (H₂ …) تُعزل
     const ARX = /[\u0600-\u06FF]/;
     const rtlText = (t) => isoNeg(t.replace(/[\u2066-\u2069]/g, '')).replace(/[0-9]*[A-Za-z][A-Za-z0-9₀-₉′'’]*(?:[ –\-/]+[A-Za-z][A-Za-z0-9₀-₉′'’]*)*/g, (m) => '\u2066' + m + '\u2069');
-    // فيزياء الثاني عشر: صيغ لاتينية كاملة بأرقام غربية داخل نص عربي (I = 0.36 A) تُعزل كتلة واحدة
-    const LATRUN = /[A-Za-z0-9Ͱ-Ͽ₀-₉⁰-⁹⁻\u2090-\u209C\u1D62-\u1D6A\u2C7C×=+\-−.,/%'’∥≈→↑↓_½√²³° ]+/g;
-    const latFormula = () => !!(ML.curSim && ML.curSim.subject === 'g12-physics');
-    const rtlFormula = (t) => t.replace(/[⁦-⁩]/g, '').replace(LATRUN, (m) => { let i = 0, j = m.length; while (i < j && !/[A-Za-z0-9Ͱ-Ͽ(√−\-½]/.test(m[i])) i++; while (j > i && /[\s(.,:=⇒÷×+]/.test(m[j - 1])) j--; const core = m.slice(i, j); if (!/[A-Za-z0-9Ͱ-Ͽ]/.test(core)) return m; return m.slice(0, i) + '⁦' + core + '⁩' + m.slice(j); });
-    const SUBL = { a: 'ₐ', e: 'ₑ', o: 'ₒ', x: 'ₓ', h: 'ₕ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', p: 'ₚ', s: 'ₛ', t: 'ₜ', i: 'ᵢ', j: 'ⱼ', r: 'ᵣ', u: 'ᵤ', v: 'ᵥ', 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
-    const subs = (t) => t.replace(/([A-Za-zͰ-Ͽ])_([A-Za-z0-9]{1,4})/g, (m, a2, b2) => a2 + b2.split('').map((c) => SUBL[c] || c).join(''));
     function draw(fn, ctx, t, a) {
-      t = L(String(t)); if (latFormula()) t = subs(t);
+      t = L(String(t));
       if (mode !== 'ar' || !ARX.test(t)) return fn.call(ctx, t, ...a);
       if (/[⁰¹²³⁴-⁹]/.test(t) && sciDraw(fn, ctx, t, a[0], a[1])) return undefined;
       const d = ctx.direction; ctx.direction = 'rtl';
-      const r = fn.call(ctx, latFormula() ? rtlFormula(t) : rtlText(t), ...a); ctx.direction = d; return r;
+      const r = fn.call(ctx, rtlText(t), ...a); ctx.direction = d; return r;
     }
     proto.fillText = function (t, ...a) { return draw(ft, this, t, a); };
     proto.strokeText = function (t, ...a) { return draw(st, this, t, a); };
-    proto.measureText = function (t) { t = L(String(t)); if (latFormula()) t = subs(t); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, latFormula() ? rtlFormula(t) : rtlText(t)); this.direction = d; return r; };
+    proto.measureText = function (t) { t = L(String(t)); if (mode !== 'ar' || !ARX.test(t)) return mt.call(this, t); const d = this.direction; this.direction = 'rtl'; const r = mt.call(this, rtlText(t)); this.direction = d; return r; };
     proto.__mlLoc = true;
   }
 

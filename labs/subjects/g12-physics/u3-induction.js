@@ -56,7 +56,7 @@
     },
     graphModes: ['Φ – t', 'ε – t'],
     explain(a, b, da, db) { const o = []; if (a.dt !== b.dt) o.push('تغيير التدفق بسرعة أكبر (Δt أصغر) يزيد القوة الدافعة الحثية.'); if (a.th !== b.th && b.th === 90) o.push('مستوى الملف موازٍ للمجال: التدفق صفر دائماً.'); return o; },
-    learn: ['**نشاط (1-8) ص124:** لا يتولد تيار في الملف الثاني والتيار ثابت، بل لحظة غلق الدارة وفتحها (بانحرافين متعاكسين).', '**التدفق (8-1) ص125:** Φ = BA cosθ ويقاس بالويبر Wb = T.m².', '**قانون فارادي (8-4) ص127:** ε = −N ΔΦ/Δt ، والتيار الحثي I = ε/R (8-5).'],
+    learn: ['**نشاط (1-8) ص124:** لا يتولد تيار في الملف الثاني والتيار ثابت، بل لحظة غلق الدارة وفتحها (بانحرافين متعاكسين).', '**التدفق (8-1) ص125:** Φ = BA cosθ ويقاس بالويبر ويبر = تسلا.م².', '**قانون فارادي (8-4) ص127:** ε = −N ΔΦ/Δt ، والتيار الحثي I = ε/R (8-5).'],
     challenges: [
       { q: 'نشاط (1-8): اجعل المجال قوياً لكنه ثابت. هل يتولد تيار؟', hint: 'اجعل B₁ = B₂ ≠ 0.', init: { B1: 0, B2: 0.5 }, check: (p) => p.B1 === p.B2 && p.B1 > 0, why: () => 'لا تيار حثي: لا تغير في التدفق.' },
       { q: 'اجعل القوة الدافعة الحثية المتوسطة 10 V (قيمة مطلقة).', hint: 'زد N أو A أو ΔB أو قلل Δt.', init: { N: 100, A: 100, B1: 0, B2: 0.5, th: 0, dt: 0.5 }, check: (p, d) => Math.abs(Math.abs(d.e) - 10) < 1e-6, why: () => 'مثلاً N = 500 و A = 200 cm² و ΔB = 0.5 T و Δt = 0.5 s.' }
@@ -95,7 +95,7 @@
       K.fieldGrid(ctx, x0, yT - 10, x1 - x0, h + 20, false, cols.grid, 38);
       K.wire(ctx, [[x1, yT], [x0, yT], [x0, yT + h * 0.3]], cols, cols.text, 3); K.resistor(ctx, x0, yT + h * 0.3, x0, yT + h * 0.7, 'R = ' + p.R + ' Ω', cols); K.wire(ctx, [[x0, yT + h * 0.7], [x0, yB], [x1, yB]], cols, cols.text, 3);
       const xr = x0 + 70 + ((st.t * (20 + p.v * 12)) % (x1 - x0 - 100)); ctx.strokeStyle = '#c2410c'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(xr, yT - 8); ctx.lineTo(xr, yB + 8); ctx.stroke();
-      lbl(ctx, 'a', xr + 12, yT - 12, cols.c5, cols); lbl(ctx, 'b', xr + 12, yB + 14, cols.c5, cols);
+      lbl(ctx, 'أ', xr + 12, yT - 12, cols.c5, cols); lbl(ctx, 'ب', xr + 12, yB + 14, cols.c5, cols);
       K.vec(ctx, xr, (yT + yB) / 2 - 20, 50, 0, cols.c3, 'v', cols); K.vec(ctx, xr, (yT + yB) / 2 + 20, -45, 0, cols.c2, 'F', cols);
       D.arrow(ctx, xr + 18, yB - 30, xr + 18, yT + 30, cols.c4, 2.5); lbl(ctx, 'I', xr + 30, (yT + yB) / 2, cols.c4, cols, 13);
       D.txt(ctx, 'ε = ' + n(d.e, 4) + ' V   I = ' + n(d.I, 4) + ' A', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 13 : 15, w: '700' });
@@ -109,8 +109,8 @@
     ],
     tutor: [
       { q: 'لماذا نحتاج قوة خارجية لتحريك الموصل بسرعة ثابتة؟', k: ['خارجيه', 'ثابته'], a: () => K.tutor('ما اتجاه القوة المغناطيسية على التيار الحثي في الموصل؟', 'المجال يؤثر في التيار الحثي بقوة تعاكس الحركة، فيلزم قوة خارجية تساويها.') },
-      { q: 'من أين تأتي الطاقة الكهربائية؟', k: ['طاقه'], a: () => K.tutor('من يبذل الشغل؟', 'من شغل القوة الخارجية: F v = εI.') },
-      { q: 'كيف أحدد اتجاه التيار الحثي؟', k: ['اتجاه'], a: () => K.tutor('ما اتجاه القوة qv × B على الشحنات الموجبة في الموصل؟', 'في الشكل: من b إلى a داخل الموصل، أي عكس عقارب الساعة في الدارة.') }
+      { q: 'من أين تأتي الطاقة الكهربائية؟', k: ['طاقه'], a: () => K.tutor('من يبذل الشغل؟', 'من شغل القوة الخارجية: F v = ε I.') },
+      { q: 'كيف أحدد اتجاه التيار الحثي؟', k: ['اتجاه'], a: () => K.tutor('ما اتجاه القوة qv × B على الشحنات الموجبة في الموصل؟', 'في الشكل: من ب إلى أ داخل الموصل، أي عكس عقارب الساعة في الدارة.') }
     ]
   });
 
@@ -125,7 +125,7 @@
     vars: [['\\text{القطب}', 'قطب المغناطيس المواجه للملف', '—', 'N / S'], ['\\text{الحركة}', 'تقريب / إبعاد / سكون', '—', '—'], ['v', 'سرعة المغناطيس', '\\text{نسبية}', '1 – 5'], ['\\varepsilon', 'القوة الدافعة الحثية', '\\text{نسبية}', '—']],
     assumptions: ['قيم التدفق والقوة الدافعة في الرسم نسبية لتوضيح الإشارة والشكل: ' + Q.SIMPLE + '.'],
     params: [
-      { key: 'pole', label: '\\text{القطب المواجه}', type: 'select', value: 'N', options: [['N', 'شمالي N'], ['S', 'جنوبي S']] },
+      { key: 'pole', label: '\\text{القطب المواجه}', type: 'select', value: 'N', options: [['N', 'شمالي'], ['S', 'جنوبي']] },
       { key: 'mot', label: '\\text{الحركة}', type: 'select', value: 'in', options: [['in', 'تقريب'], ['out', 'إبعاد'], ['still', 'سكون']] },
       { key: 'v', label: 'v', min: 1, max: 5, step: 1, value: 2 }
     ],
@@ -142,16 +142,16 @@
       return { T: T, x: x, phi: phi, emf: emf, face: face, force: p.mot === 'still' ? 'none' : p.mot === 'in' ? 'repel' : 'attract' };
     },
     live(p, d) { return p.mot === 'still' ? '\\Delta\\Phi = 0 \\Rightarrow \\varepsilon = 0' : '\\Delta\\Phi ' + (p.mot === 'in' ? '\\uparrow' : '\\downarrow') + ' \\Rightarrow \\varepsilon = -N\\frac{\\Delta\\Phi}{\\Delta t} \\neq 0'; },
-    results(p, d) { return [['التغير في التدفق', p.mot === 'still' ? 'لا تغير' : p.mot === 'in' ? 'يزداد' : 'يتناقص', false], ['قطبية وجه الملف القريب', d.face ? (d.face === 'N' ? 'قطب شمالي N' : 'قطب جنوبي S') : 'لا قطبية (لا تيار)', false, 'pos'], ['القوة بين الملف والمغناطيس', d.force === 'repel' ? 'تنافر يقاوم الاقتراب' : d.force === 'attract' ? 'تجاذب يقاوم الابتعاد' : 'لا قوة', false], ['اتجاه المجال الحثي', d.face ? (p.mot === 'in' ? 'عكس المجال المؤثر' : 'مع المجال المؤثر') : '—', false]]; },
-    steps(p, d) { return ['1) المجال المؤثر من القطب ' + p.pole + ' يخترق الملف.', '2) التدفق ' + (p.mot === 'still' ? 'ثابت.' : p.mot === 'in' ? 'يزداد.' : 'يتناقص.'), '3) المجال الحثي ' + (p.mot === 'still' ? 'لا يتولد.' : p.mot === 'in' ? 'بعكس المجال المؤثر ليقاوم الزيادة.' : 'مع المجال المؤثر ليقاوم النقصان.'), '4) ' + (d.face ? 'وجه الملف القريب ' + d.face + ' ⇒ ' + (d.force === 'repel' ? 'تنافر.' : 'تجاذب.') : 'لا تيار حثي.')]; },
+    results(p, d) { return [['التغير في التدفق', p.mot === 'still' ? 'لا تغير' : p.mot === 'in' ? 'يزداد' : 'يتناقص', false], ['قطبية وجه الملف القريب', d.face ? (d.face === 'N' ? 'قطب شمالي' : 'قطب جنوبي') : 'لا قطبية (لا تيار)', false, 'pos'], ['القوة بين الملف والمغناطيس', d.force === 'repel' ? 'تنافر يقاوم الاقتراب' : d.force === 'attract' ? 'تجاذب يقاوم الابتعاد' : 'لا قوة', false], ['اتجاه المجال الحثي', d.face ? (p.mot === 'in' ? 'عكس المجال المؤثر' : 'مع المجال المؤثر') : '—', false]]; },
+    steps(p, d) { return ['1) المجال المؤثر من القطب ' + (p.pole === 'N' ? 'الشمالي' : 'الجنوبي') + ' يخترق الملف.', '2) التدفق ' + (p.mot === 'still' ? 'ثابت.' : p.mot === 'in' ? 'يزداد.' : 'يتناقص.'), '3) المجال الحثي ' + (p.mot === 'still' ? 'لا يتولد.' : p.mot === 'in' ? 'بعكس المجال المؤثر ليقاوم الزيادة.' : 'مع المجال المؤثر ليقاوم النقصان.'), '4) ' + (d.face ? 'وجه الملف القريب قطب ' + (d.face === 'N' ? 'شمالي' : 'جنوبي') + ' ⇒ ' + (d.force === 'repel' ? 'تنافر.' : 'تجاذب.') : 'لا تيار حثي.')]; },
     drawCustom(ctx, W, H, p, d, cols) {
       const st = d.st || { t: 0 }; const cy = H * 0.42, cx0 = W * 0.58, len = W * 0.3, h = H * 0.16; const sc = (W * 0.42) / 4.5;
       coil(ctx, cx0, cy, len, h, 8, cols); const mx = cx0 - 10 - d.x(st.t) * sc; const mw = Math.min(W * 0.22, 130);
       ctx.fillStyle = p.pole === 'N' ? '#64748b' : '#dc2626'; ctx.fillRect(mx - mw, cy - 18, mw / 2, 36); ctx.fillStyle = p.pole === 'N' ? '#dc2626' : '#64748b'; ctx.fillRect(mx - mw / 2, cy - 18, mw / 2, 36);
-      D.txt(ctx, p.pole === 'N' ? 'S' : 'N', mx - mw * 0.75, cy, { color: '#fff', size: 15, w: '700' }); D.txt(ctx, p.pole, mx - mw * 0.25, cy, { color: '#fff', size: 15, w: '700' });
+      D.txt(ctx, p.pole === 'N' ? 'ج' : 'ش', mx - mw * 0.75, cy, { color: '#fff', size: 15, w: '700' }); D.txt(ctx, p.pole === 'N' ? 'ش' : 'ج', mx - mw * 0.25, cy, { color: '#fff', size: 15, w: '700' });
       if (p.mot !== 'still') K.vec(ctx, mx - mw / 2, cy - 34, p.mot === 'in' ? 40 : -40, 0, cols.c3, 'v', cols);
       const e = p.mot === 'still' ? 0 : d.emf(st.t); const em = Math.max(...[0, 0.25, 0.5, 0.75, 1].map((f) => Math.abs(d.emf(f * d.T)))) || 1;
-      if (d.face) lbl(ctx, d.face, cx0 - 4, cy - h - 16, d.face === 'N' ? '#dc2626' : '#64748b', cols, 18);
+      if (d.face) lbl(ctx, d.face === 'N' ? 'ش' : 'ج', cx0 - 4, cy - h - 16, d.face === 'N' ? '#dc2626' : '#64748b', cols, 18);
       if (d.force !== 'none') { const s = d.force === 'repel' ? -1 : 1; K.vec(ctx, mx - mw / 2, cy + 34, s * 36, 0, cols.c2, d.force === 'repel' ? 'تنافر' : 'تجاذب', cols); }
       K.wire(ctx, [[cx0 + 4, cy + h], [cx0 + 4, H * 0.86], [cx0 + len - 4, H * 0.86], [cx0 + len - 4, cy + h]], cols); galv(ctx, cx0 + len / 2, H * 0.84, 26, e / em, cols);
       D.txt(ctx, 'قانون لنز: التيار الحثي يقاوم التغير', W / 2, H * 0.07, { color: cols.text, size: K.narrow(W) ? 13 : 15, w: '700' });
@@ -165,7 +165,7 @@
     explain(a, b, da, db) { const o = []; if (a.mot !== b.mot) o.push(b.mot === 'in' ? 'التقريب يزيد التدفق: الملف يتنافر مع المغناطيس.' : b.mot === 'out' ? 'الإبعاد يقلل التدفق: الملف يجذب المغناطيس.' : 'دون حركة لا يتغير التدفق فلا تيار.'); if (a.pole !== b.pole) o.push('تغيير القطب يعكس اتجاه التيار الحثي.'); return o; },
     learn: ['**قانون لنز ص128:** اتجاه التيار الحثي يقاوم المسبب له، وهو التغير في التدفق.', '**الخطوات:** حدد المجال المؤثر ← هل التدفق يزداد أم يقل؟ ← المجال الحثي عكس المؤثر عند الزيادة ومعه عند النقصان ← اتجاه التيار باليد اليمنى.', 'الإشارة السالبة في قانون فارادي تعبّر عن قانون لنز، وهو تطبيق لحفظ الطاقة.'],
     challenges: [
-      { q: 'الشكل (5-8): قرّب القطب الشمالي من الملف. ما قطبية وجه الملف القريب؟', hint: 'اختر N و«تقريب».', init: { pole: 'S', mot: 'out' }, check: (p) => p.pole === 'N' && p.mot === 'in', why: () => 'يصبح الوجه القريب قطباً شمالياً فيتنافر مع المغناطيس.' },
+      { q: 'الشكل (5-8): قرّب القطب الشمالي من الملف. ما قطبية وجه الملف القريب؟', hint: 'اختر «شمالي» و«تقريب».', init: { pole: 'S', mot: 'out' }, check: (p) => p.pole === 'N' && p.mot === 'in', why: () => 'يصبح الوجه القريب قطباً شمالياً فيتنافر مع المغناطيس.' },
       { q: 'اجعل الملف يجذب المغناطيس.', hint: 'متى يقاوم الملف الابتعاد؟', init: { pole: 'N', mot: 'in' }, check: (p) => p.mot === 'out', why: () => 'عند الإبعاد يتناقص التدفق فيتولد قطب مخالف يجذب المغناطيس.' }
     ],
     tutor: [
@@ -177,7 +177,7 @@
 
   /* ======================= 5-8 الحث الذاتي ص129–131 ======================= */
   K.reg({
-    id: 'self-induction', unit: 8, order: 4, lesson: '5-8', lessonTitle: 'الحث الذاتي', page: 130,
+    id: 'self-induction', ar: { n: 'ن_ل' }, unit: 8, order: 4, lesson: '5-8', lessonTitle: 'الحث الذاتي', page: 130,
     titleAr: 'الحث الذاتي: محاثة ملف حلزوني', titleEn: 'Self-Induction and Inductance', tags: 'حث ذاتي محاثة معامل الحث هنري ملف حلزوني قوة دافعة عكسية مثال 3',
     formula: 'L_{in} = \\frac{N\\Phi}{I} = \\frac{\\mu_0 N^2 A}{L} ,\\qquad \\varepsilon = -L_{in}\\frac{\\Delta I}{\\Delta t}',
     book: 'القوانين (8-6) و(8-7) و(8-8) ص129–130. مثال (3) ص131: ملف 300 لفة طوله 0.25 m ومقطعه 4 cm² ⇒ L_in = 1.81 × 10⁻⁴ H ، وعندما يتناقص التيار بمعدل 50 A/s ⇒ ε = 9.05 × 10⁻³ V.',
@@ -193,18 +193,18 @@
     compute(p) { const Lin = Q.mu0 * p.N * p.N * p.A * 1e-4 / p.len; const e = -Lin * p.r; return { Lin: Lin, e: Math.abs(e) < 1e-15 ? 0 : e }; },
     live(p, d) { return 'L_{in} = \\frac{4\\pi \\times 10^{-7} \\times ' + p.N + '^2 \\times ' + p.A + ' \\times 10^{-4}}{' + p.len + '} = ' + q(d.Lin, 'H', 3) + ' ,\\quad \\varepsilon = ' + q(d.e, 'V', 3); },
     results(p, d) { return [['المحاثة L_in', q(d.Lin, 'H', 3), true, 'pos'], ['القوة الدافعة الحثية الذاتية', q(d.e, 'V', 3), true], ['اتجاهها', p.r > 0 ? 'عكس التيار الأصلي (تقاوم الزيادة)' : p.r < 0 ? 'مع التيار الأصلي (تقاوم النقصان)' : 'لا قوة دافعة: التيار ثابت', false]]; },
-    steps(p, d) { return ['n = N/L = ' + n(p.N / p.len) + ' لفة/m.', 'L_in = μ₀ N² A / L = ' + sct(d.Lin, 3) + ' H.', 'ε = −L_in ΔI/Δt = −' + sct(d.Lin, 3) + ' × (' + p.r + ') = ' + sct(d.e, 3) + ' V.']; },
+    steps(p, d) { return ['n = N/L = ' + n(p.N / p.len) + ' لفة/م.', 'L_in = μ₀ N² A / L = ' + sct(d.Lin, 3) + ' H.', 'ε = −L_in ΔI/Δt = −' + sct(d.Lin, 3) + ' × (' + p.r + ') = ' + sct(d.e, 3) + ' V.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const cy = H * 0.48, len = (W - 140) * (0.35 + 0.65 * p.len), x0 = (W - len) / 2, h = 14 + p.A * 3.2; const turns = Math.max(4, Math.min(36, Math.round(p.N / 25)));
       coil(ctx, x0, cy, len, h, turns, cols);
       K.wire(ctx, [[x0, cy + h], [x0 - 30, cy + h + 30], [x0 - 30, H * 0.86], [x0 + len + 30, H * 0.86], [x0 + len + 30, cy + h + 30], [x0 + len, cy + h]], cols);
       D.arrow(ctx, W / 2 - 40, H * 0.86 - 14, W / 2 + 40, H * 0.86 - 14, cols.c1, 3); lbl(ctx, 'I ' + (p.r > 0 ? '↑ يزداد' : p.r < 0 ? '↓ يتناقص' : 'ثابت'), W / 2, H * 0.86 + 16, cols.c1, cols);
       if (p.r !== 0) { const s = p.r > 0 ? -1 : 1; D.arrow(ctx, W / 2 - s * 50, cy - h - 24, W / 2 + s * 50, cy - h - 24, cols.c2, 3); lbl(ctx, 'ε الحثية', W / 2, cy - h - 42, cols.c2, cols, 13); }
-      D.txt(ctx, 'Lin = ' + sct(d.Lin, 3) + ' H', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 14 : 16, w: '700' });
+      D.txt(ctx, 'L_in = ' + sct(d.Lin, 3) + ' H', W / 2, H * 0.08, { color: cols.text, size: K.narrow(W) ? 14 : 16, w: '700' });
     },
-    graph(p, d) { const m = d.Lin * 100; return { view: { xmin: -100, xmax: 100, ymin: -m * 1.1, ymax: m * 1.1 }, xLabel: 'ΔI/Δt (A/s)', yLabel: 'ε (V)', caption: 'ε = −Lin ΔI/Δt: ميل الخط يساوي −Lin.', draw(G) { const c = G.colors(); G.fn((r) => -d.Lin * r, { color: c.c1, width: 3, domain: [-100, 100] }); G.hline(0, { color: c.muted }); G.vline(0, { color: c.muted }); G.point(p.r, d.e, { color: c.c2 }); } }; },
+    graph(p, d) { const m = d.Lin * 100; return { view: { xmin: -100, xmax: 100, ymin: -m * 1.1, ymax: m * 1.1 }, xLabel: 'ΔI/Δt (A/s)', yLabel: 'ε (V)', caption: 'ε = −L_in ΔI/Δt: ميل الخط يساوي −L_in.', draw(G) { const c = G.colors(); G.fn((r) => -d.Lin * r, { color: c.c1, width: 3, domain: [-100, 100] }); G.hline(0, { color: c.muted }); G.vline(0, { color: c.muted }); G.point(p.r, d.e, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.N !== b.N) o.push('المحاثة تتناسب مع مربع عدد اللفات.'); if (a.len !== b.len) o.push('إطالة الملف بعدد اللفات نفسه تقلل المحاثة.'); return o; },
-    learn: ['**المحاثة (8-6) ص129:** L_in = NΦ/I ، ووحدتها الهنري H = Wb/A.', '**للملف الحلزوني (8-7):** L_in = μ₀N²A/L ؛ لا تعتمد على التيار، وهي موجبة دائماً.', '**(8-8) ص130:** ε = −L_in ΔI/Δt ؛ الهنري: محاثة محث تتولد فيه 1 V عندما يتغير التيار بمعدل 1 A/s.'],
+    learn: ['**المحاثة (8-6) ص129:** L_in = NΦ/I ، ووحدتها الهنري هنري = ويبر/أمبير.', '**للملف الحلزوني (8-7):** L_in = μ₀N²A/L ؛ لا تعتمد على التيار، وهي موجبة دائماً.', '**(8-8) ص130:** ε = −L_in ΔI/Δt ؛ الهنري: محاثة محث تتولد فيه 1 V عندما يتغير التيار بمعدل 1 A/s.'],
     challenges: [
       { q: 'مثال (3): ملف 300 لفة طوله 0.25 m ومقطعه 4 cm²، والتيار يتناقص بمعدل 50 A/s.', hint: 'N = 300 ، L = 0.25 ، A = 4 ، ΔI/Δt = −50.', init: { N: 200, len: 0.5, A: 6, r: 20 }, check: (p) => p.N === 300 && Math.abs(p.len - 0.25) < 1e-9 && p.A === 4 && p.r === -50, why: () => 'L_in = 1.81×10⁻⁴ H و ε = 9.05×10⁻³ V.' },
       { q: 'أناقش: ضاعف عدد لفات ملف مثال (3) مع بقاء طوله. ماذا يحدث للمحاثة؟', hint: 'N = 600.', init: { N: 300, len: 0.25, A: 4, r: -50 }, check: (p) => p.N === 600 && Math.abs(p.len - 0.25) < 1e-9 && p.A === 4, why: () => 'تتضاعف أربع مرات: 7.24×10⁻⁴ H.' }
@@ -218,11 +218,11 @@
 
   /* ======================= 6-8 دارة RL ص131–133 ======================= */
   K.reg({
-    id: 'rl-circuit', unit: 8, order: 5, lesson: '6-8', lessonTitle: 'دارة كهربائية تحتوي على مقاومة ومحث', page: 132,
-    titleAr: 'دارة RL: نمو التيار والطاقة المختزنة', titleEn: 'RL Circuit and Stored Energy', tags: 'دارة مقاومة محث نمو التيار تلاشي طاقة مختزنة معدل نمو مثال 4',
+    id: 'rl-circuit', ar: { E: 'ط' }, unit: 8, order: 5, lesson: '6-8', lessonTitle: 'دارة كهربائية تحتوي على مقاومة ومحث', page: 132,
+    titleAr: 'دارة المقاومة والمحث: نمو التيار والطاقة المختزنة', titleEn: 'RL Circuit and Stored Energy', tags: 'دارة مقاومة محث نمو التيار تلاشي طاقة مختزنة معدل نمو مثال 4',
     formula: '\\frac{\\Delta I}{\\Delta t} = \\frac{\\varepsilon}{L_{in}} - \\frac{I\\sum R}{L_{in}} ,\\qquad E = \\tfrac12 L_{in} I^2',
     book: 'القانون (8-9) والشكل (10-8) ص132، والقانون (8-10) ص133. مثال (4) ص133: محاثة 53 mH ومقاومة 0.35 Ω وبطارية 12 V ⇒ I_final = 34.3 A و E = 31.16 J.',
-    summary: 'عند غلق الدارة لا يصل التيار إلى قيمته النهائية فوراً؛ القوة الدافعة الحثية العكسية في المحث تجعله ينمو بسرعة أولاً ثم ببطء حتى ε/ΣR. وعند فتح الدارة يتلاشى تدريجياً. يختزن المحث طاقة ½L_inI² في مجاله المغناطيسي.',
+    summary: 'عند غلق الدارة لا يصل التيار إلى قيمته النهائية فوراً؛ القوة الدافعة الحثية العكسية في المحث تجعله ينمو بسرعة أولاً ثم ببطء حتى ε/ΣR. وعند فتح الدارة يتلاشى تدريجياً. يختزن المحث طاقة ½L_in I² في مجاله المغناطيسي.',
     vars: [['\\varepsilon', 'القوة الدافعة للبطارية', '\\mathrm{V}', '1 – 24'], ['\\sum R', 'مجموع المقاومات', '\\Omega', '0.1 – 10'], ['L_{in}', 'المحاثة', '\\mathrm{mH}', '1 – 200'], ['I', 'التيار', '\\mathrm{A}', '—']],
     assumptions: ['منحنى I مع الزمن ناتج عن حل المعادلة (8-9) عددياً.', 'الزمن في الحركة مبطّأ ليظهر النمو.', 'عند فتح الدارة يُفترض بقاء مسار يتلاشى فيه التيار تدريجياً كما في الشكل (11-8).'],
     params: [
@@ -237,12 +237,12 @@
     tick(st, p, d, dt) { const L = p.Lm * 1e-3, tau = L / p.R; let h = dt * tau * 1.6; const nS = Math.max(1, Math.ceil(h / (tau / 40))); h /= nS; for (let i = 0; i < nS; i++) st.I += ((p.sw ? p.e : 0) - st.I * p.R) / L * h; st.t += dt * tau * 1.6; },
     compute(p) { const L = p.Lm * 1e-3; const If = p.e / p.R; return { L: L, If: If, r0: p.e / L, tau: L / p.R, E: 0.5 * L * If * If }; },
     live(p, d) { const I = d.st ? d.st.I : 0; return '\\frac{\\Delta I}{\\Delta t} = \\frac{' + p.e + '}{' + d.L + '} - \\frac{' + n(I, 3) + ' \\times ' + p.R + '}{' + d.L + '} = ' + q(((p.sw ? p.e : 0) - I * p.R) / d.L, 'A/s', 3); },
-    results(p, d) { const I = d.st ? d.st.I : 0; return [['معدل النمو لحظة الغلق ε/L_in', q(d.r0, 'A/s', 4)], ['التيار النهائي ε/ΣR', q(d.If, 'A', 4), true, 'pos'], ['التيار الآن', q(I, 'A', 4)], ['الطاقة العظمى المختزنة ½L_inI²', q(d.E, 'J', 4), true, 'pos'], ['الطاقة المختزنة الآن', q(0.5 * d.L * I * I, 'J', 4)]]; },
+    results(p, d) { const I = d.st ? d.st.I : 0; return [['معدل النمو لحظة الغلق ε/L_in', q(d.r0, 'A/s', 4)], ['التيار النهائي ε/ΣR', q(d.If, 'A', 4), true, 'pos'], ['التيار الآن', q(I, 'A', 4)], ['الطاقة العظمى المختزنة ½L_in I²', q(d.E, 'J', 4), true, 'pos'], ['الطاقة المختزنة الآن', q(0.5 * d.L * I * I, 'J', 4)]]; },
     steps(p, d) { return ['لحظة الغلق I = 0 ⇒ ΔI/Δt = ε/L_in = ' + n(d.r0) + ' A/s، والقوة الدافعة الحثية = ε.', 'نهائياً ΔI/Δt = 0 ⇒ I = ε/ΣR = ' + p.e + ' ÷ ' + p.R + ' = ' + n(d.If) + ' A.', 'E = ½ L_in I² = ½ × ' + d.L + ' × ' + n(d.If) + '² = ' + n(d.E) + ' J.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const I = d.st ? d.st.I : 0; const xL = W * 0.15, xR = W * 0.85, yT = H * 0.3, yB = H * 0.8;
       K.wire(ctx, [[xL, yB], [xL, yT], [W * 0.32, yT]], cols); K.resistor(ctx, W * 0.32, yT, W * 0.52, yT, 'ΣR = ' + p.R + ' Ω', cols);
-      K.wire(ctx, [[W * 0.52, yT], [W * 0.58, yT]], cols); for (let k = 0; k < 5; k++) { ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(W * 0.6 + k * (W * 0.035), yT, W * 0.0175, Math.PI, 0); ctx.stroke(); } lbl(ctx, 'L = ' + p.Lm + ' mH', W * 0.68, yT - 30, '#b45309', cols);
+      K.wire(ctx, [[W * 0.52, yT], [W * 0.58, yT]], cols); for (let k = 0; k < 5; k++) { ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(W * 0.6 + k * (W * 0.035), yT, W * 0.0175, Math.PI, 0); ctx.stroke(); } lbl(ctx, 'L_in = ' + p.Lm + ' mH', W * 0.68, yT - 30, '#b45309', cols);
       K.wire(ctx, [[W * 0.6 + 4.5 * W * 0.035, yT], [xR, yT], [xR, yB], [W / 2 + 30, yB]], cols); K.battery(ctx, W / 2, yB, true, 'ε = ' + p.e + ' V', cols);
       const sx = W / 2 - 10; ctx.strokeStyle = cols.text; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(xL, yB); ctx.lineTo(sx - 50, yB); ctx.lineTo(sx - 12, p.sw ? yB : yB - 24); ctx.stroke(); K.wire(ctx, [[sx - 12, yB], [sx, yB]], cols);
       const fr = Math.min(1, Math.abs(I) / Math.max(d.If, 1e-9)); ctx.fillStyle = cols.grid; ctx.fillRect(W * 0.2, H * 0.12, W * 0.6, 12); ctx.fillStyle = cols.c2; ctx.fillRect(W * 0.2, H * 0.12, W * 0.6 * fr, 12);
@@ -250,7 +250,7 @@
     },
     graph(p, d) { const st = d.st || { t: 0, I: 0 }; const T = 6 * d.tau; return { view: { xmin: 0, xmax: T, ymin: 0, ymax: d.If * 1.15 }, xLabel: 't (s)', yLabel: 'I (A)', caption: 'الشكل (10-8): ينمو التيار بسرعة أولاً ثم ببطء حتى ε/ΣR.', draw(G) { const c = G.colors(); G.fn((t) => d.If * (1 - Math.exp(-t / d.tau)), { color: c.c1, width: 3, domain: [0, T] }); G.hline(d.If, { color: c.muted, dash: [6, 4] }); G.point(Math.min(st.t, T), st.I, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.sw !== b.sw) o.push(b.sw ? 'أُغلقت الدارة: ينمو التيار تدريجياً.' : 'فُتحت الدارة: يتلاشى التيار تدريجياً لأن المحث يقاوم النقصان.'); if (a.Lm !== b.Lm) o.push('المحاثة الأكبر تبطئ نمو التيار ولا تغيّر قيمته النهائية.'); return o; },
-    learn: ['**(8-9) ص132:** ΔI/Δt = ε/L_in − IΣR/L_in.', '**أناقش:** لحظة الغلق ΔI/Δt = ε/L_in والقوة الدافعة الحثية تساوي ε؛ ونهائياً I = ε/ΣR.', '**الطاقة (8-10) ص133:** E = ½L_inI²، وللملف الحلزوني E = B²AL/(2μ₀).'],
+    learn: ['**(8-9) ص132:** ΔI/Δt = ε/L_in − IΣR/L_in.', '**أناقش:** لحظة الغلق ΔI/Δt = ε/L_in والقوة الدافعة الحثية تساوي ε؛ ونهائياً I = ε/ΣR.', '**الطاقة (8-10) ص133:** E = ½L_in I²، وللملف الحلزوني E = B²AL/(2μ₀).'],
     challenges: [
       { q: 'مثال (4): محث 53 mH ومقاومته 0.35 Ω مع بطارية 12 V. ما الطاقة المختزنة عند التيار الأعظم؟', hint: 'ΣR = 0.35 ، L = 53.', init: { e: 12, R: 2, Lm: 100 }, check: (p) => p.e === 12 && Math.abs(p.R - 0.35) < 1e-9 && p.Lm === 53, why: () => 'I = 34.3 A و E ≈ 31.16 J.' },
       { q: 'ببطارية 12 V اجعل معدل نمو التيار لحظة الغلق 400 A/s.', hint: 'ε/L_in = 400.', init: { e: 12, R: 2, Lm: 100 }, check: (p, d) => p.e === 12 && Math.abs(d.r0 - 400) < 1e-6, why: () => 'L_in = 12/400 = 30 mH.' }
@@ -258,7 +258,7 @@
     tutor: [
       { q: 'لماذا لا يصل التيار إلى قيمته النهائية فوراً؟', k: ['فورا', 'نهائيه'], a: () => K.tutor('ماذا يولّد المحث عندما يزداد التيار فيه؟', 'قوة دافعة حثية عكسية تقاوم نمو التيار.') },
       { q: 'ما التيار النهائي؟', k: ['النهائي'], a: (p, d) => K.tutor('ماذا يصبح ΔI/Δt بعد زمن طويل؟', 'I = ε/ΣR = ' + n(d.If) + ' A.') },
-      { q: 'أين تختزن الطاقة في المحث؟', k: ['تختزن', 'طاقه'], a: () => K.tutor('ما المجال الذي ينشأ داخل الملف؟', 'في المجال المغناطيسي داخل الملف: E = ½L_inI².') }
+      { q: 'أين تختزن الطاقة في المحث؟', k: ['تختزن', 'طاقه'], a: () => K.tutor('ما المجال الذي ينشأ داخل الملف؟', 'في المجال المغناطيسي داخل الملف: E = ½L_in I².') }
     ]
   });
 
@@ -288,7 +288,7 @@
     drawCustom(ctx, W, H, p, d, cols) {
       const st = d.st || { t: 0 }; const th = st.t * Math.min(6, 0.6 * p.w); const cx = W / 2, cy = H * 0.45, pw = Math.min(W * 0.16, 90), ch = Math.min(H * 0.26, 110);
       ctx.fillStyle = '#dc2626'; ctx.fillRect(cx - W * 0.4, cy - ch, W * 0.1, 2 * ch); ctx.fillStyle = '#64748b'; ctx.fillRect(cx + W * 0.3, cy - ch, W * 0.1, 2 * ch);
-      D.txt(ctx, 'N', cx - W * 0.35, cy, { color: '#fff', size: 18, w: '700' }); D.txt(ctx, 'S', cx + W * 0.35, cy, { color: '#fff', size: 18, w: '700' });
+      D.txt(ctx, 'ش', cx - W * 0.35, cy, { color: '#fff', size: 18, w: '700' }); D.txt(ctx, 'ج', cx + W * 0.35, cy, { color: '#fff', size: 18, w: '700' });
       for (let k = -2; k <= 2; k++) D.arrow(ctx, cx - W * 0.29, cy + k * ch * 0.4, cx + W * 0.29, cy + k * ch * 0.4, cols.grid, 1.2);
       const wv = pw * Math.cos(th); ctx.strokeStyle = '#b45309'; ctx.lineWidth = 4; ctx.strokeRect(cx - Math.abs(wv), cy - ch * 0.8, 2 * Math.abs(wv) + 0.5, ch * 1.6);
       const k = Math.sin(th);

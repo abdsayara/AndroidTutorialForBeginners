@@ -13,10 +13,10 @@
     formula: 'F = q\\,v \\times B ,\\qquad F = q v B \\sin\\theta',
     book: 'القانون (7-1) وقاعدة اليد اليمنى المفتوحة ص111. مثال (1) ص112: شحنة 8.4 μC بسرعة 100 m/s في مجال 0.3 T باتجاه +x عند الزوايا 30° و90° و180° و150° ⇒ 1.26 × 10⁻⁴ ، 2.52 × 10⁻⁴ ، 0 ، 1.26 × 10⁻⁴ N. مثال (2): إلكترون قرب سلك ⇒ 3.2 × 10⁻¹⁷ N.',
     summary: 'المجال المغناطيسي لا يؤثر في الشحنة الساكنة، ويؤثر في المتحركة بقوة تتناسب مع الشحنة والمجال ومركبة السرعة العمودية على المجال. اتجاه القوة عمودي على المستوى الذي يحوي v و B (اليد اليمنى للموجبة واليسرى للسالبة).',
-    vars: [['q', 'الشحنة', '\\mu\\mathrm{C}', '−10 – 10'], ['v', 'السرعة', '\\mathrm{m/s}', '0 – 1000'], ['B', 'المجال (باتجاه +x)', '\\mathrm{T}', '0 – 1'], ['\\theta', 'الزاوية بين v و B', '^\\circ', '0 – 180']],
+    vars: [['q', 'الشحنة', '\\mathrm{\\mu C}', '−10 – 10'], ['v', 'السرعة', '\\mathrm{m/s}', '0 – 1000'], ['B', 'المجال (باتجاه +x)', '\\mathrm{T}', '0 – 1'], ['\\theta', 'الزاوية بين v و B', '^\\circ', '0 – 180']],
     assumptions: ['المجال منتظم باتجاه +x، والسرعة في مستوى الصفحة.'],
     params: [
-      { key: 'qc', label: 'q\\ (\\mu\\mathrm{C})', min: -10, max: 10, step: 0.1, value: 5 },
+      { key: 'qc', label: 'q\\ (\\mathrm{\\mu C})', min: -10, max: 10, step: 0.1, value: 5 },
       { key: 'v', label: 'v\\ (\\mathrm{m/s})', min: 0, max: 1000, step: 10, value: 100 },
       { key: 'B', label: 'B\\ (\\mathrm{T})', min: 0, max: 1, step: 0.05, value: 0.3 },
       { key: 'th', label: '\\theta\\ (^\\circ)', min: 0, max: 180, step: 5, value: 60 }
@@ -132,7 +132,7 @@
     },
     graph(p, d) { const k = d.v / p.R; return { view: { xmin: 0, xmax: 6, ymin: 0, ymax: k * 6 * 1.1 }, xLabel: 'r (m)', yLabel: 'v (m/s)', caption: 'سرعة الخروج تتناسب مع نصف قطر السيكلترون: v = 2πf r.', draw(G) { const c = G.colors(); G.fn((r) => k * r, { color: c.c1, width: 3, domain: [0, 6] }); G.point(p.R, d.v, { color: c.c2 }); } }; },
     explain(a, b, da, db) { const o = []; if (a.R !== b.R) o.push('السيكلترون الأكبر يُخرج الجسيم بسرعة أكبر.'); return o; },
-    learn: ['**مكوناته ص114:** نصفا قرص نحاسي (D) مفرغان من الهواء، في مجال مغناطيسي منتظم، ومتصلان بمصدر جهد متردد عالي التردد.', '**آلية عمله:** يتسارع الجسيم في الفجوة، ويدور نصف دورة في كل قرص، ويُضبط التردد = qB/(2πm) لتنعكس القطبية لحظة وصوله إلى الفجوة.', '**سرعة الخروج ص115:** v = qBr/m.'],
+    learn: ['**مكوناته ص114:** نصفا قرص نحاسي على شكل حرف D مفرغان من الهواء، في مجال مغناطيسي منتظم، ومتصلان بمصدر جهد متردد عالي التردد.', '**آلية عمله:** يتسارع الجسيم في الفجوة، ويدور نصف دورة في كل قرص، ويُضبط التردد = qB/(2πm) لتنعكس القطبية لحظة وصوله إلى الفجوة.', '**سرعة الخروج ص115:** v = qBr/m.'],
     challenges: [
       { q: 'مثال (4): سيكلترون نصف قطره 3 m ومجاله 0.628 T وتردده 4×10³ Hz يسرّع شحنة 1.6×10⁻¹⁹ C.', hint: 'q = 1e ، B = 0.628 ، f = 4 ، r = 3.', init: { qe: 1, B: 0.5, f: 2, R: 2 }, check: (p) => p.qe === 1 && Math.abs(p.B - 0.628) < 1e-9 && p.f === 4 && p.R === 3, why: () => 'm = 4×10⁻²⁴ kg و v ≈ 7.5×10⁴ m/s.' },
       { q: 'بالجسيم نفسه في مثال (4)، ضاعف سرعة الخروج.', hint: 'ضاعف نصف القطر.', init: { qe: 1, B: 0.628, f: 4, R: 3 }, check: (p) => p.qe === 1 && Math.abs(p.B - 0.628) < 1e-9 && p.f === 4 && p.R === 6, why: () => 'v ∝ r ⇒ r = 6 m.' }
@@ -163,7 +163,7 @@
     compute(p) { const F = Q.Fwire(p.B, p.I, 1, p.th); const Wt = p.lam * 1e-3 * K.g; const up = p.dir === 'mx'; const net = (up ? F : -F) - Wt; return { F: F, Wt: Wt, up: up, net: net, Bmin: Wt / Math.max(1e-9, p.I) }; },
     live(p, d) { return 'F = ILB\\sin\\theta = ' + p.I + ' \\times 1 \\times ' + p.B + ' \\times \\sin' + p.th + '^\\circ = ' + q(d.F, 'N', 4) + ' ,\\quad mg = ' + q(d.Wt, 'N', 4); },
     results(p, d) { const bal = Math.abs(d.net) < 1e-9; return [['القوة المغناطيسية', q(d.F, 'N', 4) + (d.F > 0 ? (d.up ? '\\ \\uparrow' : '\\ \\downarrow') : ''), true, 'pos'], ['وزن 1 m من السلك', q(d.Wt, 'N', 4)], ['حالة السلك', bal ? 'متزن: القوة المغناطيسية = الوزن' : d.net > 0 ? 'يرتفع إلى أعلى' : 'لا يرتفع', false, bal ? 'pos' : ''], ['أقل مجال لرفعه بهذا التيار', p.I > 0 ? q(d.Bmin, 'T', 4) : '\\text{يلزم تيار}']]; },
-    steps(p, d) { return ['F = I L B sinθ = ' + n(d.F, 4) + ' N، اتجاهها ' + (d.up ? 'لأعلى (التيار نحو −x والمجال نحو الناظر).' : 'لأسفل.'), 'الوزن = λ L g = ' + p.lam + '×10⁻³ × 1 × 10 = ' + n(d.Wt, 4) + ' N.', 'أقل مجال: B = mg/(IL) = ' + (p.I > 0 ? n(d.Bmin, 4) : '—') + ' T.']; },
+    steps(p, d) { return ['F = I L B sinθ = ' + n(d.F, 4) + ' N، اتجاهها ' + (d.up ? 'لأعلى (التيار نحو −x والمجال نحو الناظر).' : 'لأسفل.'), 'الوزن = λ × L × g = ' + p.lam + '×10⁻³ × 1 × 10 = ' + n(d.Wt, 4) + ' N.', 'أقل مجال: B = mg/(IL) = ' + (p.I > 0 ? n(d.Bmin, 4) : '—') + ' T.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       K.fieldGrid(ctx, 20, 40, W - 40, H - 60, true, cols.grid, 44);
       const y = H * 0.55 - Math.max(-1, Math.min(1, d.net / Math.max(d.Wt, 1e-6))) * H * 0.15; const x0 = W * 0.1, x1 = W * 0.9;
@@ -192,7 +192,7 @@
     id: 'parallel-wires', unit: 7, order: 5, lesson: '5-7', lessonTitle: 'القوة المتبادلة بين سلكين متوازيين', page: 117,
     titleAr: 'القوة المتبادلة بين سلكين متوازيين', titleEn: 'Force Between Parallel Currents', tags: 'سلكان متوازيان تجاذب تنافر قوة لكل وحدة طول امبير ثلاثة اسلاك مثال 6',
     formula: '\\frac{F}{L} = \\frac{\\mu_0 I_1 I_2}{2\\pi r}',
-    book: 'القانون (7-7) والشكل (10-7) ص117–118. مثال (6) ص118: a (4 A ⊙) فوق b (3 A ⊗) بمسافة 6 cm ، و c (4 A ⊙) على يمين b بمسافة 8 cm ⇒ F_ab = 4 × 10⁻⁵ N/m (−y) ، F_cb = 3 × 10⁻⁵ N/m (−x) ، F_net = 5 × 10⁻⁵ N/m.',
+    book: 'القانون (7-7) والشكل (10-7) ص117–118. مثال (6) ص118: أ (4 A ⊙) فوق ب (3 A ⊗) بمسافة 6 cm ، و جـ (4 A ⊙) على يمين ب بمسافة 8 cm ⇒ F_ab = 4 × 10⁻⁵ N/m (−y) ، F_cb = 3 × 10⁻⁵ N/m (−x) ، F_net = 5 × 10⁻⁵ N/m.',
     summary: 'كل سلك يقع في المجال المغناطيسي للآخر فتنشأ قوة متبادلة متساوية مقداراً ومتعاكسة اتجاهاً. التياران بالاتجاه نفسه يتجاذبان، والمتعاكسان يتنافران.',
     vars: [['I_1, I_2', 'التياران (الإشارة = الاتجاه)', '\\mathrm{A}', '−20 – 20'], ['r', 'المسافة بين السلكين', '\\mathrm{cm}', '1 – 20'], ['F/L', 'القوة لكل وحدة طول', '\\mathrm{N/m}', '—'], ['\\mu_0', 'النفاذية', '\\mathrm{T\\,m/A}', '4\\pi \\times 10^{-7}']],
     assumptions: ['السلكان طويلان جداً.'],
@@ -218,13 +218,13 @@
       if (p.mode === 'three') return [['F_ab', q(d.fab, 'N/m', 3) + (d.Fy === 0 ? '' : d.Fy > 0 ? '\\ (+y)' : '\\ (-y)')], ['F_cb', q(d.fcb, 'N/m', 3) + (d.Fx === 0 ? '' : d.Fx > 0 ? '\\ (+x)' : '\\ (-x)')], ['القوة المحصلة على b', q(d.F, 'N/m', 3), true, 'pos'], ['زاويتها مع المحور x', q(d.ang, '^\\circ', 3)]];
       return [['القوة لكل وحدة طول', q(d.f, 'N/m', 3), true, 'pos'], ['نوع القوة', d.f === 0 ? 'لا قوة' : d.attract ? 'تجاذب (التياران بالاتجاه نفسه)' : 'تنافر (التياران متعاكسان)', false]];
     },
-    steps(p, d) { return p.mode === 'three' ? ['F_ab = μ₀IₐI_b/(2π × 0.06) = ' + sct(d.fab, 3) + ' N/m.', 'F_cb = μ₀I_cI_b/(2π × 0.08) = ' + sct(d.fcb, 3) + ' N/m.', 'F = √(F_ab² + F_cb²) = ' + sct(d.F, 3) + ' N/m ، tanθ = F_ab/F_cb ⇒ θ = ' + n(d.ang, 1) + '°.'] : ['F/L = μ₀ I₁ I₂ /(2π r) = ' + sct(d.f, 3) + ' N/m.', d.attract ? 'التياران بالاتجاه نفسه ⇒ تجاذب.' : 'التياران متعاكسان ⇒ تنافر.']; },
+    steps(p, d) { return p.mode === 'three' ? ['F_ab = μ₀I_aI_b/(2π × 0.06) = ' + sct(d.fab, 3) + ' N/m.', 'F_cb = μ₀I_cI_b/(2π × 0.08) = ' + sct(d.fcb, 3) + ' N/m.', 'F = √(F_ab² + F_cb²) = ' + sct(d.F, 3) + ' N/m ، tanθ = F_ab/F_cb ⇒ θ = ' + n(d.ang, 1) + '°.'] : ['F/L = μ₀ I₁ I₂ /(2π r) = ' + sct(d.f, 3) + ' N/m.', d.attract ? 'التياران بالاتجاه نفسه ⇒ تجاذب.' : 'التياران متعاكسان ⇒ تنافر.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const nr = K.narrow(W);
       if (p.mode === 'three') {
         const s = Math.min(W * 0.07, H * 0.075), bx = W * 0.3, by = H * 0.75; const P = { a: [bx, by - 6 * s], b: [bx, by], c: [bx + 8 * s, by] };
         ctx.strokeStyle = cols.muted; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(P.a[0], P.a[1]); ctx.lineTo(P.b[0], P.b[1]); ctx.lineTo(P.c[0], P.c[1]); ctx.lineTo(P.a[0], P.a[1]); ctx.stroke(); ctx.setLineDash([]);
-        [['a', p.Ia], ['b', p.Ib], ['c', p.Ic]].forEach(([k, I]) => { if (I !== 0) K.perp(ctx, P[k][0], P[k][1], 11, I > 0, cols.text); lbl(ctx, k + ' (' + Math.abs(I) + ' A)', P[k][0] + (k === 'c' ? 0 : -36), P[k][1] + (k === 'a' ? -22 : 24), cols.c5, cols); });
+        [['a', p.Ia, 'أ'], ['b', p.Ib, 'ب'], ['c', p.Ic, 'جـ']].forEach(([k, I, nm]) => { if (I !== 0) K.perp(ctx, P[k][0], P[k][1], 11, I > 0, cols.text); lbl(ctx, nm + ' (' + Math.abs(I) + ' A)', P[k][0] + (k === 'c' ? 0 : -36), P[k][1] + (k === 'a' ? -22 : 24), cols.c5, cols); });
         lbl(ctx, '6 cm', bx - 30, by - 3 * s, cols.muted, cols); lbl(ctx, '8 cm', bx + 4 * s, by + 18, cols.muted, cols);
         const sc = 60 / 5e-5; K.vec(ctx, bx, by, d.Fx * sc, -d.Fy * sc, cols.c2, 'F', cols, 3.5); if (d.Fx) K.vec(ctx, bx, by, d.Fx * sc, 0, cols.c4, '', cols, 2); if (d.Fy) K.vec(ctx, bx, by, 0, -d.Fy * sc, cols.c4, '', cols, 2);
         D.txt(ctx, 'F = ' + sct(d.F, 3) + ' N/m', W / 2, H * 0.07, { color: cols.text, size: nr ? 14 : 16, w: '700' }); return;
@@ -235,13 +235,13 @@
       D.txt(ctx, d.f === 0 ? 'لا قوة' : (d.attract ? 'تجاذب' : 'تنافر') + ': ' + sct(d.f, 3) + ' N/m', W / 2, H * 0.07, { color: cols.text, size: nr ? 14 : 16, w: '700' });
     },
     graph(p, d) {
-      if (p.mode === 'three') { const v = [d.fab, d.fcb, d.F]; return { view: K.barView(v), xLabel: '', yLabel: 'F/L (N/m)', caption: 'القوتان متعامدتان، والمحصلة = √(Fab² + Fcb²).', draw(G) { const c = G.colors(); K.bars(G, [['Fab', d.fab, c.c1], ['Fcb', d.fcb, c.c4], ['F', d.F, c.c2]]); } }; }
+      if (p.mode === 'three') { const v = [d.fab, d.fcb, d.F]; return { view: K.barView(v), xLabel: '', yLabel: 'F/L (N/m)', caption: 'القوتان متعامدتان، والمحصلة = √(F_ab² + F_cb²).', draw(G) { const c = G.colors(); K.bars(G, [['F_ab', d.fab, c.c1], ['F_cb', d.fcb, c.c4], ['F', d.F, c.c2]]); } }; }
       const k = Q.mu0 * Math.abs(p.I1 * p.I2) / (2 * Math.PI); return { view: { xmin: 0, xmax: 20, ymin: 0, ymax: Math.max(k / 0.02, 1e-7) * 1.05 }, xLabel: 'r (cm)', yLabel: 'F/L (N/m)', caption: 'القوة تتناسب عكسياً مع المسافة بين السلكين.', draw(G) { const c = G.colors(); G.fn((r) => k / (r / 100), { color: c.c1, width: 3, domain: [2, 20] }); G.point(p.r, d.f, { color: c.c2 }); } };
     },
     explain(a, b, da, db) { const o = []; if (Math.sign(a.I1 * a.I2) !== Math.sign(b.I1 * b.I2) && b.mode === 'two') o.push(db.attract ? 'أصبح التياران بالاتجاه نفسه: تجاذب.' : 'أصبح التياران متعاكسين: تنافر.'); return o; },
     learn: ['**(7-7) ص117:** المجال B₁ = μ₀I₁/(2πr) عند السلك الثاني يؤثر فيه بقوة F = I₂LB₁.', '**الشكل (10-7):** تياران بالاتجاه نفسه يتجاذبان، ومتعاكسان يتنافران، والقوتان متساويتان ومتعاكستان.', 'يُعرَّف الأمبير من هذه العلاقة.'],
     challenges: [
-      { q: 'مثال (6): a = 4 A ⊙ ، b = 3 A ⊗ ، c = 4 A ⊙. أوجد القوة المحصلة على وحدة الطول من b.', hint: 'اختر «ثلاثة أسلاك» واجعل I_b = −3.', init: { mode: 'two', Ia: 4, Ib: 3, Ic: 4 }, check: (p) => p.mode === 'three' && p.Ia === 4 && p.Ib === -3 && p.Ic === 4, why: () => 'F_ab = 4×10⁻⁵ (−y) ، F_cb = 3×10⁻⁵ (−x) ، F = 5×10⁻⁵ N/m بزاوية 53°.' },
+      { q: 'مثال (6): أ = 4 A ⊙ ، ب = 3 A ⊗ ، جـ = 4 A ⊙. أوجد القوة المحصلة على وحدة الطول من ب.', hint: 'اختر «ثلاثة أسلاك» واجعل I_b = −3.', init: { mode: 'two', Ia: 4, Ib: 3, Ic: 4 }, check: (p) => p.mode === 'three' && p.Ia === 4 && p.Ib === -3 && p.Ic === 4, why: () => 'F_ab = 4×10⁻⁵ (−y) ، F_cb = 3×10⁻⁵ (−x) ، F = 5×10⁻⁵ N/m بزاوية 53°.' },
       { q: 'اجعل السلكين يتنافران.', hint: 'اعكس أحد التيارين.', init: { mode: 'two', I1: 5, I2: 5, r: 5 }, check: (p, d) => p.mode === 'two' && d.f > 0 && !d.attract, why: () => 'التياران المتعاكسان يتنافران.' }
     ],
     tutor: [

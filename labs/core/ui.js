@@ -99,7 +99,7 @@
       id: 'g12-physics', grade: 'g12', slug: 'physics', name: 'الفيزياء', en: 'Physics', icon: '⚛',
       title: 'مختبر الفيزياء التفاعلي', titleEn: 'Interactive Physics Simulation Lab — Grade 12',
       book: 'كتاب الفيزياء — الصف الثاني عشر العلمي', bookEd: 'دولة فلسطين، الطبعة الثانية 2020م / 1441هـ (معدّلة 2025)',
-      lead: 'غيّر المتغيرات وشاهد التجربة تتحرك أمامك: المتغيرات ← التجربة ← النتيجة ← الرسم البياني ← التفسير — بقوانين الكتاب ورموزه اللاتينية.',
+      lead: 'غيّر المتغيرات وشاهد التجربة تتحرك أمامك: المتغيرات ← التجربة ← النتيجة ← الرسم البياني ← التفسير — بقوانين الكتاب وبصيغة رموزه العربية.',
       search: 'ابحث عن قانون أو تجربة… (مثال: الزخم، التصادم، كيرشوف، فاراداي)',
       tutor: 'مساعد الفيزياء الذكي', tutorEn: 'AI Physics Tutor', idle: 'غيّر أي متغير أو شغّل التجربة، وسأشرح لك هنا ماذا تغيّر في النتيجة ولماذا — بقوانين الكتاب.',
       units: [
@@ -148,14 +148,7 @@
       if (p.startsWith('{{') && p.endsWith('}}')) return '<bdi class="chem" dir="ltr" lang="en">' + esc(p.slice(2, -2)) + '</bdi>';
       if (p.startsWith('$$')) return '<div class="math-block" dir="ltr">' + ML.texHTML(p.slice(2, -2), true) + '</div>';
       if (p.startsWith('$') && p.length > 1) return '<span class="m" dir="ltr">' + ML.texHTML(p.slice(1, -1)) + '</span>';
-      let t = ML.loc ? ML.loc(p) : p;
-      // فيزياء الثاني عشر: صيغ لاتينية داخل النص العربي تُعزل كاملة (انظر ML.bidi)
-      const g12 = ML.curSim && ML.curSim.subject === 'g12-physics';
-      if (g12 && ML.bidi) t = ML.bidi(t);
-      let h = esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-      // الرموز السفلية كما في الكتاب: v_f ، V_ab ، L_in
-      if (g12) h = h.replace(/([A-Za-zͰ-Ͽ])_([A-Za-z0-9]{1,4})/g, '$1<sub>$2</sub>');
-      return h;
+      return esc(ML.loc ? ML.loc(p) : p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     }).join('');
   };
 
