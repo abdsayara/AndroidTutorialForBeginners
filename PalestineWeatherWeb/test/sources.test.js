@@ -116,3 +116,20 @@ test('parseSearch merges, filters to Palestine and ranks by population', () => {
   ]);
   assert.deepEqual(r.map((p) => p.name), ['الطيبة', 'سلواد']);
 });
+
+test('only Arabic names are shown, never Hebrew', () => {
+  const places = S.parsePlaces({ elements: [
+    { lat: 32.0, lon: 34.85, tags: { name: 'פתח תקווה', 'name:en': 'Petah Tikva', place: 'city' } },
+    { lat: 32.5194, lon: 35.1536, tags: { name: 'أم الفحم', place: 'city' } },
+    { lat: 32.7, lon: 35.3, tags: { name: 'נצרת עילית', 'name:ar': 'نتسيرت عيليت', place: 'town' } },
+  ] });
+  assert.deepEqual(places.map((p) => p[0]), ['أم الفحم', 'نتسيرت عيليت']);
+  assert.deepEqual(S.parseReverse({ address: { village: 'כפר', county: 'נפת חיפה', state: 'מחוז חיפה' } }), { name: null, area: null });
+  assert.deepEqual(S.parseReverse({ address: { neighbourhood: 'רמות', city: 'القدس' } }), { name: 'القدس', area: null });
+  const found = S.parseSearch([{ results: [
+    { id: 1, name: 'עפולה', latitude: 32.6, longitude: 35.29, admin1: 'מחוז הצפון' },
+    { id: 2, name: 'عرابة', latitude: 32.85, longitude: 35.33, admin1: 'מחוז הצפון', population: 25000 },
+  ] }]);
+  assert.deepEqual(found.map((p) => [p.name, p.area]), [['عرابة', null]]);
+  assert.equal(S.isArabicName('Ramallah'), false);
+});

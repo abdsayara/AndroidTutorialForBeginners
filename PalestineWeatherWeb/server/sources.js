@@ -261,6 +261,11 @@ export const inBounds = (lat, lon) => lat >= 29.3 && lat <= 33.5 && lon >= 34.0 
 
 const PLACE_KIND = { city: 'c', town: 't', village: 'v' };
 
+/** Arabic script and no Hebrew letters: only such names are shown. */
+export const isArabicName = (s) => typeof s === 'string' && /[\u0600-\u06FF]/.test(s) && !/[\u0590-\u05FF]/.test(s);
+/** First Arabic name among the candidates, or null. */
+const arabic = (...names) => names.find(isArabicName) ?? null;
+
 /** All cities, towns and villages in Palestine with names, from OpenStreetMap via Overpass. */
 export function placesUrl() {
   const q = '[out:json][timeout:90];node["place"~"^(city|town|village)$"]["name"](29.45,34.2,33.35,35.9);out body;';
@@ -272,7 +277,8 @@ export function parsePlaces(o) {
   const out = [];
   for (const e of o.elements ?? []) {
     const t = e.tags ?? {};
-    const name = t['name:ar'] || t['name:en'] || t.name;
+    // Arabic names only: places with no Arabic name are left out rather than shown in Hebrew.
+    const name = arabic(t['name:ar'], t.name, t['official_name:ar'], t['alt_name:ar']);
     if (!name || typeof e.lat !== 'number' || !insidePalestine(e.lat, e.lon)) continue;
     out.push([name, +e.lat.toFixed(4), +e.lon.toFixed(4), PLACE_KIND[t.place] ?? 'v']);
   }
@@ -289,9 +295,11 @@ export function reverseUrl(lat, lon) {
 export function parseReverse(o) {
   const a = o.address ?? {};
   // Most precise first: a neighbourhood inside a city beats the city's own name.
-  const name = a.hamlet || a.village || a.neighbourhood || a.suburb || a.quarter || a.town || a.city || a.municipality || o.name || null;
-  const town = a.town || a.city || a.municipality;
-  const area = (town && town !== name ? town : null) ?? a.county ?? a.state_district ?? a.state ?? null;
+  // Arabic only: a component that came back in Hebrew (no Arabic name in OSM) is skipped;
+  // the caller falls back to "near <city>" when nothing Arabic is left.
+  const name = arabic(a.hamlet, a.village, a.neighbourhood, a.suburb, a.quarter, a.town, a.city, a.municipality, o.name);
+  const town = arabic(a.town, a.city, a.municipality);
+  const area = (town && town !== name ? town : null) ?? arabic(a.county, a.state_district, a.state);
   return { name, area };
 }
 
@@ -306,9 +314,9 @@ export function parseSearch(responses) {
   const out = [];
   for (const o of responses) {
     for (const r of o?.results ?? []) {
-      if (!insidePalestine(r.latitude, r.longitude) || seen.has(r.id)) continue;
+      if (!insidePalestine(r.latitude, r.longitude) || seen.has(r.id) || !isArabicName(r.name)) continue;
       seen.add(r.id);
-      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: r.admin2 || r.admin1 || null, population: r.population ?? 0 });
+      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: arabic(r.admin2, r.admin1), population: r.population ?? 0 });
     }
   }
   return out.sort((a, b) => b.population - a.population).slice(0, 20);
