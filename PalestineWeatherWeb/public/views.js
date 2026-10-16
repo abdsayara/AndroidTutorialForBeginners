@@ -404,13 +404,13 @@ const LEVELS = { info: ['للعلم', '#EEF1EE', '#3A4A40'], warn: ['تحذير'
 async function alerts(el, ctx, cancelled) {
   let filter = null;
   let all = [];
-  el.innerHTML = `<div class="page">${header('التنبيهات السابقة', 'آخر 30 يوماً لكل فلسطين', { back: true })}<div class="pills" id="f"></div><div id="slot"></div></div>`;
+  el.innerHTML = `<div class="page">${header(ctx.liveAlerts ? 'التنبيهات' : 'التنبيهات السابقة', ctx.liveAlerts ? 'التنبيهات الحالية والقادمة لكل فلسطين' : 'آخر 30 يوماً لكل فلسطين', { back: true })}<div class="pills" id="f"></div><div id="slot"></div></div>`;
   const slot = el.querySelector('#slot');
   const draw = () => {
     el.querySelector('#f').innerHTML = pill('الكل', 'data-action="f" data-k=""', filter == null) +
       Object.entries(ALERT_TYPES).map(([k, [label]]) => pill(label, `data-action="f" data-k="${k}"`, filter === k)).join('');
     const list = all.filter((a) => !filter || a.type === filter);
-    if (!list.length) { slot.innerHTML = '<div class="empty">لا توجد تنبيهات. يفحص الخادم التوقعات والزلازل كل 3 ساعات ويسجّل التنبيهات هنا.</div>'; return; }
+    if (!list.length) { slot.innerHTML = `<div class="empty">${ctx.liveAlerts ? 'لا توجد تنبيهات حالياً لأي مدينة.' : 'لا توجد تنبيهات. يفحص الخادم التوقعات والزلازل كل 3 ساعات ويسجّل التنبيهات هنا.'}</div>`; return; }
     let last = '';
     slot.innerHTML = `<div class="page" style="max-width:none;gap:10px">${list.map((a) => {
       const d = new Date(a.time);

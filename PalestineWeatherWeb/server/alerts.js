@@ -84,6 +84,10 @@ export class AlertStore {
     this.alerts = [];
   }
 
+  async list() {
+    return this.alerts;
+  }
+
   async load() {
     this.alerts = await readFile(this.file, 'utf8').then(JSON.parse).catch(() => []);
   }
@@ -113,4 +117,21 @@ export function startAlertJob(cache, store, everyMs = 3 * 3600 * 1000, log = con
   };
   run();
   return setInterval(run, everyMs);
+}
+
+/**
+ * Stateless alerts for serverless hosting (no persistent disk): computes the current
+ * and upcoming alerts from the live forecast on request, cached for 30 minutes.
+ */
+export class LiveAlerts {
+  constructor(cache) {
+    this.cache = cache;
+    this.live = true;
+  }
+
+  async list() {
+    const r = await this.cache.get('alerts_live', 1800, async () =>
+      buildAlerts(await this.cache.json(dailyUrl()), parseQuakes(await this.cache.json(quakesUrl(1)))));
+    return r.data;
+  }
 }

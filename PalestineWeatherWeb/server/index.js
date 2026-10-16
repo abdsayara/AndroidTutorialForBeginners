@@ -34,7 +34,7 @@ function requireCity(q) {
 /** Route table: path → (query, cache) → {data, fetchedAt, stale} | plain object. */
 export function makeRoutes(cache, alerts, { demo = false } = {}) {
   return {
-    '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo } }),
+    '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo, liveAlerts: !!alerts.live } }),
 
     '/api/forecast': async (q) => {
       const c = requireCity(q);
@@ -74,7 +74,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
       return cache.get(`news_${topic}`, 1800, async () => S.parseRss(await cache.text(S.newsUrl(topic))));
     },
 
-    '/api/alerts': async () => ({ data: alerts.alerts }),
+    '/api/alerts': async () => ({ data: await alerts.list() }),
   };
 }
 
@@ -98,16 +98,21 @@ async function serveStatic(res, urlPath) {
   res.end(body);
 }
 
-export function createApp({ cache, alerts, demo = false }) {
+/**
+ * The request handler shared by the standalone server and the Vercel functions.
+ * `apiCacheControl` lets a CDN cache API answers (Vercel); the standalone server
+ * caches upstream data itself, so it defaults to no-store.
+ */
+export function createHandler({ cache, alerts, demo = false, apiCacheControl = 'no-store' }) {
   const routes = makeRoutes(cache, alerts, { demo });
-  return createServer(async (req, res) => {
+  return async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     try {
       if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
       const route = routes[url.pathname];
       if (route) {
         const r = await route(url.searchParams);
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : apiCacheControl });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
       } else if (url.pathname.startsWith('/api/')) {
         throw new HttpError(404, 'not found');
@@ -120,8 +125,10 @@ export function createApp({ cache, alerts, demo = false }) {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: e.status ? e.message : 'upstream unavailable' }));
     }
-  });
+  };
 }
+
+export const createApp = (opts) => createServer(createHandler(opts));
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const demo = process.env.DEMO === '1';

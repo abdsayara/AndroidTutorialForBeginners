@@ -21,13 +21,14 @@ const MORE = [
 ];
 const TITLES = Object.fromEntries([...TABS, ...MORE].map((t) => [t.path, t.label]));
 
-const state = { cities: [], regions: {}, city: null };
+const state = { cities: [], regions: {}, city: null, liveAlerts: false };
 let cleanup = null;
 let renderId = 0;
 
 export const ctx = {
   get cities() { return state.cities; },
   get regions() { return state.regions; },
+  get liveAlerts() { return state.liveAlerts; },
   get city() { return state.city; },
   setCity(id) {
     const c = state.cities.find((x) => x.id === id);
@@ -106,6 +107,7 @@ async function checkAlerts() {
     const { data } = await api('/api/cities');
     state.cities = data.cities;
     state.regions = data.regions;
+    state.liveAlerts = !!data.liveAlerts;
     document.getElementById('demo-banner').hidden = !data.demo;
   } catch {
     document.getElementById('main').innerHTML = '<div class="empty">تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد تحميل الصفحة.</div>';
