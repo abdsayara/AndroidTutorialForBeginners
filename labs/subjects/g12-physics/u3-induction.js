@@ -237,7 +237,7 @@
     tick(st, p, d, dt) { const L = p.Lm * 1e-3, tau = L / p.R; let h = dt * tau * 1.6; const nS = Math.max(1, Math.ceil(h / (tau / 40))); h /= nS; for (let i = 0; i < nS; i++) st.I += ((p.sw ? p.e : 0) - st.I * p.R) / L * h; st.t += dt * tau * 1.6; },
     compute(p) { const L = p.Lm * 1e-3; const If = p.e / p.R; return { L: L, If: If, r0: p.e / L, tau: L / p.R, E: 0.5 * L * If * If }; },
     live(p, d) { const I = d.st ? d.st.I : 0; return '\\frac{\\Delta I}{\\Delta t} = \\frac{' + p.e + '}{' + d.L + '} - \\frac{' + n(I, 3) + ' \\times ' + p.R + '}{' + d.L + '} = ' + q(((p.sw ? p.e : 0) - I * p.R) / d.L, 'A/s', 3); },
-    results(p, d) { const I = d.st ? d.st.I : 0; return [['معدل النمو لحظة الغلق ε/L_in', q(d.r0, 'A/s', 4)], ['التيار النهائي ε/ΣR', q(d.If, 'A', 4), true, 'pos'], ['التيار الآن', q(I, 'A', 4)], ['الطاقة العظمى المختزنة ½L_in I²', q(d.E, 'J', 4), true, 'pos'], ['الطاقة المختزنة الآن', q(0.5 * d.L * I * I, 'J', 4)]]; },
+    results(p, d) { const I = d.st ? d.st.I : 0; return [['معدل النمو لحظة الغلق \\frac{\\varepsilon}{L_{in}}', q(d.r0, 'A/s', 4)], ['التيار النهائي ε/ΣR', q(d.If, 'A', 4), true, 'pos'], ['التيار الآن', q(I, 'A', 4)], ['الطاقة العظمى المختزنة \\tfrac12 L_{in} I^2', q(d.E, 'J', 4), true, 'pos'], ['الطاقة المختزنة الآن', q(0.5 * d.L * I * I, 'J', 4)]]; },
     steps(p, d) { return ['لحظة الغلق I = 0 ⇒ ΔI/Δt = ε/L_in = ' + n(d.r0) + ' A/s، والقوة الدافعة الحثية = ε.', 'نهائياً ΔI/Δt = 0 ⇒ I = ε/ΣR = ' + p.e + ' ÷ ' + p.R + ' = ' + n(d.If) + ' A.', 'E = ½ L_in I² = ½ × ' + d.L + ' × ' + n(d.If) + '² = ' + n(d.E) + ' J.']; },
     drawCustom(ctx, W, H, p, d, cols) {
       const I = d.st ? d.st.I : 0; const xL = W * 0.15, xR = W * 0.85, yT = H * 0.3, yB = H * 0.8;
