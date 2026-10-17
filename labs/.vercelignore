@@ -1,0 +1,5 @@
+tests
+tools
+dist
+node_modules
+*.py
