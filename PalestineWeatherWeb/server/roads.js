@@ -5,10 +5,10 @@
 
 /**
  * Channels to read: ROAD_CHANNELS="ahwalaltreq,other:اسم القناة" (id, optional Arabic name).
- * The default is the «أحوال الطرق» channel.
+ * The default is the «احوال الطرق وحواجز الإحتلال» group.
  */
 export function roadChannels(env = process.env.ROAD_CHANNELS) {
-  const list = (env ?? 'ahwalaltreq:أحوال الطرق').split(',').map((s) => s.trim()).filter(Boolean);
+  const list = (env ?? 'ahwalaltreq:احوال الطرق وحواجز الإحتلال').split(',').map((s) => s.trim()).filter(Boolean);
   return list.map((s) => {
     const [raw, ...name] = s.split(':');
     const id = raw.trim().replace(/^@/, '');
@@ -157,7 +157,7 @@ export function buildRoads(posts, { now = Date.now(), maxAgeH = 12, feedSize = 4
   for (const p of sorted) {
     const ms = Date.parse(p.time);
     const m = mentionsIn(p.text);
-    if (feed.length < feedSize) feed.push({ ...p, mentions: m });
+    if (feed.length < feedSize && (m.length || classify(p.text))) feed.push({ ...p, mentions: m });
     if (now - ms > maxAgeH * 3600000) continue;
     for (const x of m) {
       if (!x.status || latest.has(x.id)) continue;

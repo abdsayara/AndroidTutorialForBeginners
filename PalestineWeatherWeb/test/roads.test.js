@@ -59,7 +59,7 @@ test('buildRoads keeps the newest status per checkpoint and drops old ones', () 
 });
 
 test('roadChannels reads ids and names, ignoring bad ids', () => {
-  assert.deepEqual(R.roadChannels(undefined), [{ id: 'ahwalaltreq', name: 'أحوال الطرق' }]);
+  assert.deepEqual(R.roadChannels(undefined), [{ id: 'ahwalaltreq', name: 'احوال الطرق وحواجز الإحتلال' }]);
   assert.deepEqual(R.roadChannels('@one_chan, two2:قناة ٢, bad/id'), [
     { id: 'one_chan', name: 'one_chan' }, { id: 'two2', name: 'قناة ٢' },
   ]);

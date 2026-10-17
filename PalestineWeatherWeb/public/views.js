@@ -543,7 +543,7 @@ async function roads(el, ctx, cancelled) {
   let focus = null;
   let data = null;
   el.innerHTML = `<div class="page">
-    ${header('أحوال الطرق', 'الحواجز والطرق من قناة «أحوال الطرق» على تلغرام', {
+    ${header('أحوال الطرق', 'الحواجز والطرق من أخبار السائقين على تلغرام', {
       back: true,
       actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>`,
     })}
@@ -568,6 +568,17 @@ async function roads(el, ctx, cancelled) {
 
   const draw = () => {
     if (!data) return;
+    if (!data.sources.some((s) => s.ok)) {
+      // Nothing readable yet (e.g. the source is a group, which has no public web page).
+      slot.querySelector('#overview').innerHTML = `
+        <h2>مصدر أحوال الطرق قيد الربط</h2>
+        <p class="muted small" style="margin:0">نعمل على ربط الموقع بالمصدر لعرض حالة الحواجز هنا تلقائياً. إلى ذلك الحين تابع الأخبار مباشرة على تلغرام:</p>
+        <div class="pills">${data.sources.map((s) => `<a class="pill" style="text-decoration:none" href="https://t.me/${esc(s.id)}" target="_blank" rel="noopener noreferrer">${esc(s.name)} ${icon('external', 14, 'style="display:inline;vertical-align:-2px"')}</a>`).join('')}</div>`;
+      for (const id of ['filters', 'cards', 'quiet', 'feed', 'sources']) slot.querySelector(`#${id}`).innerHTML = '';
+      slot.querySelectorAll('.search, #h-feed, #sources').forEach((e) => { e.hidden = true; });
+      return;
+    }
+    slot.querySelectorAll('.search, #h-feed, #sources').forEach((e) => { e.hidden = false; });
     const match = (c) => (!region || c.region === region) && (!query || c.name.includes(query));
     const cps = data.checkpoints.filter(match);
     const known = cps.filter((c) => c.status !== 'unknown').sort((a, b) => b.at.localeCompare(a.at));

@@ -352,3 +352,6 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
   .roads-top .roads-legend { grid-area: legend; justify-content: start; }
   .roads-top .source { grid-area: src; }
 }
+
+/* Roads page parts hidden while no source is linked. */
+.search[hidden], .card[hidden], h2[hidden] { display: none; }

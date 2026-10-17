@@ -104,7 +104,9 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
             return { ...ch, ok: false, posts: [], error: err.message };
           }
         }));
-        if (!sources.some((s) => s.ok)) throw new Error('no road source reachable');
+        // Only a network failure on every source is an outage (keeps the last good copy);
+        // a page with no posts means the source needs another way in (e.g. a group).
+        if (!sources.some((s) => s.ok || s.error === 'no public posts')) throw new Error('no road source reachable');
         const roads = R.buildRoads(sources.flatMap((s) => s.posts));
         return { ...roads, sources: sources.map(({ posts, ...s }) => ({ ...s, count: posts.length })) };
       });
