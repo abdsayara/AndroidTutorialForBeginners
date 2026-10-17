@@ -59,8 +59,25 @@ test('buildRoads keeps the newest status per checkpoint and drops old ones', () 
 });
 
 test('roadChannels reads ids and names, ignoring bad ids', () => {
-  assert.deepEqual(R.roadChannels(undefined), [{ id: 'ahwalaltreq', name: 'احوال الطرق وحواجز الإحتلال' }]);
+  assert.deepEqual(R.roadChannels(undefined).map((c) => c.id), ['ahwalaltreq', 'a7walstreet', 'road_jehad']);
   assert.deepEqual(R.roadChannels('@one_chan, two2:قناة ٢, bad/id'), [
     { id: 'one_chan', name: 'one_chan' }, { id: 'two2', name: 'قناة ٢' },
   ]);
+});
+
+test('postsFromMessages keeps only text and time, oldest first', async () => {
+  const { postsFromMessages, telegramConfigured } = await import('../server/telegram.js');
+  const posts = postsFromMessages([
+    { id: 7, message: 'زعترة   سالك', date: 1792200000, senderId: 123, sender: { firstName: 'x' } },
+    { id: 5, message: 'حوارة مسكر\n\n\n\nمن الجهتين', date: 1792190000 },
+    { id: 6, message: '', date: 1792195000 },
+    { id: 8, media: {}, date: 1792201000 },
+  ], 'road_jehad');
+  assert.deepEqual(posts.map((p) => p.id), [5, 7]);
+  assert.equal(posts[0].text, 'حوارة مسكر\n\nمن الجهتين');
+  assert.equal(posts[1].url, 'https://t.me/road_jehad/7');
+  assert.equal(posts[1].time, new Date(1792200000 * 1000).toISOString());
+  assert.deepEqual(Object.keys(posts[1]).sort(), ['channel', 'id', 'text', 'time', 'url']);
+  assert.equal(telegramConfigured({ TG_API_ID: '1', TG_API_HASH: 'h' }), false);
+  assert.equal(telegramConfigured({ TG_API_ID: '1', TG_API_HASH: 'h', TG_SESSION: 's' }), true);
 });

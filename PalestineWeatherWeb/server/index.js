@@ -9,6 +9,7 @@ import { AlertStore, startAlertJob } from './alerts.js';
 import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
 import * as R from './roads.js';
+import { telegramConfigured, readChats } from './telegram.js';
 import { demoFetch } from './demo.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -93,22 +94,28 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/roads': async () => {
       const channels = R.roadChannels();
       const r = await cache.get('roads', 120, async () => {
+        // Groups need Telegram's API (a logged-in account); channels also work from the web preview.
+        const viaApi = telegramConfigured() ? await readChats(channels.map((c) => c.id)).catch((err) => ({ error: err.message })) : {};
         const sources = await Promise.all(channels.map(async (ch) => {
+          const api = viaApi[ch.id];
+          if (api?.posts?.length) return { ...ch, ok: true, posts: api.posts, error: null, via: 'api' };
           try {
             const first = R.parseTelegram(await cache.text(R.telegramUrl(ch.id)), ch.id);
             // One more page of older posts, so quiet hours still show the last news.
             const older = first.length ? R.parseTelegram(await cache.text(R.telegramUrl(ch.id, first[0].id)).catch(() => ''), ch.id) : [];
             const posts = [...older, ...first];
-            return { ...ch, ok: posts.length > 0, posts, error: posts.length ? null : 'no public posts' };
+            // The page answered, so this is not an outage; with no posts it is a group (or the
+            // preview is off) and needs the API — report the API's own error when it had one.
+            return { ...ch, ok: posts.length > 0, answered: true, posts, error: posts.length ? null : (api?.error ?? viaApi.error ?? 'no public posts') };
           } catch (err) {
             return { ...ch, ok: false, posts: [], error: err.message };
           }
         }));
         // Only a network failure on every source is an outage (keeps the last good copy);
         // a page with no posts means the source needs another way in (e.g. a group).
-        if (!sources.some((s) => s.ok || s.error === 'no public posts')) throw new Error('no road source reachable');
+        if (!sources.some((s) => s.ok || s.answered)) throw new Error('no road source reachable');
         const roads = R.buildRoads(sources.flatMap((s) => s.posts));
-        return { ...roads, sources: sources.map(({ posts, ...s }) => ({ ...s, count: posts.length })) };
+        return { ...roads, sources: sources.map(({ posts, answered, ...s }) => ({ ...s, count: posts.length })) };
       });
       return { ...r, cdnSeconds: 60 };
     },

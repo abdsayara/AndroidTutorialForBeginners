@@ -5,10 +5,13 @@
 
 /**
  * Channels to read: ROAD_CHANNELS="ahwalaltreq,other:اسم القناة" (id, optional Arabic name).
- * The default is the «احوال الطرق وحواجز الإحتلال» group.
+ * The default is three public groups (≈510k members together); groups are read through
+ * Telegram's API (see telegram.js), channels also from their web preview.
  */
+const DEFAULT_CHANNELS = 'ahwalaltreq:احوال الطرق وحواجز الإحتلال,a7walstreet:أحوال الطرق,road_jehad:أحوال الطرق والحواجز - فلسطين';
+
 export function roadChannels(env = process.env.ROAD_CHANNELS) {
-  const list = (env ?? 'ahwalaltreq:احوال الطرق وحواجز الإحتلال').split(',').map((s) => s.trim()).filter(Boolean);
+  const list = (env ?? DEFAULT_CHANNELS).split(',').map((s) => s.trim()).filter(Boolean);
   return list.map((s) => {
     const [raw, ...name] = s.split(':');
     const id = raw.trim().replace(/^@/, '');

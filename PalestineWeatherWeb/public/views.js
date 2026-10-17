@@ -712,7 +712,7 @@ function about(el) {
     ['أوقات الصلاة', 'Aladhan — aladhan.com'],
     ['أسعار العملات', 'ExchangeRate-API — open.er-api.com'],
     ['الأخبار', 'Google News RSS'],
-    ['أحوال الطرق والحواجز', 'قناة «أحوال الطرق» على تلغرام — t.me/ahwalaltreq (أخبار يرسلها الناس)'],
+    ['أحوال الطرق والحواجز', 'مجموعات تلغرام العامة: ahwalaltreq و a7walstreet و road_jehad (أخبار يرسلها الناس)'],
     ['حدود الخريطة', 'Natural Earth (ملكية عامة)'],
   ];
   el.innerHTML = `<div class="page">${header('حول الموقع', 'طقس فلسطين', { back: true })}

@@ -167,7 +167,7 @@ export function demoFetch(now = () => new Date()) {
       // Mimics the public channel preview at t.me/s/<channel>: newest posts last.
       const channel = url.pathname.split('/').pop();
       // A public group has no web preview: Telegram shows only its info page.
-      if (channel.startsWith('group')) return new Response('<html><body><div class="tgme_page_extra">348 653 members</div></body></html>', { headers: { 'Content-Type': 'text/html' } });
+      if (channel !== 'ahwalaltreq' && !channel.startsWith('demo')) return new Response('<html><body><div class="tgme_page_extra">348 653 members</div></body></html>', { headers: { 'Content-Type': 'text/html' } });
       const before = Number(q.get('before') ?? 0);
       const posts = [
         [1001, 300, 'صباح الخير 🌤\nحوارة سالك بالاتجاهين ✅\nزعترة أزمة خفيفة للنازل'],
