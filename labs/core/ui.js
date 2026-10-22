@@ -177,6 +177,22 @@
     try { localStorage.setItem('ml-theme', nx); } catch (e) { /* ignore */ }
     if (ML.current) ML.current.redraw();
   }
+  /* ---------- الستايل (مقترحات للمقارنة) ---------- */
+  const STYLES = [['', 'الأصلي'], ['clean', 'مختبر نظيف'], ['scope', 'شاشة قياس ليلية'], ['notebook', 'دفتر الكتاب'], ['glass', 'زجاجي متدرّج']];
+  function setStyle(s) {
+    if (s) document.documentElement.setAttribute('data-style', s); else document.documentElement.removeAttribute('data-style');
+  }
+  function initStyle() {
+    let s = null; try { s = localStorage.getItem('ml-style'); } catch (e) { /* ignore */ }
+    const q = (location.search.match(/[?&]style=(\w+)/) || [])[1];
+    if (q !== undefined) s = q === 'original' ? '' : q;
+    if (s && STYLES.some((x) => x[0] === s)) setStyle(s);
+  }
+  function pickStyle(s) {
+    setStyle(s);
+    try { localStorage.setItem('ml-style', s); } catch (e) { /* ignore */ }
+    if (ML.current) ML.current.redraw();
+  }
 
   /* ---------- التوجيه ---------- */
   let lastSubject = 'g10-math';
@@ -218,7 +234,10 @@
     bar.innerHTML = (back ? '<a class="btn ghost back" href="#/' + subj.grade + '/' + subj.slug + '" aria-label="رجوع إلى الفصول">→ الفصول</a>' : '') +
       '<a class="brand" href="#/' + subj.grade + '/' + subj.slug + '"><span class="logo" aria-hidden="true">' + subj.icon + '</span><span><b>' + subj.title + '</b><small>' + subj.titleEn + '</small></span></a>' +
       '<button class="btn ghost notation" aria-label="تبديل الرموز بين صيغة الكتاب العربية والصيغة الدولية" title="الرموز: صيغة الكتاب العربية ↔ الدولية"><span class="' + (ML.isAr() ? 'on' : '') + '">ع</span><span class="' + (ML.isAr() ? '' : 'on') + '" lang="en">x</span></button>' +
+      '<label class="style-wrap" title="ستايل الواجهة"><span class="style-ico" aria-hidden="true">🎨</span><select class="style-pick" aria-label="ستايل الواجهة">' + STYLES.map((x) => '<option value="' + x[0] + '"' + ((document.documentElement.getAttribute('data-style') || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></label>' +
       '<button class="btn ghost icon theme" aria-label="تبديل الوضع الليلي" title="الوضع الليلي/النهاري">🌓</button>';
+    document.documentElement.setAttribute('data-subject', subj.id);
+    bar.querySelector('.style-pick').addEventListener('change', (e) => pickStyle(e.target.value));
     bar.querySelector('.theme').addEventListener('click', toggleTheme);
     bar.querySelector('.notation').addEventListener('click', () => { ML.setNotation(ML.isAr() ? 'intl' : 'ar'); rerender(); });
     return bar;
@@ -753,7 +772,7 @@
   ML.start = function () {
     document.documentElement.setAttribute('dir', 'rtl'); document.documentElement.setAttribute('lang', 'ar');
     if (root.MutationObserver) new MutationObserver((ms) => { if (!ML.isAr()) return; ms.forEach((m) => m.addedNodes.forEach(locNode)); }).observe(document.body, { childList: true, subtree: true });
-    initTheme();
+    initTheme(); initStyle();
     ML.sims.sort((a, b) => (a.subject < b.subject ? -1 : a.subject > b.subject ? 1 : 0) || a.unit - b.unit || a.order - b.order);
     root.addEventListener('hashchange', route);
     route();

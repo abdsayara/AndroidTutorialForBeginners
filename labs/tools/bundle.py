@@ -8,6 +8,8 @@ html = (root / 'index.html').read_text(encoding='utf-8')
 
 css = (root / 'css/app.css').read_text(encoding='utf-8')
 html = html.replace('<link rel="stylesheet" href="css/app.css">', '<style>\n' + css + '\n</style>')
+css2 = (root / 'css/styles.css').read_text(encoding='utf-8')
+html = html.replace('<link rel="stylesheet" href="css/styles.css">', '<style>\n' + css2 + '\n</style>')
 
 katex_cdn = ('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">\n'
              '  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>')

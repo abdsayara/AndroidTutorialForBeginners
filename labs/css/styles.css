@@ -1,0 +1,163 @@
+/* ستايلات اختيارية للمختبرات — طبقة متغيرات فوق app.css (لا تغيّر المحاكيات).
+ * التفعيل: <html data-style="clean|scope|notebook|glass">، ولكل ستايل وضع فاتح وداكن (data-theme أو تفضيل النظام).
+ * محددات الداكن أعلى خصوصية من محددات الفاتح كي تتغلب عليها، كما في app.css.
+ */
+
+/* ======================= 1) مختبر نظيف ======================= */
+:root[data-style="clean"] {
+  --bg: #f4f7f7; --surface: #ffffff; --surface-2: #f3f7f7; --border: #d8e2e2; --text: #0f1f24; --muted: #5b6f74;
+  --primary: #0f766e; --primary-ink: #ffffff; --accent: #0369a1; --ok: #047857; --bad: #b91c1c; --warn: #a16207;
+  --plot-bg: #ffffff; --plot-grid: #d6e4e4; --plot-grid-minor: #eef4f4; --plot-axis: #23393d; --plot-text: #3d5a60;
+  --c1: #0f766e; --c2: #dc2626; --c3: #0369a1; --c4: #d97706; --c5: #7c3aed; --c6: #db2777;
+  --u1: #0e7490; --u2: #0f766e; --u3: #15803d; --u4: #b45309; --u5: #6d28d9; --u6: #be185d;
+  --shadow: 0 1px 0 rgba(15, 31, 36, .04); --radius: 10px;
+  --grid-line: rgba(15, 118, 110, .07);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="clean"]:not([data-theme="light"]) {
+    --bg: #0a1214; --surface: #0f1a1d; --surface-2: #0c1619; --border: #1d2e32; --text: #e3eeee; --muted: #8fa6aa;
+    --primary: #2dd4bf; --primary-ink: #04201c; --accent: #38bdf8; --ok: #34d399; --bad: #f87171; --warn: #fbbf24;
+    --plot-bg: #0c1619; --plot-grid: #1b2d31; --plot-grid-minor: #12211f; --plot-axis: #c4d6d8; --plot-text: #9db4b7;
+    --c1: #2dd4bf; --c2: #f87171; --c3: #38bdf8; --c4: #fbbf24; --c5: #a78bfa; --c6: #f472b6;
+    --u1: #22d3ee; --u2: #2dd4bf; --u3: #4ade80; --u4: #fbbf24; --u5: #a78bfa; --u6: #f472b6;
+    --shadow: 0 1px 0 rgba(0, 0, 0, .3); --grid-line: rgba(45, 212, 191, .05);
+  }
+}
+:root[data-style="clean"][data-theme="dark"] {
+  --bg: #0a1214; --surface: #0f1a1d; --surface-2: #0c1619; --border: #1d2e32; --text: #e3eeee; --muted: #8fa6aa;
+  --primary: #2dd4bf; --primary-ink: #04201c; --accent: #38bdf8; --ok: #34d399; --bad: #f87171; --warn: #fbbf24;
+  --plot-bg: #0c1619; --plot-grid: #1b2d31; --plot-grid-minor: #12211f; --plot-axis: #c4d6d8; --plot-text: #9db4b7;
+  --c1: #2dd4bf; --c2: #f87171; --c3: #38bdf8; --c4: #fbbf24; --c5: #a78bfa; --c6: #f472b6;
+  --u1: #22d3ee; --u2: #2dd4bf; --u3: #4ade80; --u4: #fbbf24; --u5: #a78bfa; --u6: #f472b6;
+  --shadow: 0 1px 0 rgba(0, 0, 0, .3); --grid-line: rgba(45, 212, 191, .05);
+}
+[data-style="clean"] body { font-family: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 24px 24px; }
+[data-style="clean"] .card, [data-style="clean"] .unit { box-shadow: none; }
+[data-style="clean"] .unit { border-top-width: 3px; }
+[data-style="clean"] .hero h1 { background: none; color: var(--text); letter-spacing: -.5px; }
+[data-style="clean"] .hero h1::after { content: ''; display: block; width: 64px; height: 4px; margin: 12px auto 0; border-radius: 4px; background: var(--primary); }
+[data-style="clean"] .logo, [data-style="clean"] .tutor .fab { background: var(--primary); }
+[data-style="clean"] .card h3 { font-size: 15px; letter-spacing: .2px; }
+
+/* ======================= 2) شاشة قياس ليلية ======================= */
+:root[data-style="scope"] {
+  --bg: #eef2f7; --surface: #ffffff; --surface-2: #f1f5f9; --border: #d5dde8; --text: #0b1220; --muted: #586579;
+  --primary: #0369a1; --primary-ink: #ffffff; --accent: #4d7c0f; --ok: #15803d; --bad: #dc2626; --warn: #b45309;
+  --plot-bg: #07111f; --plot-grid: #16304a; --plot-grid-minor: #0c1d31; --plot-axis: #9fd8ff; --plot-text: #a9c4dc;
+  --c1: #22d3ee; --c2: #fb7185; --c3: #a3e635; --c4: #fbbf24; --c5: #c084fc; --c6: #f472b6;
+  --u1: #0891b2; --u2: #0369a1; --u3: #4d7c0f; --u4: #b45309; --u5: #7e22ce; --u6: #be185d;
+  --shadow: 0 1px 2px rgba(7, 17, 31, .08), 0 8px 24px rgba(7, 17, 31, .08); --radius: 12px;
+  --glow: 0 0 0 1px rgba(34, 211, 238, .25), 0 0 24px rgba(34, 211, 238, .12);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="scope"]:not([data-theme="light"]) {
+    --bg: #040811; --surface: #0a1322; --surface-2: #08101d; --border: #16263d; --text: #dbeafe; --muted: #7f93ad;
+    --primary: #22d3ee; --primary-ink: #03141a; --accent: #a3e635; --ok: #a3e635; --bad: #fb7185; --warn: #fbbf24;
+    --plot-bg: #050c18; --plot-grid: #12304a; --plot-grid-minor: #0a1b2e; --plot-axis: #9fd8ff; --plot-text: #93b4d1;
+    --c1: #22d3ee; --c2: #fb7185; --c3: #a3e635; --c4: #fbbf24; --c5: #c084fc; --c6: #f472b6;
+    --u1: #22d3ee; --u2: #38bdf8; --u3: #a3e635; --u4: #fbbf24; --u5: #c084fc; --u6: #f472b6;
+    --shadow: 0 0 0 1px rgba(34, 211, 238, .08), 0 8px 30px rgba(0, 0, 0, .45);
+  }
+}
+:root[data-style="scope"][data-theme="dark"] {
+  --bg: #040811; --surface: #0a1322; --surface-2: #08101d; --border: #16263d; --text: #dbeafe; --muted: #7f93ad;
+  --primary: #22d3ee; --primary-ink: #03141a; --accent: #a3e635; --ok: #a3e635; --bad: #fb7185; --warn: #fbbf24;
+  --plot-bg: #050c18; --plot-grid: #12304a; --plot-grid-minor: #0a1b2e; --plot-axis: #9fd8ff; --plot-text: #93b4d1;
+  --c1: #22d3ee; --c2: #fb7185; --c3: #a3e635; --c4: #fbbf24; --c5: #c084fc; --c6: #f472b6;
+  --u1: #22d3ee; --u2: #38bdf8; --u3: #a3e635; --u4: #fbbf24; --u5: #c084fc; --u6: #f472b6;
+  --shadow: 0 0 0 1px rgba(34, 211, 238, .08), 0 8px 30px rgba(0, 0, 0, .45);
+}
+[data-style="scope"] .canvas-wrap, [data-style="scope"] .graph-wrap { box-shadow: var(--glow); border-color: #16304a; }
+[data-style="scope"] .hero h1 { background: linear-gradient(90deg, var(--c1), var(--c3)); -webkit-background-clip: text; background-clip: text; }
+[data-style="scope"] .logo, [data-style="scope"] .tutor .fab { background: linear-gradient(135deg, #0e7490, #4d7c0f); }
+[data-style="scope"] .results .r dd, [data-style="scope"] .stats b { font-variant-numeric: tabular-nums; }
+[data-style="scope"] .live { background: var(--plot-bg); color: #dbeafe; border-radius: 10px; margin-bottom: 8px; }
+[data-style="scope"] .live .katex { color: #dbeafe; }
+
+/* ======================= 3) دفتر الكتاب ======================= */
+:root[data-style="notebook"] {
+  --bg: #f5efe2; --surface: #fffdf7; --surface-2: #faf5ea; --border: #e4d9c3; --text: #2a2622; --muted: #6f6556;
+  --primary: #1e40af; --primary-ink: #ffffff; --accent: #b91c1c; --ok: #166534; --bad: #b91c1c; --warn: #a16207;
+  --plot-bg: #fffdf7; --plot-grid: #e6dcc8; --plot-grid-minor: #f3ecdf; --plot-axis: #3b3429; --plot-text: #5e5547;
+  --c1: #1e40af; --c2: #b91c1c; --c3: #166534; --c4: #b45309; --c5: #6b21a8; --c6: #be185d;
+  --u1: #0e7490; --u2: #1e40af; --u3: #166534; --u4: #b45309; --u5: #6b21a8; --u6: #be185d;
+  --shadow: 0 1px 0 rgba(90, 70, 40, .08), 0 6px 16px -8px rgba(90, 70, 40, .25); --radius: 8px;
+  --rule: rgba(30, 64, 175, .07);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="notebook"]:not([data-theme="light"]) {
+    --bg: #1b1916; --surface: #24211d; --surface-2: #201d1a; --border: #3a342c; --text: #efe6d4; --muted: #b0a48f;
+    --primary: #93c5fd; --primary-ink: #11161f; --accent: #fca5a5; --ok: #86efac; --bad: #fca5a5; --warn: #fcd34d;
+    --plot-bg: #201d1a; --plot-grid: #3a342c; --plot-grid-minor: #2a2621; --plot-axis: #e5dccb; --plot-text: #c4b8a3;
+    --c1: #93c5fd; --c2: #fca5a5; --c3: #86efac; --c4: #fcd34d; --c5: #d8b4fe; --c6: #f9a8d4;
+    --u1: #67e8f9; --u2: #93c5fd; --u3: #86efac; --u4: #fcd34d; --u5: #d8b4fe; --u6: #f9a8d4;
+    --shadow: 0 6px 16px -8px rgba(0, 0, 0, .6); --rule: rgba(147, 197, 253, .05);
+  }
+}
+:root[data-style="notebook"][data-theme="dark"] {
+  --bg: #1b1916; --surface: #24211d; --surface-2: #201d1a; --border: #3a342c; --text: #efe6d4; --muted: #b0a48f;
+  --primary: #93c5fd; --primary-ink: #11161f; --accent: #fca5a5; --ok: #86efac; --bad: #fca5a5; --warn: #fcd34d;
+  --plot-bg: #201d1a; --plot-grid: #3a342c; --plot-grid-minor: #2a2621; --plot-axis: #e5dccb; --plot-text: #c4b8a3;
+  --c1: #93c5fd; --c2: #fca5a5; --c3: #86efac; --c4: #fcd34d; --c5: #d8b4fe; --c6: #f9a8d4;
+  --u1: #67e8f9; --u2: #93c5fd; --u3: #86efac; --u4: #fcd34d; --u5: #d8b4fe; --u6: #f9a8d4;
+  --shadow: 0 6px 16px -8px rgba(0, 0, 0, .6); --rule: rgba(147, 197, 253, .05);
+}
+[data-style="notebook"] body { background-image: repeating-linear-gradient(0deg, transparent 0 31px, var(--rule) 31px 32px); }
+[data-style="notebook"] h1, [data-style="notebook"] h2, [data-style="notebook"] .card h3, [data-style="notebook"] .brand b, [data-style="notebook"] .lessons .lt b { font-family: 'Noto Naskh Arabic', 'Tajawal', serif; font-weight: 700; }
+[data-style="notebook"] .hero h1 { background: none; color: var(--primary); }
+[data-style="notebook"] .card, [data-style="notebook"] .unit { border-inline-start: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+[data-style="notebook"] .unit { border-top-width: 1px; }
+[data-style="notebook"] .logo, [data-style="notebook"] .tutor .fab { background: var(--primary); }
+[data-style="notebook"] .source, [data-style="notebook"] .assume { border-style: solid; }
+
+/* ======================= 4) زجاجي متدرّج ======================= */
+:root[data-style="glass"] {
+  --bg: #eef0fb; --surface: rgba(255, 255, 255, .66); --surface-2: rgba(255, 255, 255, .55); --border: rgba(255, 255, 255, .8); --text: #1e1b3a; --muted: #5f5b7d;
+  --primary: #6d28d9; --primary-ink: #ffffff; --accent: #db2777; --ok: #047857; --bad: #be123c; --warn: #b45309;
+  --plot-bg: #ffffff; --plot-grid: #e4e2f3; --plot-grid-minor: #f3f2fa; --plot-axis: #312e4f; --plot-text: #55517a;
+  --c1: #6d28d9; --c2: #e11d48; --c3: #0d9488; --c4: #d97706; --c5: #2563eb; --c6: #db2777;
+  --u1: #0891b2; --u2: #2563eb; --u3: #0d9488; --u4: #d97706; --u5: #7c3aed; --u6: #db2777;
+  --shadow: 0 10px 30px -12px rgba(76, 29, 149, .25); --radius: 20px;
+  --bg-grad: radial-gradient(1200px 600px at 100% 0%, #e0e7ff 0%, transparent 60%), radial-gradient(900px 600px at 0% 100%, #fce7f3 0%, transparent 60%), linear-gradient(160deg, #f5f3ff, #ecfeff);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="glass"]:not([data-theme="light"]) {
+    --bg: #0d0b1f; --surface: rgba(30, 27, 60, .55); --surface-2: rgba(30, 27, 60, .45); --border: rgba(255, 255, 255, .1); --text: #ece9ff; --muted: #a7a2c9;
+    --primary: #a78bfa; --primary-ink: #160f2e; --accent: #f472b6; --ok: #34d399; --bad: #fb7185; --warn: #fbbf24;
+    --plot-bg: #141130; --plot-grid: #2a2650; --plot-grid-minor: #1c1940; --plot-axis: #d9d4ff; --plot-text: #aaa4d6;
+    --c1: #a78bfa; --c2: #fb7185; --c3: #2dd4bf; --c4: #fbbf24; --c5: #60a5fa; --c6: #f472b6;
+    --u1: #22d3ee; --u2: #60a5fa; --u3: #2dd4bf; --u4: #fbbf24; --u5: #a78bfa; --u6: #f472b6;
+    --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7);
+    --bg-grad: radial-gradient(1200px 600px at 100% 0%, #312e81 0%, transparent 60%), radial-gradient(900px 600px at 0% 100%, #831843 0%, transparent 55%), linear-gradient(160deg, #0d0b1f, #0b1730);
+  }
+}
+:root[data-style="glass"][data-theme="dark"] {
+  --bg: #0d0b1f; --surface: rgba(30, 27, 60, .55); --surface-2: rgba(30, 27, 60, .45); --border: rgba(255, 255, 255, .1); --text: #ece9ff; --muted: #a7a2c9;
+  --primary: #a78bfa; --primary-ink: #160f2e; --accent: #f472b6; --ok: #34d399; --bad: #fb7185; --warn: #fbbf24;
+  --plot-bg: #141130; --plot-grid: #2a2650; --plot-grid-minor: #1c1940; --plot-axis: #d9d4ff; --plot-text: #aaa4d6;
+  --c1: #a78bfa; --c2: #fb7185; --c3: #2dd4bf; --c4: #fbbf24; --c5: #60a5fa; --c6: #f472b6;
+  --u1: #22d3ee; --u2: #60a5fa; --u3: #2dd4bf; --u4: #fbbf24; --u5: #a78bfa; --u6: #f472b6;
+  --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7);
+  --bg-grad: radial-gradient(1200px 600px at 100% 0%, #312e81 0%, transparent 60%), radial-gradient(900px 600px at 0% 100%, #831843 0%, transparent 55%), linear-gradient(160deg, #0d0b1f, #0b1730);
+}
+/* لون مميز لكل مادة */
+:root[data-style="glass"][data-subject="g10-math"] { --primary: #7c3aed; }
+:root[data-style="glass"][data-subject="g10-physics"], :root[data-style="glass"][data-subject="g12-physics"] { --primary: #2563eb; }
+:root[data-style="glass"][data-subject="g10-chem"] { --primary: #047857; }
+:root[data-style="glass"][data-subject="g10-bio"] { --primary: #0f766e; }
+[data-style="glass"] body { background: var(--bg-grad); background-attachment: fixed; }
+[data-style="glass"] .card, [data-style="glass"] .unit, [data-style="glass"] .topbar, [data-style="glass"] .gtab, [data-style="glass"] .stab, [data-style="glass"] .modes, [data-style="glass"] .source, [data-style="glass"] .search input, [data-style="glass"] .tutor .drawer { -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); }
+[data-style="glass"] .unit { border-top: 1px solid var(--border); background-image: linear-gradient(180deg, color-mix(in srgb, var(--uc) 14%, transparent), transparent 90px); }
+[data-style="glass"] .btn, [data-style="glass"] .gtab, [data-style="glass"] .stab, [data-style="glass"] .modes button { border-radius: 999px; }
+[data-style="glass"] .logo, [data-style="glass"] .tutor .fab { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+[data-style="glass"] .hero h1 { background: linear-gradient(90deg, var(--primary), var(--accent)); -webkit-background-clip: text; background-clip: text; }
+
+/* ======================= منتقي الستايل ======================= */
+.style-pick { min-height: 36px; max-width: 150px; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer; }
+.style-wrap { position: relative; display: inline-flex; align-items: center; }
+.style-ico { display: none; }
+@media (max-width: 520px) {
+  .style-wrap { width: 40px; height: 40px; justify-content: center; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
+  .style-ico { display: inline; font-size: 18px; }
+  .style-pick { position: absolute; inset: 0; width: 100%; max-width: none; opacity: 0; }
+}
