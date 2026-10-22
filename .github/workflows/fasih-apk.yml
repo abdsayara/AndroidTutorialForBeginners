@@ -1,0 +1,56 @@
+name: Fasih APK
+
+on:
+  push:
+    branches: [ccr-aded056b-944mp9]
+    paths: ['fasih/app/**', '.github/workflows/fasih-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fasih/app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.7
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter test
+
+      # موقّع بمفتاح التصحيح: للتجربة والتثبيت اليدوي فقط، لا للمتجر.
+      - run: flutter build apk --release
+
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk build/fasih.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fasih-apk
+          path: fasih/app/build/fasih.apk
+
+      - name: Publish pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fasih-build-${{ github.run_number }}
+          name: فَصيح — نسخة تجريبية ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          files: fasih/app/build/fasih.apk
+          body: |
+            نسخة تجريبية من تطبيق «فَصيح» للتثبيت اليدوي على أندرويد.
+            موقّعة بمفتاح التصحيح، وليست للنشر في المتجر.
