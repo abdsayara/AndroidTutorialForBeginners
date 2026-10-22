@@ -42,7 +42,7 @@ const valuesOf = (s, q, p) => {
 };
 
 test('المحاكيات مسجلة في المادة الثالثة وتغطي فصول الكتاب الأحد عشر', () => {
-  assert.ok(ML.grades[0].subjects.includes('g10-bio'));
+  assert.ok(ML.grades.find((g) => g.id === 'g10').subjects.includes('g10-bio'));
   const subj = ML.subjects['g10-bio'];
   assert.equal(subj.units.length, 11);
   assert.equal(subj.tutor, 'مساعد العلوم الحياتية الذكي');

@@ -69,11 +69,16 @@
   };
   const FUNCS = { sin: 'جا', cos: 'جتا', tan: 'ظا', cot: 'ظتا', sec: 'قا', csc: 'قتا', log: 'لو', ln: 'لو_هـ', det: '', max: 'أكبر', min: 'أصغر' };
   ML.notation = { MATH, PHYS, UNITS, WORDS, FUNCS };
+  // علوم التاسع (الوحدة الثانية): مك المقاومة المكافئة، س مساحة المقطع، ρ المقاومية كما في الكتاب
+  const OWN9 = { R_eq: 'مك', A: 'س', '\\rho': 'ρ', Q: 'ش' };
   const UNITS12 = Object.assign({}, UNITS, { C: 'كولوم', V: 'فولت', T: 'تسلا', Wb: 'ويبر', H: 'هنري', mH: 'ملي هنري', kHz: 'كيلوهيرتز', e: 'إلكترون', turn: 'لفة', F: 'فاراد' });
   WORDS.C = 'س'; WORDS.F = 'ف'; WORDS.K = 'كلفن'; UNITS.Hg = 'زئبق'; UNITS.pm = 'بيكومتر'; UNITS.Gm = 'جيجامتر'; UNITS.Mm = 'ميغامتر';
 
   // العلوم الحياتية: الرموز اللاتينية تبقى كما في الكتاب (A، T، G، C، U، DNA، G1، FSH…)، والأرقام المستقلة عربية
-  const isBio = (sim) => (sim ? sim.subject === 'g10-bio' : ML.curSubject === 'g10-bio');
+  // علوم التاسع: تجارب أجهزة الجسم (bio: true) تُعامل معاملة الأحياء، وتجارب الكهرباء بصيغة رموز فيزياء الثاني عشر العربية
+  const bioSim = (s) => s.subject === 'g10-bio' || (s.subject === 'g9-science' && !!s.bio);
+  // الصفحة الرئيسية لعلوم التاسع: عناوين أجهزة الجسم فيها رموز لاتينية من الكتاب (فيتامين C)
+  const isBio = (sim) => (sim ? bioSim(sim) : ML.curSim ? bioSim(ML.curSim) : ML.curSubject === 'g10-bio' || ML.curSubject === 'g9-science');
   // الكيمياء: كتاب الكيمياء يكتب الأرقام بالصيغة الغربية (393 ، 4.18) والمعادلات من اليسار لليمين (C2H5OH + 3O2 → …)
   // فتبقى الصيغ والأرقام كما هي، ويُعزل السالب فقط ليبقى على يسار العدد داخل النص العربي
   const isChem = (sim) => (sim ? sim.subject === 'g10-chem' : ML.curSubject === 'g10-chem');
@@ -89,6 +94,7 @@
   const bioDigits = (t) => { let out = '', k = 0; String(t).replace(LAT_TOK, (m, i) => { out += toAD(t.slice(k, i).replace(/(\d)\.(\d)/g, '$1,$2')) + m; k = i + m.length; return m; }); return out + toAD(t.slice(k).replace(/(\d)\.(\d)/g, '$1,$2')); };
   function varMap(sim) {
     if (isBio(sim)) return { base: {}, greek: {}, own: (sim && sim.ar) || {}, bio: true };
+    if (sim && sim.subject === 'g9-science') return { base: PHYS12, greek: GREEK12, own: Object.assign({}, OWN12, OWN9, sim.ar || {}), units: UNITS12, g12: true };
     if (sim && sim.subject === 'g12-physics') return { base: PHYS12, greek: GREEK12, own: Object.assign({}, OWN12, sim.ar || {}), units: UNITS12, g12: true };
     const subj = sim && sim.subject === 'g10-physics' ? 'p' : 'm';
     return { base: subj === 'p' ? PHYS : MATH, greek: subj === 'p' ? GREEK_PHYS : GREEK_MATH, own: (sim && sim.ar) || {} };

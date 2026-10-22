@@ -41,7 +41,7 @@ function runCombustion(p, stopAt) {
 }
 
 test('مادة الكيمياء مسجلة في الصف العاشر بوحدات الكتاب الخمس', () => {
-  assert.ok(ML.grades[0].subjects.includes('g10-chem'));
+  assert.ok(ML.grades.find((g) => g.id === 'g10').subjects.includes('g10-chem'));
   const subj = ML.subjects['g10-chem'];
   assert.equal(subj.units.length, 5); assert.equal(subj.slug, 'chemistry'); assert.equal(subj.tutor, 'مساعد الكيمياء الذكي');
   assert.deepEqual(J(subj.units.map((u) => u.pages)), ['2–28', '29–49', '50–68', '69–99', '100–119']);

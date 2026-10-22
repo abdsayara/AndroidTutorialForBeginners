@@ -22,9 +22,26 @@
   ML.ORD = ORD;
 
   /* ---------- الصفوف والمواد ---------- */
-  ML.grades = [{ id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] },
+  ML.grades = [{ id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-science'] },
+    { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] },
     { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
   ML.subjects = {
+    'g9-science': {
+      id: 'g9-science', grade: 'g9', slug: 'science', name: 'العلوم', en: 'Science', icon: '🔬', part: 'الدرس', unitLabel: 'الوحدة',
+      title: 'مختبر العلوم التفاعلي', titleEn: 'Interactive Science Lab — Grade 9',
+      book: 'كتاب العلوم والحياة — الصف التاسع، الجزء الأول', bookEd: 'دولة فلسطين، المنهاج الفلسطيني',
+      lead: 'نفّذ أنشطة الكتاب كأنك في المختبر: الكشف عن المغذيات، والهضم، والتنفس، والقلب والدم، ثم الدارات الكهربائية وقانون أوم — بقيم الكتاب وصيغته العربية.',
+      search: 'ابحث عن نشاط أو مفهوم… (مثال: بندكت، أميليز، النبض، قانون أوم، التوازي)',
+      tutor: 'مساعد العلوم الذكي', tutorEn: 'AI Science Tutor', idle: 'غيّر أي متغير أو شغّل النشاط، وسأشرح لك هنا ماذا حدث ولماذا — بما ورد في الكتاب.',
+      units: [
+        { n: 1, unitAr: 'الوحدة الأولى: أجهزة جسم الإنسان', ar: 'المغذيات والجهاز الهضمي', en: 'Nutrients and the Digestive System', icon: '🍎', pages: '5–23', color: 'u1' },
+        { n: 2, unitAr: 'الوحدة الأولى: أجهزة جسم الإنسان', ar: 'الجهاز التنفسي', en: 'The Respiratory System', icon: '🫁', pages: '24–34', color: 'u2' },
+        { n: 3, unitAr: 'الوحدة الأولى: أجهزة جسم الإنسان', ar: 'الجهاز الدوراني', en: 'The Circulatory System', icon: '❤', pages: '35–45', color: 'u3' },
+        { n: 4, unitAr: 'الوحدة الأولى: أجهزة جسم الإنسان', ar: 'الجهاز الليمفي', en: 'The Lymphatic System', icon: '🛡', pages: '46–49', color: 'u4' },
+        { n: 5, unitAr: 'الوحدة الثانية: الكهرباء في حياتنا', ar: 'التيار الكهربائي والدارات الكهربائية', en: 'Electric Current and Circuits', icon: '💡', pages: '55–62', color: 'u5' },
+        { n: 6, unitAr: 'الوحدة الثانية: الكهرباء في حياتنا', ar: 'المقاومات الكهربائية وقانون أوم', en: "Electrical Resistors and Ohm's Law", icon: 'Ω', pages: '63–76', color: 'u6' }
+      ]
+    },
     'g10-math': {
       id: 'g10-math', grade: 'g10', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '∫',
       title: 'مختبر الرياضيات التفاعلي', titleEn: 'Interactive Mathematics Simulation Lab',
@@ -119,7 +136,7 @@
   ML.unitName = function (a, b) {
     const subj = b === undefined ? 'g10-math' : a, n = b === undefined ? a : b;
     const u = SUBJ(subj).units[n - 1];
-    if (u.unitAr) return u.unitAr + (u.unitAr.indexOf(':') >= 0 || u.unitAr.endsWith(u.ar) ? ' — الفصل: ' + u.ar : ': ' + u.ar);
+    if (u.unitAr) return u.unitAr + (u.unitAr.indexOf(':') >= 0 || u.unitAr.endsWith(u.ar) ? ' — ' + (SUBJ(subj).part || 'الفصل') + ': ' + u.ar : ': ' + u.ar);
     return 'الوحدة ' + ORD[n] + ' (' + u.ar + ')';
   };
   ML.simHref = (s) => '#/' + SUBJ(s.subject).grade + '/' + SUBJ(s.subject).slug + '/sim/' + s.id;
@@ -261,7 +278,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.id !== 'g10-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -317,7 +334,7 @@
       const head = el('section', { class: 'sim-head' });
       const u = ML.unitOf(s);
       head.innerHTML = '<div class="titles"><span class="badge ' + u.color + '">' + ML.unitName(s.subject, s.unit) + '</span><h1>' + s.titleAr + '</h1><p class="en" dir="ltr">' + s.titleEn + '</p></div>' +
-        '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>الفصل:</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>الدرس:</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
+        '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>' + (this.subj.unitLabel || 'الفصل') + ':</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>' + (this.subj.part ? 'البند' : 'الدرس') + ':</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
         '<div class="modes" role="tablist">' +
         '<button role="tab" data-m="learn">📘 تعلّم <small>Learn</small></button>' +
         '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
@@ -743,7 +760,7 @@
         const a = ML.tutorAnswer(s, q, { p: this.p, d: this.d, lastExplain: this.lastExplain });
         setTimeout(() => say('bot', ML.rich(a)), 120);
       };
-      say('bot', ML.rich('مرحباً! أنا ' + this.subj.tutor + '، مساعدك في ' + (s.subject === 'g10-physics' || s.subject === 'g12-physics' ? 'تجربة' : 'محاكاة') + ' **' + s.titleAr + '**. أجيبك اعتماداً على القيم التي تراها الآن على الشاشة.'));
+      say('bot', ML.rich('مرحباً! أنا ' + this.subj.tutor + '، مساعدك في ' + (s.subject === 'g10-physics' || s.subject === 'g12-physics' || s.subject === 'g9-science' ? 'تجربة' : 'محاكاة') + ' **' + s.titleAr + '**. أجيبك اعتماداً على القيم التي تراها الآن على الشاشة.'));
       const chips = wrap.querySelector('.chips');
       (s.tutor || []).forEach((r) => { const c = el('button', { class: 'chip', type: 'button' }, esc(r.q)); c.addEventListener('click', () => ask(r.q)); chips.appendChild(c); });
       wrap.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); const i = wrap.querySelector('input'); ask(i.value); i.value = ''; });

@@ -24,10 +24,10 @@ for (const size of sizes) {
   await page.addInitScript(() => { window.__ft = []; const o = CanvasRenderingContext2D.prototype.fillText; CanvasRenderingContext2D.prototype.fillText = function (t, ...a) { if (window.__ft.length < 4000) window.__ft.push(String(t)); return o.call(this, t, ...a); }; });
   await page.goto(base + Q, { waitUntil: 'load' });
   await page.waitForSelector('.units');
-  const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, href: ML.simHref(s) })));
+  const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, bio: !!s.bio, href: ML.simHref(s) })));
   console.log(`[${size.name}] ${sims.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
   // صفحتا المادتين والتنقل بين التبويبات
-  for (const sl of ['g10/math', 'g10/physics', 'g10/biology', 'g10/chemistry', 'g12/physics']) {
+  for (const sl of ['g9/science', 'g10/math', 'g10/physics', 'g10/biology', 'g10/chemistry', 'g12/physics']) {
     await page.goto(base + Q + '#/' + sl); await page.waitForSelector('.units .card, .units a'); await page.waitForTimeout(150);
     const st = await page.evaluate(() => ({ n: document.querySelectorAll('.units a[href*="/sim/"]').length, on: (document.querySelector('.stab.on') || {}).textContent || '', g: (document.querySelector('.gtab.on') || {}).textContent || '' }));
     if (!st.n || !st.g) fail(`home ${sl}: links=${st.n} gradeTab=${st.g}`);
@@ -108,7 +108,7 @@ for (const size of sizes) {
     // أنماط الرسم البياني الحي
     const gm = await page.$$('.gmodes button');
     for (const b of gm) { await b.click(); await page.waitForTimeout(60); const cap = await page.evaluate(() => (document.querySelector('.graph') || {}).innerText || ''); if (/NaN|undefined|\[object/.test(cap)) fail(`${id}: graph caption ${cap.slice(0, 200)}`); }
-    if (sm.subject === 'g10-physics' || sm.subject === 'g12-physics') { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
+    if (sm.subject === 'g10-physics' || sm.subject === 'g12-physics' || (sm.subject === 'g9-science' && !sm.bio)) { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
     await page.click('[data-a=reset]'); await page.waitForTimeout(520);
     // الأوضاع
     for (const m of ['learn', 'challenge', 'explore']) { await page.click(`.modes [data-m=${m}]`); await page.waitForTimeout(80); }
@@ -125,7 +125,7 @@ for (const size of sizes) {
       const asc = await page.evaluate(() => {
         const out = [];
         document.querySelectorAll('.results, .live, .steps, .law, .why, .controls .param label, .graph .gcap, .assume, .sim-head .src').forEach((e) => { const t = e.innerText; if (/[0-9]/.test(t)) out.push(t.match(/.{0,30}[0-9].{0,20}/)[0]); });
-        const bio = ML.current.sim.subject === 'g10-bio'; const LAT = /[0-9]*[A-Za-z][A-Za-z0-9′'’]*/g; // الأحياء: اللاتيني مسموح والأرقام داخله
+        const bio = ML.isBio(ML.current.sim); const LAT = /[0-9]*[A-Za-z][A-Za-z0-9′'’]*/g; // الأحياء: اللاتيني مسموح والأرقام داخله
         const cv = window.__ft.map((t) => t.replace(/[\u2066-\u2069]/g, '').replace(/\b[HNOC]₂/g, '')).map((t) => (bio ? t.replace(LAT, '') : t)).filter((t) => /[0-9]/.test(t) || (!bio && /(^|[^A-Za-z])[A-Za-z]($|[^A-Za-z])/.test(t)));
         window.__ft.length = 0; return (bio ? out.filter((t) => /[0-9]/.test(t.replace(LAT, ''))) : out).concat(cv.map((t) => 'canvas: ' + t)).slice(0, 5);
       });
