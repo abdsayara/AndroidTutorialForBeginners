@@ -22,7 +22,7 @@
   ML.ORD = ORD;
 
   /* ---------- الصفوف والمواد ---------- */
-  ML.grades = [{ id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-science'] },
+  ML.grades = [{ id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-math', 'g9-science'] },
     { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] },
     { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
   ML.subjects = {
@@ -44,6 +44,18 @@
         { n: 8, unitAr: 'الوحدة الثانية: الكهرباء في حياتنا', ar: 'القدرة والطاقة الكهربائية', en: 'Electric Power and Energy', icon: '⚡', pages: '83–93', color: 'u2' },
         { n: 9, unitAr: 'الوحدة الثالثة: مصابيح السماء', ar: 'النجوم', en: 'Stars', icon: '⭐', pages: '96–111', color: 'u3' },
         { n: 10, unitAr: 'الوحدة الثالثة: مصابيح السماء', ar: 'المجرات', en: 'Galaxies', icon: '🌌', pages: '112–122', color: 'u4' }
+      ]
+    },
+    'g9-math': {
+      id: 'g9-math', grade: 'g9', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '√',
+      title: 'مختبر الرياضيات التفاعلي', titleEn: 'Interactive Mathematics Lab — Grade 9',
+      book: 'كتاب الرياضيات — الصف التاسع الأساسي، الجزء الأول', bookEd: 'دولة فلسطين، يُدرَّس بدءاً من العام الدراسي 2017/2018م',
+      lead: 'حوّل أنشطة كتاب الرياضيات إلى تجارب حيّة: غيّر الأعداد والمجموعات وشاهد أثرها فوراً — على خط الأعداد، وبالمخططات السهمية، وفي المستوى الديكارتي.',
+      search: 'ابحث عن درس أو مفهوم… (مثال: إنطاق المقام، الصورة العلمية، علاقة التكافؤ، الاقتران الخطي)',
+      tutor: 'مساعد الرياضيات الذكي', tutorEn: 'AI Math Tutor', idle: 'غيّر أي أداة تحكم، وسأشرح لك هنا ماذا تغيّر ولماذا — بلغة الكتاب ورموزه.',
+      units: [
+        { n: 1, ar: 'الأعداد الحقيقية', en: 'Real Numbers', icon: '√', pages: '4–29', color: 'u1' },
+        { n: 2, ar: 'العلاقات والاقترانات', en: 'Relations and Functions', icon: 'ƒ', pages: '30–62', color: 'u2' }
       ]
     },
     'g10-math': {
@@ -282,7 +294,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -341,7 +353,7 @@
         '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>' + (this.subj.unitLabel || 'الفصل') + ':</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>' + (this.subj.part ? 'البند' : 'الدرس') + ':</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
         '<div class="modes" role="tablist">' +
         '<button role="tab" data-m="learn">📘 تعلّم <small>Learn</small></button>' +
-        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
+        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' && s.subject !== 'g9-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
         '<button role="tab" data-m="challenge">🎯 تحدٍّ <small>Challenge</small></button></div>';
       app.appendChild(head);
       head.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => this.setMode(b.dataset.m)));

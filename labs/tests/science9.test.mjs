@@ -34,8 +34,8 @@ function exercise(s, p, label) {
   if (s.graph) { const g = s.graph(p, d); assert.ok(Number.isFinite(g.view.xmin + g.view.xmax + g.view.ymin + g.view.ymax) && g.view.xmax > g.view.xmin && g.view.ymax > g.view.ymin, label + ' graph view'); g.draw(G); }
 }
 
-test('الصف التاسع مسجّل بمادة العلوم وعشرة دروس في الوحدات الثلاث', () => {
-  const g = ML.grades.find((x) => x.id === 'g9'); assert.ok(g); assert.deepEqual(J(g.subjects), ['g9-science']);
+test('الصف التاسع مسجّل بمادتي الرياضيات والعلوم وعشرة دروس في الوحدات الثلاث', () => {
+  const g = ML.grades.find((x) => x.id === 'g9'); assert.ok(g); assert.deepEqual(J(g.subjects), ['g9-math', 'g9-science']);
   const subj = ML.subjects['g9-science']; assert.equal(subj.slug, 'science'); assert.equal(subj.units.length, 10);
   assert.deepEqual(J(subj.units.map((u) => u.pages)), ['5–23', '24–34', '35–45', '46–49', '55–62', '63–76', '77–82', '83–93', '96–111', '112–122']);
   assert.ok(!ML.isLatinBook({ subject: 'g9-science' }));
