@@ -34,10 +34,10 @@ function exercise(s, p, label) {
   if (s.graph) { const g = s.graph(p, d); assert.ok(Number.isFinite(g.view.xmin + g.view.xmax + g.view.ymin + g.view.ymax) && g.view.xmax > g.view.xmin && g.view.ymax > g.view.ymin, label + ' graph view'); g.draw(G); }
 }
 
-test('الصف التاسع مسجّل بمادة العلوم وستة دروس من الوحدتين الأولى والثانية', () => {
+test('الصف التاسع مسجّل بمادة العلوم وعشرة دروس في الوحدات الثلاث', () => {
   const g = ML.grades.find((x) => x.id === 'g9'); assert.ok(g); assert.deepEqual(J(g.subjects), ['g9-science']);
-  const subj = ML.subjects['g9-science']; assert.equal(subj.slug, 'science'); assert.equal(subj.units.length, 6);
-  assert.deepEqual(J(subj.units.map((u) => u.pages)), ['5–23', '24–34', '35–45', '46–49', '55–62', '63–76']);
+  const subj = ML.subjects['g9-science']; assert.equal(subj.slug, 'science'); assert.equal(subj.units.length, 10);
+  assert.deepEqual(J(subj.units.map((u) => u.pages)), ['5–23', '24–34', '35–45', '46–49', '55–62', '63–76', '77–82', '83–93', '96–111', '112–122']);
   assert.ok(!ML.isLatinBook({ subject: 'g9-science' }));
   // تجارب أجهزة الجسم تُعامل معاملة الأحياء (CO₂ و HCl كما في الكتاب)، وتجارب الكهرباء بالرموز العربية
   assert.ok(ML.isBio(sim('sugar-tests'))); assert.ok(!ML.isBio(sim('ohms-law')));
@@ -54,18 +54,18 @@ test('رموز الكتاب العربية في تجارب الكهرباء', ()
 
 test('كل درس فيه تجارب، وكل تجربة: صفحة داخل درسها، فرضيات، تعلّم، تحديات، مساعد؛ وتجارب الكهرباء لها رسم بياني', () => {
   const ids = new Set();
-  for (let u = 1; u <= 6; u++) assert.ok(SIMS.filter((s) => s.unit === u).length >= 1, 'unit ' + u);
+  for (let u = 1; u <= 10; u++) assert.ok(SIMS.filter((s) => s.unit === u).length >= 1, 'unit ' + u);
   for (const s of SIMS) {
     assert.ok(!ids.has(s.id), 'duplicate ' + s.id); ids.add(s.id);
     const [a, b] = ML.subjects['g9-science'].units[s.unit - 1].pages.split('–').map(Number);
     assert.ok(Number.isInteger(s.page) && s.page >= a && s.page <= b, s.id + ' page ' + s.page);
     assert.ok(s.titleAr && s.titleEn && s.lesson && s.lessonTitle && s.book && s.summary && s.formula, s.id + ' meta');
     assert.ok((s.assumptions || []).length >= 1, s.id + ' assumptions');
-    if (!s.bio) assert.ok(typeof s.graph === 'function', s.id + ' graph');
+    if (!s.bio && !s.qual) assert.ok(typeof s.graph === 'function', s.id + ' graph');
     assert.ok((s.learn || []).length >= 1 && (s.challenges || []).length >= 1 && (s.tutor || []).length >= 1, s.id + ' learn/challenges/tutor');
     assert.ok(s.vars.length >= 1 && s.vars.every((v) => v.length === 4), s.id + ' vars');
   }
-  assert.equal(SIMS.length, 21);
+  assert.equal(SIMS.length, 37);
 });
 
 test('كل متغير عند أدنى قيمة وأعلاها ومنتصفها، وكل خيار وكل مرحلة: لا NaN ولا أخطاء في الرسم', () => {
@@ -103,7 +103,23 @@ const SOLVE = [
   ['ohms-law', 0, { R1: 2, V: 9 }], ['ohms-law', 1, { V: 12 }], ['ohms-law', 2, { V: 6, R1: 12 }],
   ['heater-countries', 0, { c: 'ca' }],
   ['series-parallel', 0, { mode: 'parallel' }], ['series-parallel', 1, { mode: 'ex', R1: 50, R2: 100, R3: 80 }],
-  ['resistance-factors', 0, { mat: 'cu', L: 200, A: 1 }], ['resistance-factors', 1, { L: 20 }], ['resistance-factors', 2, { A: 0.16 }]
+  ['resistance-factors', 0, { mat: 'cu', L: 200, A: 1 }], ['resistance-factors', 1, { L: 20 }], ['resistance-factors', 2, { A: 0.16 }],
+  ['cell-types', 0, { c: 'lead', chg: true }], ['cell-types', 1, { c: 'lead' }],
+  ['emf-internal', 0, { e: 18, r: 1, Rl: 4 }], ['emf-internal', 1, { e: 6, r: 2 }], ['emf-internal', 2, { r: 0 }],
+  ['joule-heat', 0, { R: 220, t: 15 }],
+  ['bulbs-power', 0, { V: 3 }], ['bulbs-power', 1, { V: 6 }],
+  ['power-cost', 0, { dev: 'heater', h: 6, days: 1 }], ['power-cost', 1, { dev: 'pc', h: 2 }],
+  ['house-bill', 0, { n: 8, h: 1 }], ['house-bill', 1, { cur: 76637 }],
+  ['star-spectra', 0, { H: true, He: true }], ['star-spectra', 1, { H: true, Na: true, Hg: true }],
+  ['light-year', 0, { ly: 4.5 }],
+  ['parallax', 0, { dp: 15, eye: 'l' }], ['parallax', 1, { L: 200 }],
+  ['star-colors', 0, { T: 5500 }], ['star-colors', 1, { T: 9000 }],
+  ['star-magnitude', 0, { a: 'canopus', b: 'spica' }],
+  ['inverse-square', 0, { d: 40 }],
+  ['star-life', 0, { M: 1, st: 5 }], ['star-life', 1, { M: 2, st: 5 }], ['star-life', 2, { M: 10 }],
+  ['galaxy-types', 0, { g: 'spiral' }], ['galaxy-types', 1, { g: 'elliptical' }],
+  ['big-bang', 0, { s: 3 }], ['big-bang', 1, { s: 2 }],
+  ['universe-expansion', 0, { k: 2 }]
 ];
 
 test('التحديات غير محلولة عند بدايتها، وقابلة للحل بقيم الكتاب ضمن مدى المتغيرات وخطواتها', () => {
@@ -134,4 +150,22 @@ test('أمثلة الكتاب المحلولة', () => {
   const bl = calc('blood-components', { rbc: 5.5, wbc: 7, plt: 300 }); assert.deepEqual(J(bl.s), ['طبيعي', 'طبيعي', 'طبيعي']);
   assert.equal(calc('blood-components', { rbc: 4.9 }).s[0], 'أقل من الطبيعي');
   assert.equal(calc('pulse-rate', { r: 36 }).day, 72 * 60 * 24);
+});
+
+test('أمثلة الجزء الثاني: الأعمدة والقدرة والطاقة والنجوم', () => {
+  const em = calc('emf-internal', { e: 18, r: 1, Rl: 4, sw: true }); near(em.I, 2, 1e-12, 'مثال (1) ص 80'); near(em.Rx, 8);
+  near(calc('emf-internal', { e: 6, r: 2, Rl: 1, sw: true }).V, 6 - 2 * calc('emf-internal', { e: 6, r: 2, Rl: 1 }).I, 1e-12);
+  const jh = calc('joule-heat', { V: 220, R: 220, t: 15 }); near(jh.E, 198000, 1e-12, 'ص 84: 198000 جول'); near(Math.round(jh.cal), 47368, 0, '47368 سعراً');
+  const bp = calc('bulbs-power', { V: 12 }); near(bp.L[0].P, 2); near(bp.L[1].P, 4);
+  const tv = calc('power-cost', { dev: 'tv', h: 1, days: 1 }); near(tv.I, 2); near(tv.R, 125); near(500 * 600, 300000);
+  near(calc('power-cost', { dev: 'heater', h: 6, days: 1 }).kwh, 13.2, 1e-12, 'ص 88: 13.2');
+  const pc = calc('power-cost', { dev: 'pc', h: 2, days: 30, price: 10 }); near(pc.kwh, 12); near(pc.cost, 120);
+  const mw = calc('power-cost', { dev: 'micro', h: 1, days: 30 }); near(mw.I, 5); near(mw.R, 44); near(mw.cost, 330);
+  near(calc('house-bill', { n: 8, h: 1 }).kwh, 3.92); const hb = calc('house-bill', { cur: 76637 }); assert.equal(hb.month, 178); assert.equal(hb.cost, 1780);
+  near(calc('light-year', { ly: 4.5 }).km, 4.5 * 3e8 * 365 * 24 * 3600 / 1000, 1e-12, 'ألفا قنطوري');
+  near(calc('star-magnitude', { a: 'canopus', b: 'spica' }).ratio, Math.pow(2.5, 1.74), 1e-12);
+  near(calc('inverse-square', { d: 40 }).ratio, calc('inverse-square', { d: 20 }).ratio, 1e-12, 'المربعات ÷ ف² ثابت');
+  assert.equal(calc('star-colors', { T: 5500 }).k[0], 'G'); assert.equal(calc('star-colors', { T: 30000 }).k[0], 'O'); assert.equal(calc('star-colors', { T: 3000 }).k[0], 'M');
+  assert.equal(calc('star-life', { M: 1 }).end, 'قزم أبيض'); assert.equal(calc('star-life', { M: 2 }).end, 'نجم نيوتروني'); assert.equal(calc('star-life', { M: 3.5 }).end, 'ثقب أسود');
+  assert.deepEqual(J(calc('universe-expansion', { k: 2 }).dist), [4, 10, 16]);
 });

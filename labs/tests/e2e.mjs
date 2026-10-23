@@ -24,7 +24,7 @@ for (const size of sizes) {
   await page.addInitScript(() => { window.__ft = []; const o = CanvasRenderingContext2D.prototype.fillText; CanvasRenderingContext2D.prototype.fillText = function (t, ...a) { if (window.__ft.length < 4000) window.__ft.push(String(t)); return o.call(this, t, ...a); }; });
   await page.goto(base + Q, { waitUntil: 'load' });
   await page.waitForSelector('.units');
-  const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, bio: !!s.bio, href: ML.simHref(s) })));
+  const sims = await page.evaluate(() => ML.sims.map((s) => ({ id: s.id, subject: s.subject, bio: !!s.bio, qual: !!s.qual, href: ML.simHref(s) })));
   console.log(`[${size.name}] ${sims.length} sims, katex=${await page.evaluate(() => !!window.katex)}`);
   // صفحتا المادتين والتنقل بين التبويبات
   for (const sl of ['g9/science', 'g10/math', 'g10/physics', 'g10/biology', 'g10/chemistry', 'g12/physics']) {
@@ -108,7 +108,7 @@ for (const size of sizes) {
     // أنماط الرسم البياني الحي
     const gm = await page.$$('.gmodes button');
     for (const b of gm) { await b.click(); await page.waitForTimeout(60); const cap = await page.evaluate(() => (document.querySelector('.graph') || {}).innerText || ''); if (/NaN|undefined|\[object/.test(cap)) fail(`${id}: graph caption ${cap.slice(0, 200)}`); }
-    if (sm.subject === 'g10-physics' || sm.subject === 'g12-physics' || (sm.subject === 'g9-science' && !sm.bio)) { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
+    if (sm.subject === 'g10-physics' || sm.subject === 'g12-physics' || (sm.subject === 'g9-science' && !sm.bio && !sm.qual)) { const ok = await page.evaluate(() => !!document.querySelector('.assume') && !!document.querySelector('.graph canvas')); if (!ok) fail(`${id}: missing assumptions box or live graph`); }
     await page.click('[data-a=reset]'); await page.waitForTimeout(520);
     // الأوضاع
     for (const m of ['learn', 'challenge', 'explore']) { await page.click(`.modes [data-m=${m}]`); await page.waitForTimeout(80); }
