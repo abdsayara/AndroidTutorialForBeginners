@@ -23,7 +23,7 @@
 
   /* ---------- الصفوف والمواد ---------- */
   ML.grades = [{ id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-math', 'g9-science'] },
-    { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem'] },
+    { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem', 'g10-digital'] },
     { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
   ML.subjects = {
     'g9-science': {
@@ -128,6 +128,21 @@
         { n: 3, ar: 'الماء في حياتنا', en: 'Water in Our Lives', icon: '💧', pages: '50–68', color: 'u3' },
         { n: 4, ar: 'مدخل إلى الكيمياء العضوية', en: 'Introduction to Organic Chemistry', icon: '⬡', pages: '69–99', color: 'u4' },
         { n: 5, ar: 'الطاقة في التفاعلات الكيميائية', en: 'Energy in Chemical Reactions', icon: '🔥', pages: '100–119', color: 'u5' }
+      ]
+    },
+    'g10-digital': {
+      id: 'g10-digital', grade: 'g10', slug: 'digital', name: 'المهارات الرقمية', en: 'Digital Skills', icon: '💻', part: 'الدرس', unitLabel: 'الوحدة',
+      title: 'مختبر المهارات الرقمية التفاعلي', titleEn: 'Interactive Digital Skills Lab — Python',
+      book: 'كتاب المهارات الرقمية — الصف العاشر', bookEd: 'دولة فلسطين، طبعة 2026م',
+      lead: 'شغّل أكواد الكتاب سطراً سطراً: شاهد الذاكرة تتغير، والشروط تُفحص، والحلقات تدور، والمخرجات تظهر — بجداول تتبع مثل جداول الكتاب.',
+      search: 'ابحث عن درس أو مفهوم… (مثال: جدول تتبع، elif، range، أولويات العمليات)',
+      tutor: 'مساعد البرمجة الذكي', tutorEn: 'AI Programming Tutor', idle: 'انتقل خطوة في التتبع أو غيّر قيمة، وسأشرح لك هنا ماذا نفّذ الحاسوب ولماذا.',
+      units: [
+        { n: 1, unitAr: 'الوحدة الثانية: البرمجة بلغة بايثون', ar: 'الخوارزميات والمخطط الانسيابي', en: 'Algorithms and Flowcharts', icon: '⚙', pages: '38–43', color: 'u1' },
+        { n: 2, unitAr: 'الوحدة الثانية: البرمجة بلغة بايثون', ar: 'المتغيرات والمعاملات والمنطق', en: 'Variables, Operators and Logic', icon: '🗄', pages: '44–57', color: 'u2' },
+        { n: 3, unitAr: 'الوحدة الثانية: البرمجة بلغة بايثون', ar: 'صانع القرارات: الجمل الشرطية', en: 'Decisions: Conditional Statements', icon: '🔀', pages: '58–66', color: 'u3' },
+        { n: 4, unitAr: 'الوحدة الثانية: البرمجة بلغة بايثون', ar: 'قوة التكرار: الحلقات التكرارية', en: 'Loops and Nested Loops', icon: '🔁', pages: '67–75', color: 'u4' },
+        { n: 5, unitAr: 'الوحدة الثانية: البرمجة بلغة بايثون', ar: 'أسئلة الوحدة', en: 'Unit Questions', icon: '❓', pages: '76–77', color: 'u5' }
       ]
     },
     'g12-physics': {
@@ -296,7 +311,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : subj.id === 'g10-digital' ? 'مختبراً' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);

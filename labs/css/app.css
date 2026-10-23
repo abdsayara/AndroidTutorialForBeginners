@@ -281,3 +281,5 @@ bdi.chem { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-w
   .lab-step { font-size: 13.5px; } .lab-actions .btn { font-size: 13px; padding: 6px 10px; }
   .bdi-chem-wrap { white-space: normal; }
 }
+/* المهارات الرقمية: خانات الكود والإدخال تبقى بحالة أحرفها */
+.param[data-k=txt] input.seq, .param[data-k=inp] input.seq { text-transform: none; letter-spacing: normal; font-family: ui-monospace, Consolas, Menlo, monospace; }

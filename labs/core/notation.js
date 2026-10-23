@@ -84,7 +84,7 @@
   const isChem = (sim) => (sim ? sim.subject === 'g10-chem' : ML.curSubject === 'g10-chem');
   ML.isChem = isChem;
   // كتب تكتب القوانين بالحروف اللاتينية والأرقام الغربية: الكيمياء (العاشر)
-  const LATIN_BOOK = { 'g10-chem': 1 };
+  const LATIN_BOOK = { 'g10-chem': 1, 'g10-digital': 1 };
   const isLatinBook = (sim) => !!LATIN_BOOK[sim ? sim.subject : ML.curSubject];
   ML.isLatinBook = isLatinBook;
   const chemNeg = (s) => String(s).replace(/(^|[^0-9A-Za-z)\]\u2066])([-−])([0-9][0-9.,]*)/g, '$1\u2066$2$3\u2069');
