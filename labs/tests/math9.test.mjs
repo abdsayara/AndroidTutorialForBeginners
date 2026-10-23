@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(dir, '..');
 const ctx = vm.createContext({ console, performance, BigInt });
-for (const f of ['core/math.js', 'core/notation.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'subjects/g9-math/common.js', 'subjects/g9-math/u1-real.js', 'subjects/g9-math/u2-functions.js']) {
+for (const f of ['core/math.js', 'core/notation.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'subjects/g9-math/common.js', 'subjects/g9-math/u1-real.js', 'subjects/g9-math/u2-functions.js', 'subjects/g9-math/u3-geometry.js', 'subjects/g9-math/u4-statistics.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 }
 const ML = ctx.ML, G = ML.m9;
@@ -20,18 +20,18 @@ const run = (id, over, st) => { const s = sim(id); const p = Object.assign(defau
 const near = (a, b, tol = 1e-9) => assert.ok(Math.abs(a - b) <= tol * Math.max(1, Math.abs(b)), `expected ${b}, got ${a}`);
 const J = (x) => JSON.parse(JSON.stringify(x));
 
-test('الصف التاسع: مادتا الرياضيات والعلوم، ووحدتا الجزء الأول', () => {
+test('الصف التاسع: مادتا الرياضيات والعلوم، ووحدات الجزء الأول الأربع', () => {
   assert.deepEqual(J(ML.grades.find((g) => g.id === 'g9').subjects), ['g9-math', 'g9-science']);
-  const u = ML.subjects['g9-math'].units; assert.equal(u.length, 2);
-  assert.deepEqual(J(u.map((x) => x.pages)), ['4–29', '30–62']);
+  const u = ML.subjects['g9-math'].units; assert.equal(u.length, 4);
+  assert.deepEqual(J(u.map((x) => x.pages)), ['4–29', '30–63', '64–83', '84–104']);
   assert.equal(ML.simHref(sim('real-sets')), '#/g9/math/sim/real-sets');
 });
 
-test('16 محاكاة، لكل منها مصدر وصفحة وتعلّم وتحديات ومساعد', () => {
-  assert.equal(SIMS.length, 16);
+test('26 محاكاة، لكل منها مصدر وصفحة وتعلّم وتحديات ومساعد', () => {
+  assert.equal(SIMS.length, 26);
   for (const s of SIMS) {
-    assert.ok(s.page >= 4 && s.page <= 56, s.id + ' page');
-    assert.ok([1, 2].includes(s.unit) && s.lesson && s.titleAr && s.titleEn && s.book && s.summary, s.id + ' meta');
+    assert.ok(s.page >= 4 && s.page <= 104, s.id + ' page');
+    assert.ok([1, 2, 3, 4].includes(s.unit) && s.lesson && s.titleAr && s.titleEn && s.book && s.summary, s.id + ' meta');
     assert.ok(s.challenges.length >= 2 && s.tutor.length >= 2 && s.learn.length >= 2, s.id + ' content');
     const { p, d } = run(s.id);
     const res = s.results(p, d); assert.ok(Array.isArray(res) && res.length >= 2, s.id + ' results');
@@ -59,7 +59,17 @@ const SOLVE = {
   'function-types': [{ pre: 'act5' }, { pre: 'ex1' }, { pre: 'act6' }],
   'linear-function': [{ a: 2, b: 1 }, { a: 1, b: 0 }, { a: -2, b: 1, x: -1 }],
   'linear-apps': [{ ctx: 'trees', x: 12 }, { ctx: 'fridge', x: 300 }, { ctx: 'fence', x: 32 }],
-  composition: [{ pre: 'money', usd: 100 }, { pre: 'sets', x: 3 }]
+  composition: [{ pre: 'money', usd: 100 }, { pre: 'sets', x: 3 }],
+  'composition-rules': [{ pre: 'ex', x: 2 }, { pre: 'act4', x: 1 }],
+  'inverse-function': [{ pre: 'act3' }, { pre: 'sq' }, { pre: 'cube1', x: 2 }],
+  distance: [{ x1: -2, y1: -2, x2: 2, y2: 1 }, { tri: true, x3: 6, y3: 4 }, { x1: 0, y1: 4, x2: 2, y2: 2, x3: 0, y3: 0 }],
+  midpoint: [{ x1: 9, y1: 3, x2: 5, y2: 1 }, { mode: 'end', x1: 5, y1: -3, x2: 6, y2: -4 }, { y2: -3 }],
+  slope: [{ x1: 0, y1: -2, x2: 3, y2: 5 }, { y2: 0 }, { x2: 0 }, { x2: 3, y2: 3 }],
+  'line-equation': [{ m: 2, c: 3 }, { m: 2, c: -1, rel: 'par', px: 0, py: 3 }, { m: 0.5, c: -0.5, rel: 'perp', px: 1, py: 0 }],
+  'frequency-table': [{ ds: 'arabic30', k: 5 }, { ds: 'honey', k: 6 }, { ds: 'martyrs' }],
+  'frequency-graphs': [{ tb: 'necklace', ch: 'hist' }, { tb: 'wages', ch: 'ogive' }, { tb: 'marks40', ch: 'poly' }],
+  'central-tendency': [{ tb: 'reading' }, { tb: 'wind' }, { tb: 'poem' }],
+  'standard-deviation': [{ tb: 'arabicT' }, { tb: 'stat20' }]
 };
 test('التحديات قابلة للحل وغير محلولة في حالتها الابتدائية', () => {
   for (const s of SIMS) {
@@ -159,4 +169,53 @@ test('الوحدة الثانية: الاقترانات وأنواعها وال�
   // التركيب
   d = run('composition', { pre: 'sets', x: 2 }).d; assert.equal(d.b, 6); assert.equal(d.c, 10);
   near(run('composition', { pre: 'money', usd: 100 }).d.c, 370);
+});
+
+test('الوحدة الثانية (تكملة): تركيب القواعد والاقتران النظير', () => {
+  assert.equal(run('composition-rules', { pre: 'ex', x: 2 }).d.gf, 17);
+  let d = run('composition-rules', { pre: 'act3', x: 1 }).d; assert.equal(d.gf, 24); assert.equal(d.fg, 11);
+  d = run('composition-rules', { pre: 'act4', x: 1 }).d; assert.equal(d.gf, 2); assert.equal(d.fg, 4);
+  d = run('inverse-function', { pre: 'lin', x: 2 }).d; assert.equal(d.y, 7); assert.equal(d.back, 2);
+  d = run('inverse-function', { pre: 'act3' }).d; assert.ok(d.ok); assert.deepEqual(J(d.inv), [[3, 1], [15, 2], [12, 3], [20, 4]]);
+  assert.ok(!run('inverse-function', { pre: 'ex1b' }).d.ok); assert.ok(!run('inverse-function', { pre: 'sq' }).d.ok);
+  near(run('inverse-function', { pre: 'cube1', x: 2 }).d.back, 2);
+});
+
+test('الوحدة الثالثة: المسافة والمنتصف والميل والمعادلة', () => {
+  let d = run('distance', { x1: -2, y1: -2, x2: 2, y2: 1 }).d; assert.equal(d.d, 5);
+  assert.equal(run('distance', { x1: -2, y1: -2, x2: 2, y2: 1, tri: true, x3: 6, y3: 4 }).d.cls.k, 'line');
+  assert.equal(run('distance', { x1: 0, y1: 4, x2: 2, y2: 2, tri: true, x3: 0, y3: 0 }).d.cls.k, 'riso');
+  assert.equal(run('distance', { x1: 0, y1: 0, x2: 4, y2: 0, tri: true, x3: 4, y3: 3 }).d.cls.k, 'right');
+  near(run('distance', { x1: 1, y1: 7, x2: -2, y2: 3 }).d.d, 5); near(run('distance', { x1: -5, y1: 7, x2: -2, y2: 3 }).d.d, 5);
+  assert.deepEqual(J(run('midpoint', { x1: -1, y1: 4, x2: 5, y2: 2 }).d.M), [2, 3]);
+  assert.deepEqual(J(run('midpoint', { mode: 'end', x1: 5, y1: -3, x2: 6, y2: -4 }).d.B), [7, -5]);
+  assert.deepEqual(J(run('midpoint', { x1: 3, y1: 2, x2: 0, y2: -3 }).d.M), [1.5, -0.5]);
+  d = run('slope', { x1: 0, y1: -2, x2: 3, y2: 5 }).d; near(d.m, 7 / 3); assert.equal(G.frac(d.dy, d.dx), '\\frac{7}{3}');
+  assert.equal(run('slope', { x1: 2, y1: 1, x2: -1, y2: 1 }).d.m, 0); assert.ok(run('slope', { x1: 2, y1: 1, x2: 2, y2: 3 }).d.vert);
+  near(run('slope', { x1: 0, y1: 0, x2: 1, y2: 1 }).d.th, 45);
+  d = run('line-equation', { m: 4, c: 0, rel: 'par', px: 2, py: 3 }).d; assert.equal(d.c2, -5);
+  d = run('line-equation', { m: 0.5, c: -0.5, rel: 'perp', px: 1, py: 0 }).d; assert.equal(d.m2, -2); assert.equal(d.c2, 2);
+  assert.equal(G.lineTeX(0.75, -2), '\\frac{3}{4}x - 2');
+  assert.ok(run('line-equation', { m: 0, c: 4, rel: 'perp' }).d.vert2);
+});
+
+test('الوحدة الرابعة: الجداول التكرارية ومقاييس الكتاب', () => {
+  let b = G.buildClasses(G.RAW.math26.data, 3); assert.equal(b.range, 20); assert.equal(b.len, 7); assert.deepEqual(J(b.rows.map((r) => r[0])), [11, 18, 25]);
+  b = G.buildClasses(G.RAW.arabic30.data, 5); assert.equal(b.len, 4); assert.deepEqual(J(b.rows.map((r) => r[2])), [3, 4, 10, 9, 4]);
+  b = G.buildClasses(G.RAW.honey.data, 6); assert.equal(b.len, 10); assert.equal(b.rows[0][2], 5); assert.equal(G.RAW.honey.data.length, 50);
+  const m = G.RAW.martyrs.data; assert.equal(m.length, 22); assert.equal(m.reduce((s, x) => s + x, 0), 156);
+  assert.equal(m.filter((x) => x === 15).length, 3); assert.equal(m.filter((x) => x === 0).length, 1);
+  let s = G.stats(G.TAB.reading.rows); near(s.median, 9.25); assert.equal(s.rank, 5);
+  s = G.stats(G.TAB.poem.rows); near(s.median, 10.5); assert.equal(s.rank, 14);
+  s = G.stats(G.TAB.wages.rows); assert.equal(s.cum[1], 30); assert.equal(s.N - s.cum[2], 30);
+  s = G.stats(G.TAB.necklace.rows); assert.equal(s.N, 60); assert.deepEqual(J(s.lowA.slice(0, 2)), [39.5, 44.5]);
+  s = G.stats(G.TAB.marks40.rows); assert.deepEqual(J(s.x), [5, 10, 15, 20, 25]);
+  s = G.stats(G.TAB.weights.rows); assert.equal(s.x[0], 54.5); assert.equal(s.mode, 74.5);
+  s = G.stats(G.TAB.math9.rows); assert.deepEqual(J([s.x[0], s.x[1], s.x[6]]), [31, 40, 85]); assert.equal(s.x[0] * s.f[0], 93);
+  s = G.stats(G.TAB.wind.rows); assert.equal(s.x[1], 12); assert.equal(s.x[0] * s.f[0], 35); near(s.mean, 16.75);
+  s = G.stats([[1, 5, 2], [6, 10, 4], [11, 15, 3], [16, 20, 1]]); assert.equal(s.mode, 8);
+  // σ = √(مجـ ÷ ن) وتحقق بالحساب المباشر
+  const tb = G.TAB.arabicT.rows; s = G.stats(tb); const vals = []; tb.forEach((r) => { for (let i = 0; i < r[2]; i++) vals.push((r[0] + r[1]) / 2); });
+  const mu = vals.reduce((a, x) => a + x, 0) / vals.length; near(s.sd, Math.sqrt(vals.reduce((a, x) => a + (x - mu) ** 2, 0) / vals.length));
+  const acc = run('standard-deviation', { tb: 'acc' }).d; assert.equal(acc.N, 12); assert.equal(Math.max(...acc.x), 1179);
 });
