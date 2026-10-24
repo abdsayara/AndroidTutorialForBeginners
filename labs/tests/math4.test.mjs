@@ -21,7 +21,7 @@ const run = (id, over, st) => { const s = sim(id); const p = Object.assign(defau
 const J = (x) => JSON.parse(JSON.stringify(x));
 
 test('الصف الرابع: مادة الرياضيات بوحداتها الست', () => {
-  assert.equal(ML.grades[0].id, 'g4');
+  assert.ok(ML.grades.some((g) => g.id === 'g4'));
   assert.deepEqual(J(ML.grades.find((g) => g.id === 'g4').subjects), ['g4-math']);
   const u = ML.subjects['g4-math'].units;
   assert.deepEqual(J(u.map((x) => x.n)), [1, 2, 3, 4, 5, 6]);

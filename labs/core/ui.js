@@ -24,11 +24,24 @@
   /* ---------- الصفوف والمواد ---------- */
   ML.SITE = 'المختبر التفاعلي - المنهاج الفلسطيني';
   ML.SITE_EN = 'Interactive Lab — Palestinian Curriculum';
-  ML.grades = [{ id: 'g4', name: 'الصف الرابع', en: 'Grade 4', subjects: ['g4-math'] },
+  ML.grades = [{ id: 'g1', name: 'الصف الأول', en: 'Grade 1', subjects: ['g1-math'] },
+    { id: 'g4', name: 'الصف الرابع', en: 'Grade 4', subjects: ['g4-math'] },
     { id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-math', 'g9-science'] },
     { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem', 'g10-digital'] },
     { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
   ML.subjects = {
+    'g1-math': {
+      id: 'g1-math', grade: 'g1', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '١',
+      title: 'مختبر الرياضيات التفاعلي', titleEn: 'Interactive Mathematics Lab — Grade 1',
+      book: 'كتاب الرياضيات — الصف الأول الأساسي، الجزء الأول', bookEd: 'دولة فلسطين، الطبعة الرابعة 2020م / 1441هـ',
+      lead: 'أنشطة كتاب الرياضيات للصف الأول ألعاباً بالنقر: نعدّ الأشياء واحداً واحداً، ونختار العدد، ونكمل الرسم، ونقسم المجموعة إلى مجموعتين، ونقارن بأكبر من وأصغر من ويساوي، ونرتّب على الدرج، ونقفز مع الضفدع إلى العدد التالي والسابق، ونعدّ ترتيبياً في قطار الصف — بأمثلة الكتاب وصوره.',
+      search: 'ابحث عن درس… (مثال: العدد ٥، أكمل الرسم، أكبر من، الترتيب التصاعدي، العدد التالي، العدد الترتيبي)',
+      tutor: 'مساعد الرياضيات الذكي', tutorEn: 'AI Math Tutor', idle: 'انقر الأشياء على الرسم لتعدّها أو لتختار جوابك، وسأخبرك هنا بما حدث.',
+      units: [
+        { n: 1, ar: 'الأعداد من (١ – ٩)', en: 'Numbers 1–9', icon: '🔢', pages: '2–30', color: 'u1' },
+        { n: 2, ar: 'مقارنة الأعداد (١ – ٩)', en: 'Comparing Numbers 1–9', icon: '⚖', pages: '31–55', color: 'u2' }
+      ]
+    },
     'g4-math': {
       id: 'g4-math', grade: 'g4', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '½',
       title: 'مختبر الرياضيات التفاعلي', titleEn: 'Interactive Mathematics Lab — Grade 4',
@@ -332,7 +345,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g4-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : subj.id === 'g10-digital' ? 'مختبراً' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g4-math' && subj.id !== 'g1-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : subj.id === 'g10-digital' ? 'مختبراً' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -391,7 +404,7 @@
         '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>' + (this.subj.unitLabel || 'الفصل') + ':</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>' + (this.subj.part ? 'البند' : 'الدرس') + ':</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
         '<div class="modes" role="tablist">' +
         '<button role="tab" data-m="learn">📘 تعلّم <small>Learn</small></button>' +
-        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' && s.subject !== 'g9-math' && s.subject !== 'g4-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
+        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' && s.subject !== 'g9-math' && s.subject !== 'g4-math' && s.subject !== 'g1-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
         '<button role="tab" data-m="challenge">🎯 تحدٍّ <small>Challenge</small></button></div>';
       app.appendChild(head);
       head.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => this.setMode(b.dataset.m)));
