@@ -24,10 +24,25 @@
   /* ---------- الصفوف والمواد ---------- */
   ML.SITE = 'المختبر التفاعلي - المنهاج الفلسطيني';
   ML.SITE_EN = 'Interactive Lab — Palestinian Curriculum';
-  ML.grades = [{ id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-math', 'g9-science'] },
+  ML.grades = [{ id: 'g4', name: 'الصف الرابع', en: 'Grade 4', subjects: ['g4-math'] },
+    { id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-math', 'g9-science'] },
     { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem', 'g10-digital'] },
     { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
   ML.subjects = {
+    'g4-math': {
+      id: 'g4-math', grade: 'g4', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '½',
+      title: 'مختبر الرياضيات التفاعلي', titleEn: 'Interactive Mathematics Lab — Grade 4',
+      book: 'كتاب الرياضيات — الصف الرابع الأساسي، الجزء الأول (الصفحات 62–124)', bookEd: 'دولة فلسطين، المنهاج الفلسطيني',
+      lead: 'أنشطة كتاب الرياضيات للصف الرابع تجارب تلمسها بيدك: القسمة الطويلة، ولوحة الكسور، والكسور المتكافئة وجمعها وطرحها، والأعداد الكسرية، والمستقيمات والزوايا بالمنقلة، وزوايا المثلث، وجداول البيانات والتمثيل بالصور والأعمدة — بأعداد الكتاب وأمثلته.',
+      search: 'ابحث عن درس أو مفهوم… (مثال: القسمة الطويلة، الكسور المتكافئة، العدد الكسري، المنقلة، الأعمدة)',
+      tutor: 'مساعد الرياضيات الذكي', tutorEn: 'AI Math Tutor', idle: 'غيّر أي أداة تحكم أو اضغط على الرسم، وسأشرح لك هنا ماذا حدث ولماذا — بلغة الكتاب.',
+      units: [
+        { n: 3, ar: 'القسمة الطويلة (نهاية الوحدة)', en: 'Long Division (end of Unit 3)', icon: '÷', pages: '62–65', color: 'u1' },
+        { n: 4, ar: 'الكسور العادية والأعداد الكسرية', en: 'Fractions and Mixed Numbers', icon: '½', pages: '66–89', color: 'u2' },
+        { n: 5, ar: 'الهندسة والقياس (1)', en: 'Geometry and Measurement (1)', icon: '📐', pages: '90–108', color: 'u3' },
+        { n: 6, ar: 'البيانات', en: 'Data', icon: '📊', pages: '109–120', color: 'u4' }
+      ]
+    },
     'g9-science': {
       id: 'g9-science', grade: 'g9', slug: 'science', name: 'العلوم', en: 'Science', icon: '🔬', part: 'الدرس', unitLabel: 'الوحدة',
       title: 'مختبر العلوم التفاعلي', titleEn: 'Interactive Science Lab — Grade 9',
@@ -167,10 +182,12 @@
     }
   };
   const SUBJ = (id) => ML.subjects[id || 'g10-math'];
-  ML.unitOf = (sim) => SUBJ(sim.subject).units[sim.unit - 1];
+  // الوحدات تُطلب برقمها في الكتاب (قد تبدأ من غير الأولى إذا رُفع جزء من الكتاب)
+  const UNIT = (subj, n) => SUBJ(subj).units.find((u) => u.n === n);
+  ML.unitOf = (sim) => UNIT(sim.subject, sim.unit);
   ML.unitName = function (a, b) {
     const subj = b === undefined ? 'g10-math' : a, n = b === undefined ? a : b;
-    const u = SUBJ(subj).units[n - 1];
+    const u = UNIT(subj, n);
     if (u.unitAr) return u.unitAr + (u.unitAr.indexOf(':') >= 0 || u.unitAr.endsWith(u.ar) ? ' — ' + (SUBJ(subj).part || 'الفصل') + ': ' + u.ar : ': ' + u.ar);
     return 'الوحدة ' + ORD[n] + ' (' + u.ar + ')';
   };
@@ -313,7 +330,7 @@
       '<p class="lead">' + subj.lead + '</p>' +
       '<p class="src-line">المصدر الوحيد للمحتوى: <b>' + subj.book + '</b> (' + subj.bookEd + ')</p>' +
       '<div class="search"><input type="search" placeholder="' + subj.search + '" aria-label="بحث"></div>' +
-      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : subj.id === 'g10-digital' ? 'مختبراً' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
+      '<div class="stats"><span><b>' + subj.units.length + '</b> ' + (subj.part === 'الدرس' ? 'دروس' : subj.id !== 'g10-math' && subj.id !== 'g9-math' && subj.id !== 'g4-math' && subj.id !== 'g10-chem' ? 'فصول' : 'وحدات') + '</span><span><b>' + sims.length + '</b> ' + (subj.id === 'g10-physics' || subj.id === 'g10-chem' || subj.id === 'g12-physics' || subj.id === 'g9-science' ? 'تجربة' : subj.id === 'g10-digital' ? 'مختبراً' : 'محاكاة') + '</span><span><b>3</b> أوضاع تعلّم</span></div>';
     app.appendChild(hero);
     const grid = el('main', { class: 'units' });
     app.appendChild(grid);
@@ -372,7 +389,7 @@
         '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>' + (this.subj.unitLabel || 'الفصل') + ':</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>' + (this.subj.part ? 'البند' : 'الدرس') + ':</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
         '<div class="modes" role="tablist">' +
         '<button role="tab" data-m="learn">📘 تعلّم <small>Learn</small></button>' +
-        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' && s.subject !== 'g9-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
+        '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' && s.subject !== 'g9-math' && s.subject !== 'g4-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
         '<button role="tab" data-m="challenge">🎯 تحدٍّ <small>Challenge</small></button></div>';
       app.appendChild(head);
       head.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => this.setMode(b.dataset.m)));
