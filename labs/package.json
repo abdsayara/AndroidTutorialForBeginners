@@ -2,7 +2,7 @@
   "name": "interactive-labs",
   "version": "1.0.0",
   "private": true,
-  "description": "المختبرات التفاعلية — Grade 10 Math & Physics Interactive Simulation Labs (Palestine curriculum)",
+  "description": "المختبر التفاعلي - المنهاج الفلسطيني — Grade 10 Math & Physics Interactive Simulation Labs (Palestine curriculum)",
   "scripts": {
     "start": "python3 -m http.server 8765",
     "test": "node --test tests/*.test.mjs",

@@ -22,6 +22,8 @@
   ML.ORD = ORD;
 
   /* ---------- الصفوف والمواد ---------- */
+  ML.SITE = 'المختبر التفاعلي - المنهاج الفلسطيني';
+  ML.SITE_EN = 'Interactive Lab — Palestinian Curriculum';
   ML.grades = [{ id: 'g9', name: 'الصف التاسع', en: 'Grade 9', subjects: ['g9-math', 'g9-science'] },
     { id: 'g10', name: 'الصف العاشر', en: 'Grade 10', subjects: ['g10-math', 'g10-physics', 'g10-bio', 'g10-chem', 'g10-digital'] },
     { id: 'g12', name: 'الصف الثاني عشر العلمي', en: 'Grade 12 (Scientific)', subjects: ['g12-physics'] }];
@@ -281,8 +283,8 @@
 
   function topbar(subj, back) {
     const bar = el('header', { class: 'topbar' });
-    bar.innerHTML = (back ? '<a class="btn ghost back" href="#/' + subj.grade + '/' + subj.slug + '" aria-label="رجوع إلى الفصول">→ الفصول</a>' : '') +
-      '<a class="brand" href="#/' + subj.grade + '/' + subj.slug + '"><span class="logo" aria-hidden="true">' + subj.icon + '</span><span><b>' + subj.title + '</b><small>' + subj.titleEn + '</small></span></a>' +
+    bar.innerHTML = (back ? '<a class="btn ghost back" href="#/' + subj.grade + '/' + subj.slug + '" aria-label="رجوع إلى الفصول">→ <span class="back-t">الفصول</span></a>' : '') +
+      '<a class="brand" href="#/' + subj.grade + '/' + subj.slug + '"><span class="logo" aria-hidden="true">' + subj.icon + '</span><span><b>' + ML.SITE + '</b><small>' + subj.name + ' — ' + ML.grades.find((g) => g.id === subj.grade).name + '</small></span></a>' +
       '<button class="btn ghost notation" aria-label="تبديل الرموز بين صيغة الكتاب العربية والصيغة الدولية" title="الرموز: صيغة الكتاب العربية ↔ الدولية"><span class="' + (ML.isAr() ? 'on' : '') + '">ع</span><span class="' + (ML.isAr() ? '' : 'on') + '" lang="en">x</span></button>' +
       '<label class="style-wrap" title="ستايل الواجهة"><span class="style-ico" aria-hidden="true">🎨</span><select class="style-pick" aria-label="ستايل الواجهة">' + STYLES.map((x) => '<option value="' + x[0] + '"' + ((document.documentElement.getAttribute('data-style') || '') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></label>' +
       '<button class="btn ghost icon theme" aria-label="تبديل الوضع الليلي" title="الوضع الليلي/النهاري">🌓</button>';
@@ -302,7 +304,7 @@
 
   /* ---------- الصفحة الرئيسية ---------- */
   function renderHome(app, subj) {
-    document.title = subj.title;
+    document.title = subj.title + ' | ' + ML.SITE;
     const sims = ML.sims.filter((s) => s.subject === subj.id);
     app.appendChild(topbar(subj, false));
     app.appendChild(tabs(subj));
@@ -348,7 +350,7 @@
       this.raf = null; this.tw = null;
       this.subj = SUBJ(sim.subject);
       ML.curSim = sim; ML.curSubject = sim.subject;
-      document.title = sim.titleAr + ' — ' + this.subj.title;
+      document.title = sim.titleAr + ' | ' + ML.SITE;
       this.st = sim.initState ? sim.initState(this.p) : null;
       this.build();
       this.update(true);
