@@ -66,7 +66,20 @@
     pepper: (c, x, y, s) => { ell(c, x - s * 0.1, y + s * 0.05, s * 0.18, s * 0.28, '#dc2626'); ell(c, x + s * 0.1, y + s * 0.05, s * 0.18, s * 0.28, '#b91c1c'); rect(c, x - s * 0.03, y - s * 0.38, s * 0.06, s * 0.16, '#16a34a'); },
     moon: (c, x, y, s) => { circ(c, x, y, s * 0.32, '#fde68a'); circ(c, x + s * 0.14, y - s * 0.06, s * 0.28, '#1e293b'); },
     bear: (c, x, y, s) => { circ(c, x - s * 0.18, y - s * 0.26, s * 0.09, '#b45309'); circ(c, x + s * 0.18, y - s * 0.26, s * 0.09, '#b45309'); circ(c, x, y - s * 0.12, s * 0.2, '#d97706'); ell(c, x, y + s * 0.22, s * 0.24, s * 0.18, '#d97706'); circ(c, x, y - s * 0.06, s * 0.07, '#fde68a'); },
-    smile: (c, x, y, s) => { circ(c, x, y, s * 0.32, '#facc15'); circ(c, x - s * 0.1, y - s * 0.08, s * 0.04, '#111'); circ(c, x + s * 0.1, y - s * 0.08, s * 0.04, '#111'); c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.arc(x, y + s * 0.02, s * 0.15, 0.3, Math.PI - 0.3); c.stroke(); }
+    smile: (c, x, y, s) => { circ(c, x, y, s * 0.32, '#facc15'); circ(c, x - s * 0.1, y - s * 0.08, s * 0.04, '#111'); circ(c, x + s * 0.1, y - s * 0.08, s * 0.04, '#111'); c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.arc(x, y + s * 0.02, s * 0.15, 0.3, Math.PI - 0.3); c.stroke(); },
+    pear: (c, x, y, s) => { circ(c, x, y + s * 0.12, s * 0.24, '#facc15'); circ(c, x, y - s * 0.1, s * 0.15, '#facc15'); rect(c, x - s * 0.02, y - s * 0.38, s * 0.04, s * 0.14, '#78350f'); },
+    tomato: (c, x, y, s) => { ell(c, x, y + s * 0.04, s * 0.32, s * 0.25, '#ef4444'); poly(c, [[x - s * 0.15, y - s * 0.2], [x, y - s * 0.3], [x + s * 0.15, y - s * 0.2], [x, y - s * 0.14]], '#16a34a'); },
+    cube: (c, x, y, s, col) => { poly(c, [[x - s * 0.3, y - s * 0.18], [x - s * 0.18, y - s * 0.32], [x + s * 0.3, y - s * 0.32], [x + s * 0.18, y - s * 0.18]], '#7e22ce'); poly(c, [[x + s * 0.18, y - s * 0.18], [x + s * 0.3, y - s * 0.32], [x + s * 0.3, y + s * 0.2], [x + s * 0.18, y + s * 0.32]], '#581c87'); rect(c, x - s * 0.3, y - s * 0.18, s * 0.48, s * 0.5, col || '#4ade80'); },
+    tulip: (c, x, y, s) => { rect(c, x - s * 0.02, y, s * 0.04, s * 0.42, '#16a34a'); ell(c, x + s * 0.12, y + s * 0.22, s * 0.12, s * 0.05, '#16a34a', -0.6); poly(c, [[x - s * 0.2, y - s * 0.32], [x - s * 0.08, y - s * 0.18], [x, y - s * 0.34], [x + s * 0.08, y - s * 0.18], [x + s * 0.2, y - s * 0.32], [x + s * 0.18, y], [x - s * 0.18, y]], '#ef4444'); },
+    cupcake: (c, x, y, s) => { poly(c, [[x - s * 0.26, y], [x + s * 0.26, y], [x + s * 0.18, y + s * 0.32], [x - s * 0.18, y + s * 0.32]], '#f59e0b'); ell(c, x, y - s * 0.04, s * 0.3, s * 0.16, '#f472b6'); circ(c, x, y - s * 0.22, s * 0.07, '#a855f7'); },
+    eggplant: (c, x, y, s) => { ell(c, x, y + s * 0.08, s * 0.18, s * 0.3, '#7c3aed', 0.3); poly(c, [[x - s * 0.12, y - s * 0.22], [x + s * 0.12, y - s * 0.22], [x + s * 0.1, y - s * 0.3], [x - s * 0.1, y - s * 0.3]], '#16a34a'); rect(c, x - s * 0.02, y - s * 0.42, s * 0.04, s * 0.14, '#15803d'); },
+    turtle: (c, x, y, s) => { ell(c, x, y, s * 0.3, s * 0.2, '#65a30d'); ell(c, x, y - s * 0.02, s * 0.2, s * 0.13, '#a3e635'); circ(c, x + s * 0.34, y - s * 0.04, s * 0.09, '#84cc16'); circ(c, x + s * 0.37, y - s * 0.07, s * 0.025, '#111'); for (const dx of [-0.2, 0.18]) ell(c, x + dx * s, y + s * 0.17, s * 0.07, s * 0.05, '#84cc16'); },
+    stick: (c, x, y, s, col) => rect(c, x - s * 0.06, y - s * 0.4, s * 0.12, s * 0.8, col || '#ea580c'),
+    umbrella: (c, x, y, s) => { c.fillStyle = '#db2777'; c.beginPath(); c.arc(x, y - s * 0.05, s * 0.34, Math.PI, 0); c.closePath(); c.fill(); rect(c, x - s * 0.02, y - s * 0.05, s * 0.04, s * 0.4, '#334155'); },
+    lemon: (c, x, y, s) => { ell(c, x, y, s * 0.32, s * 0.24, '#fde047'); ell(c, x + s * 0.1, y - s * 0.26, s * 0.1, s * 0.05, '#16a34a', -0.5); },
+    basket: (c, x, y, s) => { poly(c, [[x - s * 0.36, y - s * 0.08], [x + s * 0.36, y - s * 0.08], [x + s * 0.26, y + s * 0.3], [x - s * 0.26, y + s * 0.3]], '#a16207'); circ(c, x - s * 0.12, y - s * 0.14, s * 0.09, '#4d7c0f'); circ(c, x + s * 0.05, y - s * 0.16, s * 0.09, '#365314'); circ(c, x + s * 0.18, y - s * 0.12, s * 0.08, '#4d7c0f'); c.strokeStyle = '#78350f'; c.lineWidth = 2; c.beginPath(); c.arc(x, y - s * 0.08, s * 0.3, Math.PI, 0); c.stroke(); },
+    doll: (c, x, y, s) => person(c, x, y, s, '#f472b6', '#facc15', true),
+    plane: (c, x, y, s) => { ell(c, x, y, s * 0.42, s * 0.1, '#fb923c'); poly(c, [[x - s * 0.05, y], [x - s * 0.2, y - s * 0.32], [x + s * 0.06, y]], '#f97316'); poly(c, [[x - s * 0.05, y], [x - s * 0.2, y + s * 0.3], [x + s * 0.06, y]], '#ea580c'); poly(c, [[x - s * 0.36, y], [x - s * 0.44, y - s * 0.18], [x - s * 0.3, y]], '#f97316'); }
   };
   G.ICONS = ICONS;
   G.icon = (ctx, kind, x, y, s, col) => { ctx.save(); (ICONS[kind] || ICONS.circle)(ctx, x, y, s, col); ctx.restore(); };
@@ -113,6 +126,41 @@
       G.txt(ctx, v, cx, y + h / 2, { color: on ? (good ? c.c3 : c.c2) : c.text, size: Math.min(30, h * 0.6), w: '800' });
       if (o.hits) o.hits.push({ x: cx - cw / 2, y: y, w: cw, h: h, v: v, tag: o.tag || 'card' });
     });
+  };
+  // خط أحمر مائل على الشيء المطروح (كما في صور الطرح في الكتاب)
+  G.cross = function (ctx, x, y, s) { ctx.save(); ctx.strokeStyle = '#dc2626'; ctx.lineWidth = Math.max(2.5, s * 0.07); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x + s * 0.32, y - s * 0.4); ctx.lineTo(x - s * 0.32, y + s * 0.4); ctx.stroke(); ctx.restore(); };
+  // زر مستطيل بنص
+  G.btn = function (ctx, x, y, w, h, label, c, o) {
+    o = o || {}; const col = o.good === true ? c.c3 : o.good === false ? c.c2 : c.c1;
+    G.box(ctx, x, y, w, h, col, o.on ? (o.good === false ? 'rgba(220,38,38,.12)' : 'rgba(5,150,105,.16)') : 'rgba(37,99,235,.06)');
+    G.txt(ctx, label, x + w / 2, y + h / 2, { color: o.on ? col : c.text, size: o.size || Math.min(22, h * 0.45), w: '800' });
+    if (o.hits) o.hits.push(Object.assign({ x: x, y: y, w: w, h: h }, o.hit || {}));
+  };
+  // أزرار الإشارات > < = (تُكتب كما تبدو بين عددين في سطر عربي، والفتحة نحو الأكبر)
+  G.KEY = { gt: 1, lt: -1, eq: 0 }; G.SNAME = { gt: 'أكبر من', lt: 'أصغر من', eq: 'يساوي' };
+  G.kOf = (a, b) => (a > b ? 'gt' : a < b ? 'lt' : 'eq');
+  G.signBtns = function (ctx, W, y, pick, right, c, hits) {
+    const bw = Math.min(120, (W - 40) / 3);
+    ['gt', 'lt', 'eq'].forEach((k, i) => {
+      const x = W / 2 + (1 - i) * (bw + 10) - bw / 2; const on = pick === k; const good = k === right;
+      G.box(ctx, x, y, bw, 60, on ? (good ? c.c3 : c.c2) : c.c1, on ? (good ? 'rgba(5,150,105,.15)' : 'rgba(220,38,38,.1)') : 'rgba(37,99,235,.05)');
+      G.txt(ctx, G.sign(G.KEY[k]), x + bw / 2, y + 22, { color: c.text, size: 26, w: '800' });
+      G.txt(ctx, G.SNAME[k], x + bw / 2, y + 46, { color: c.muted, size: 13, w: '700' });
+      hits.push({ x: x, y: y, w: bw, h: 60, k: k });
+    });
+  };
+  // ساعة بعقربين (العقرب الكبير على ١٢ دائماً: قراءة رأس الساعة كما في الكتاب)
+  G.clock = function (ctx, x, y, r, hour, c, o) {
+    o = o || {};
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r + r * 0.12, 0, 7); ctx.fillStyle = o.ring || '#0e7490'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = '#e0f2fe'; ctx.fill();
+    // أرقام وجه الساعة ١–١٢
+    ctx.font = '800 ' + Math.max(11, r * 0.2) + 'px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+    for (let h = 1; h <= 12; h++) { const a = -Math.PI / 2 + h * Math.PI / 6; ctx.fillStyle = o.hl === h ? '#dc2626' : '#0f172a'; ctx.fillText(String(h), x + Math.cos(a) * r * 0.8, y + Math.sin(a) * r * 0.8); if (o.hits) o.hits.push({ cx: x + Math.cos(a) * r * 0.8, cy: y + Math.sin(a) * r * 0.8, r: r * 0.17, hour: h }); }
+    const hand = (ang, len, w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len); ctx.stroke(); };
+    hand(-Math.PI / 2, r * 0.72, Math.max(3, r * 0.05), o.hand || '#7c3aed');
+    if (hour != null) hand(-Math.PI / 2 + hour * Math.PI / 6, r * 0.48, Math.max(4, r * 0.08), o.hand || '#7c3aed');
+    ctx.beginPath(); ctx.arc(x, y, r * 0.06, 0, 7); ctx.fillStyle = '#0f172a'; ctx.fill(); ctx.restore();
   };
   // رقم كبير مفرّغ يمتلئ عند اكتمال العدّ (كصفحة «ألوّن»)
   G.bigDigit = function (ctx, n, x, y, size, c, filled) {

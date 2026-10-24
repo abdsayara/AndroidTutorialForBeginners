@@ -34,12 +34,16 @@
       id: 'g1-math', grade: 'g1', slug: 'math', name: 'الرياضيات', en: 'Mathematics', icon: '١',
       title: 'مختبر الرياضيات التفاعلي', titleEn: 'Interactive Mathematics Lab — Grade 1',
       book: 'كتاب الرياضيات — الصف الأول الأساسي، الجزء الأول', bookEd: 'دولة فلسطين، الطبعة الرابعة 2020م / 1441هـ',
-      lead: 'أنشطة كتاب الرياضيات للصف الأول ألعاباً بالنقر: نعدّ الأشياء واحداً واحداً، ونختار العدد، ونكمل الرسم، ونقسم المجموعة إلى مجموعتين، ونقارن بأكبر من وأصغر من ويساوي، ونرتّب على الدرج، ونقفز مع الضفدع إلى العدد التالي والسابق، ونعدّ ترتيبياً في قطار الصف — بأمثلة الكتاب وصوره.',
-      search: 'ابحث عن درس… (مثال: العدد ٥، أكمل الرسم، أكبر من، الترتيب التصاعدي، العدد التالي، العدد الترتيبي)',
+      lead: 'أنشطة كتاب الرياضيات للصف الأول ألعاباً بالنقر: نعدّ الأشياء واحداً واحداً، ونختار العدد، ونكمل الرسم، ونقسم المجموعة إلى مجموعتين، ونقارن بأكبر من وأصغر من ويساوي، ونرتّب على الدرج، ونقفز مع الضفدع إلى العدد التالي والسابق، ونعدّ ترتيبياً في قطار الصف، ونكوّن الأعداد ونجمع ونطرح ضمن ٩، ونبني العشرة على المعداد حتى ٢٠، ونقيس بالشبر ونقرأ الساعة وأيام الأسبوع — بأمثلة الكتاب وصوره.',
+      search: 'ابحث عن درس… (مثال: العدد ٥، أكبر من، العدد التالي، مكوّنات العدد، الجمع، الطرح، العشرات، الساعة)',
       tutor: 'مساعد الرياضيات الذكي', tutorEn: 'AI Math Tutor', idle: 'انقر الأشياء على الرسم لتعدّها أو لتختار جوابك، وسأخبرك هنا بما حدث.',
       units: [
         { n: 1, ar: 'الأعداد من (١ – ٩)', en: 'Numbers 1–9', icon: '🔢', pages: '2–30', color: 'u1' },
-        { n: 2, ar: 'مقارنة الأعداد (١ – ٩)', en: 'Comparing Numbers 1–9', icon: '⚖', pages: '31–55', color: 'u2' }
+        { n: 2, ar: 'مقارنة الأعداد (١ – ٩)', en: 'Comparing Numbers 1–9', icon: '⚖', pages: '31–55', color: 'u2' },
+        { n: 3, ar: 'الجمع ضمن العدد ٩', en: 'Addition within 9', icon: '+', pages: '56–72', color: 'u3' },
+        { n: 4, ar: 'الطرح ضمن العدد ٩', en: 'Subtraction within 9', icon: '−', pages: '73–86', color: 'u4' },
+        { n: 5, ar: 'الأعداد من ١٠ – ٢٠', en: 'Numbers 10–20', icon: '🔟', pages: '87–102', color: 'u5' },
+        { n: 6, ar: 'القياس', en: 'Measurement', icon: '⏰', pages: '103–111', color: 'u6' }
       ]
     },
     'g4-math': {
@@ -252,10 +256,11 @@
   /* ---------- السمة ---------- */
   function initTheme() {
     let t = null; try { t = localStorage.getItem('ml-theme'); } catch (e) { /* ignore */ }
-    if (t) document.documentElement.setAttribute('data-theme', t);
+    // الوضع المضيء هو الأساس؛ الداكن فقط إذا اختاره المستخدم بالزر
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
   }
   function toggleTheme() {
-    const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const cur = document.documentElement.getAttribute('data-theme') || 'light';
     const nx = cur === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', nx);
     try { localStorage.setItem('ml-theme', nx); } catch (e) { /* ignore */ }
