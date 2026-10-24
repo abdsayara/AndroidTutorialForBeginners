@@ -1,4 +1,4 @@
-// اختبارات رياضيات الرابع (الجزء الأول، الصفحات 62–124) — التشغيل: node --test tests/
+// اختبارات رياضيات الرابع (الجزء الأول كاملاً) — التشغيل: node --test tests/
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,7 +10,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(dir, '..');
 const ctx = vm.createContext({ console, performance, BigInt });
 for (const f of ['core/math.js', 'core/notation.js', 'core/fx.js', 'core/plot.js', 'core/tutor.js', 'core/ui.js', 'subjects/g9-math/common.js',
-  'subjects/g4-math/common.js', 'subjects/g4-math/u3-division.js', 'subjects/g4-math/u4-fractions.js', 'subjects/g4-math/u5-geometry.js', 'subjects/g4-math/u6-data.js']) {
+  'subjects/g4-math/common.js', 'subjects/g4-math/u1-numbers.js', 'subjects/g4-math/u2-addsub.js', 'subjects/g4-math/u3-division.js', 'subjects/g4-math/u4-fractions.js', 'subjects/g4-math/u5-geometry.js', 'subjects/g4-math/u6-data.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 }
 const ML = ctx.ML, G = ML.m4;
@@ -20,22 +20,22 @@ const defaults = (s) => Object.fromEntries(s.params.map((q) => [q.key, q.value])
 const run = (id, over, st) => { const s = sim(id); const p = Object.assign(defaults(s), over || {}); if (s.onSet) for (const k of Object.keys(over || {})) s.onSet(p, k); Object.assign(p, over || {}); const d = s.compute(p); d.st = st || (s.initState ? s.initState(p) : null); return { s, p, d }; };
 const J = (x) => JSON.parse(JSON.stringify(x));
 
-test('الصف الرابع: مادة الرياضيات بوحداتها المرفوعة (3–6)', () => {
+test('الصف الرابع: مادة الرياضيات بوحداتها الست', () => {
   assert.equal(ML.grades[0].id, 'g4');
   assert.deepEqual(J(ML.grades.find((g) => g.id === 'g4').subjects), ['g4-math']);
   const u = ML.subjects['g4-math'].units;
-  assert.deepEqual(J(u.map((x) => x.n)), [3, 4, 5, 6]);
-  assert.deepEqual(J(u.map((x) => x.pages)), ['62–65', '66–89', '90–108', '109–120']);
+  assert.deepEqual(J(u.map((x) => x.n)), [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(J(u.map((x) => x.pages)), ['2–24', '25–41', '42–65', '66–89', '90–108', '109–120']);
   assert.equal(ML.simHref(sim('long-division')), '#/g4/math/sim/long-division');
   assert.equal(ML.unitOf(sim('protractor')).n, 5);
   assert.ok(ML.unitName('g4-math', 4).includes('الكسور العادية'));
 });
 
-test('13 محاكاة، لكل منها مصدر وصفحة وتعلّم وتحديات ومساعد', () => {
-  assert.equal(SIMS.length, 13);
+test('19 محاكاة، لكل منها مصدر وصفحة وتعلّم وتحديات ومساعد', () => {
+  assert.equal(SIMS.length, 19);
   for (const s of SIMS) {
-    assert.ok(s.page >= 62 && s.page <= 120, s.id + ' page');
-    assert.ok([3, 4, 5, 6].includes(s.unit) && s.lesson && s.titleAr && s.titleEn && s.book && s.summary, s.id + ' meta');
+    assert.ok(s.page >= 5 && s.page <= 120, s.id + ' page');
+    assert.ok([1, 2, 3, 4, 5, 6].includes(s.unit) && s.lesson && s.titleAr && s.titleEn && s.book && s.summary, s.id + ' meta');
     assert.ok(s.challenges.length >= 2 && s.tutor.length >= 2 && s.learn.length >= 2, s.id + ' content');
     const { p, d } = run(s.id);
     const res = s.results(p, d); assert.ok(Array.isArray(res) && res.length >= 2, s.id + ' results');
@@ -57,6 +57,12 @@ test('13 محاكاة، لكل منها مصدر وصفحة وتعلّم وتح�
 });
 
 const SOLVE = {
+  'place-value': [{ num: '999999', add1: true }, { num: '2058238' }, { pos: 4 }, { num: '150000' }],
+  'compare-numbers': [{ a: '596144', b: '603722' }, { a: '1000001', b: '1000002' }, { mode: 'ord', list: 'pal', dir: 'desc' }],
+  'add-sub-millions': [{ a: '4682467', b: '4232012' }, { op: 'sub' }, { a: '1000000', b: '340000' }, { c: '1745240' }],
+  rounding: [{ place: '1000000' }, { num: '5122702' }, { mode: 'est', op: 'sub' }],
+  'multiply-blocks': [{ n: 21 }, { n: 121 }, { mode: 'est', k: 6 }, { n: 14 }],
+  'division-sharing': [{ a: 46 }, { a: 56, b: 3 }, { a: 31 }],
   'long-division': [{ op: 'div', a: 96, b: 5 }, { op: 'div', a: 74, b: 8 }, { op: 'div', a: 13, b: 4 }, { op: 'mul', a: 907, b: 8 }],
   'fraction-wall': [{ n: 4, d: 8 }, { n: 6, d: 9 }, { cmp: true, n: 1, d: 5, n2: 1, d2: 7 }],
   'equivalent-fractions': [{ k: 4 }, { mode: 'simp', n: 28, d: 49 }, { k: 3 }, { mode: 'div', k: 3 }],
@@ -143,4 +149,48 @@ test('الوحدة السادسة: البيانات بقيم الكتاب', () =
   { const t15 = run('tally-table', { mode: 'num', n: 15 }).d; assert.deepEqual([t15.b, t15.r], [3, 0]); }
   const bar = (ds) => run('bar-graph', { ds }).d;
   assert.equal(bar('sport').tot, 16); assert.equal(bar('books').tot, 14); assert.equal(bar('sport').mn, 1); assert.equal(bar('tv').mx, 2);
+});
+
+test('الوحدة الأولى: الأعداد الكبيرة بقيم الكتاب', () => {
+  assert.equal(G.words(253758), 'مئتان وثلاثة وخمسون ألفاً وسبعمئة وثمانية وخمسون');
+  assert.equal(G.words(324597168), 'ثلاثمئة وأربعة وعشرون مليوناً وخمسمئة وسبعة وتسعون ألفاً ومئة وثمانية وستون');
+  assert.equal(G.words(1000000), 'مليون'); assert.equal(G.words(100000), 'مئة ألف'); assert.equal(G.words(1000000000), 'مليار');
+  assert.equal(G.words(2058238), 'مليونان وثمانية وخمسون ألفاً ومئتان وثمانية وثلاثون');
+  assert.equal(G.words(4250000000), 'أربعة مليارات ومئتان وخمسون مليوناً');
+  const pv = (o) => run('place-value', o).d;
+  assert.equal(pv({ ex: 'odo' }).v, 100000); assert.equal(pv({ ex: 'space' }).v, 1000000); assert.equal(pv({ ex: 'space' }).L, 7); assert.equal(pv({ ex: 'bil' }).v, 1000000000); assert.equal(pv({ ex: 'bil' }).L, 10);
+  assert.equal(pv({ ex: 'v1' }).pv, 70); assert.equal(pv({ ex: 'v2' }).pv, 0); assert.equal(pv({ ex: 'v3' }).pv, 60000); assert.equal(pv({ ex: 'red2' }).pv, 60000); assert.equal(pv({ ex: 'red1' }).pv, 30000);
+  assert.deepEqual(J(pv({ ex: 'x1' }).parts), [30000, 8000, 500, 6]); assert.equal(pv({ ex: 'sat' }).L, 10);
+  assert.equal(G.digitsOnly('٢٥٣ ٧٥٨'), '253758');
+  const cmp = (ex) => run('compare-numbers', { mode: 'cmp', ex }).d;
+  assert.equal(cmp('stud').k, -1); assert.equal(cmp('stud').idx, 5); assert.equal(cmp('c1').byLen, true); assert.equal(cmp('c2').idx, 0); assert.equal(cmp('c4').k, 1);
+  assert.equal(cmp('r3').k, -1); assert.equal(cmp('r4').k, 1);
+  assert.deepEqual(J(run('compare-numbers', { mode: 'ord', list: 'pal' }).d.sorted.map((x) => x[1])), [5460000, 4750000, 1470000, 685000]);
+  assert.deepEqual(J(run('compare-numbers', { mode: 'ord', list: 'asc' }).d.sorted.map((x) => x[1])), [1235680, 2369164, 4682351]);
+});
+
+test('الوحدة الثانية: الجمع والطرح والتقريب بقيم الكتاب', () => {
+  const as = (ex) => run('add-sub-millions', { ex }).d.res;
+  assert.equal(as('mart'), 6065); assert.equal(as('land'), 2864879); assert.equal(as('pop'), 8914479); assert.equal(as('three'), 9978979); assert.equal(as('c3'), 9564029);
+  assert.equal(as('china'), 2230841); assert.equal(as('stone'), 1331111); assert.equal(as('social'), 1443207); assert.equal(as('vis1'), 153291); assert.equal(as('vis2'), 1890019);
+  assert.equal(as('chk'), 71362); assert.equal(as('fridge'), 660000); assert.equal(as('miss'), 1015429); assert.equal(as('cards'), 864197); assert.equal(as('wp'), 946017);
+  assert.ok(run('add-sub-millions', { op: 'sub', a: '5', b: '9' }).d.bad);
+  // كل منازل الطرح تعطي الناتج نفسه
+  for (const ex of ['social', 'fridge', 'cards', 'miss']) { const d = run('add-sub-millions', { ex }).d; const v = d.r.cols.reduce((t, c) => t + c.w * Math.pow(10, c.i), 0); assert.equal(v, d.res, ex); }
+  const rd = (ex) => run('rounding', { ex }).d;
+  assert.equal(rd('fans').R.r, 9000000); assert.equal(rd('prof').R.r, 8000000); assert.equal(rd('t1c').R.r, 2200000); assert.equal(rd('t1a').R.r, 2155000);
+  assert.equal(rd('t2b').R.r, 7810000); assert.equal(rd('omar').R.r, 5123000); assert.equal(rd('gaza').R.r, 40); assert.equal(rd('r1').R.r, 5000000); assert.equal(rd('r2').R.r, 7000000);
+  assert.equal(rd('e1').estv, 6000000); assert.equal(rd('e2').estv, 3000000);
+});
+
+test('الوحدة الثالثة: الضرب والقسمة بقيم الكتاب', () => {
+  const mu = (ex) => run('multiply-blocks', { ex }).d;
+  assert.equal(mu('caps').prod, 63); assert.equal(mu('worm').prod, 42); assert.equal(mu('worm').c1, 1); assert.equal(mu('stick').prod, 484); assert.equal(mu('don').prod, 375);
+  assert.equal(mu('m6015').prod, 3005); assert.equal(mu('shoe2').prod, 3360); assert.equal(mu('sheep2').prod, 1268); assert.equal(mu('m419').prod, 369); assert.equal(mu('d169').prod, 144);
+  assert.equal(mu('e1').estv, 240); assert.equal(mu('e2').estv, 300); assert.equal(mu('e3').estv, 900); assert.equal(mu('e4').estv, 9000); assert.equal(mu('e5').estv, 4000); assert.equal(mu('e6').estv, 2700);
+  const ds = (ex) => { const d = run('division-sharing', { ex }).d; return [d.q, d.r]; };
+  assert.deepEqual(ds('o54'), [6, 0]); assert.deepEqual(ds('bk46'), [23, 0]); assert.deepEqual(ds('l90'), [15, 0]); assert.deepEqual(ds('l68'), [17, 0]); assert.deepEqual(ds('tree'), [14, 0]);
+  assert.deepEqual(ds('t5'), [6, 1]); assert.deepEqual(ds('t6'), [5, 1]); assert.deepEqual(ds('r75'), [18, 3]); assert.deepEqual(ds('fam32'), [4, 0]);
+  const ld = run('long-division', { ex: 'cow' }).d; assert.equal(ld.m.prod, 972);
+  assert.deepEqual([run('long-division', { ex: 'l39' }).d.q, run('long-division', { ex: 'pen' }).d.q], [13, 16]);
 });
