@@ -391,6 +391,8 @@
       this.st = sim.initState ? sim.initState(this.p) : null;
       this.build();
       this.update(true);
+      const pb = ML.pendingBook; ML.pendingBook = null;
+      if (pb && pb.sim === sim.id) { this.bookIdx = pb.idx; this.setMode('book'); if (pb.open) this.applyOpen(pb.open); }
     }
     destroy() {
       cancelAnimationFrame(this.raf); this.playing = false;
@@ -408,6 +410,7 @@
       head.innerHTML = '<div class="titles"><span class="badge ' + u.color + '">' + ML.unitName(s.subject, s.unit) + '</span><h1>' + s.titleAr + '</h1><p class="en" dir="ltr">' + s.titleEn + '</p></div>' +
         '<div class="source"><b>المصدر:</b> ' + subj.book + '<br><b>' + (this.subj.unitLabel || 'الفصل') + ':</b> ' + ML.unitName(s.subject, s.unit) + '<br><b>' + (this.subj.part ? 'البند' : 'الدرس') + ':</b> ' + s.lesson + ' ' + s.lessonTitle + '<br><b>الصفحة:</b> ' + s.page + '</div>' +
         '<div class="modes" role="tablist">' +
+        (ML.book && ML.book[s.subject] ? '<button role="tab" data-m="book">📖 الكتاب <small>Book</small></button>' : '') +
         '<button role="tab" data-m="learn">📘 تعلّم <small>Learn</small></button>' +
         '<button role="tab" data-m="explore" class="on">🧪 ' + (s.subject !== 'g10-math' && s.subject !== 'g9-math' && s.subject !== 'g4-math' && s.subject !== 'g1-math' ? 'تجربة' : 'استكشف') + ' <small>Experiment</small></button>' +
         '<button role="tab" data-m="challenge">🎯 تحدٍّ <small>Challenge</small></button></div>';
@@ -415,7 +418,7 @@
       head.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => this.setMode(b.dataset.m)));
       this.modesEl = head.querySelector('.modes');
 
-      const main = el('main', { class: 'sim-grid' });
+      const main = el('main', { class: 'sim-grid' }); this.mainEl = main;
       // لوحة الوضع (تعلّم/تحدٍّ)
       this.modePanel = el('section', { class: 'card mode-panel', hidden: '' });
       main.appendChild(this.modePanel);
@@ -781,8 +784,10 @@
       this.mode = m;
       this.modesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.m === m));
       const mp = this.modePanel; const s = this.sim;
+      this.mainEl.classList.toggle('book-mode', m === 'book');
       if (m === 'explore') { mp.hidden = true; return; }
       mp.hidden = false;
+      if (m === 'book') { this.renderBook(); requestAnimationFrame(() => this.layout()); return; }
       if (m === 'learn') {
         mp.className = 'card mode-panel learn';
         mp.innerHTML = '<h3>📘 تعلّم: ' + s.titleAr + '</h3><div class="learn-body">' + (s.learn || []).map((x) => '<p>' + ML.rich(x) + '</p>').join('') + '</div>';
@@ -790,6 +795,67 @@
         this.chIdx = this.chIdx % s.challenges.length; this.renderChallenge(true);
       }
       mp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    /* ---------- وضع الكتاب: صفحة الكتاب يميناً والمختبر يساراً ---------- */
+    bookPages() { const b = ML.book && ML.book[this.sim.subject]; return b ? b.pages : []; }
+    renderBook() {
+      const B = ML.book[this.sim.subject]; const pages = B.pages; const mp = this.modePanel;
+      if (this.bookIdx == null || !pages[this.bookIdx]) { const i = pages.findIndex((x) => x.sim === this.sim.id); this.bookIdx = i < 0 ? 0 : i; }
+      const pg = pages[this.bookIdx]; const prev = pages[this.bookIdx - 1], next = pages[this.bookIdx + 1];
+      const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const L = (n) => (ML.loc ? ML.loc(String(n)) : String(n));
+      const openBtn = (o, i, label) => (o ? '<button class="btn bk-open" data-o="' + i + '">' + esc(label || 'افتح في المختبر') + ' ←</button>' : '');
+      const blocks = pg.blocks.map((b, i) => {
+        if (b.h) return '<h4>' + ML.rich(b.h) + '</h4>';
+        if (b.p) return '<p>' + ML.rich(b.p) + '</p>' + openBtn(b.open, i, b.label);
+        if (b.def) return '<p class="bk-def"><b>' + ML.rich(b.def[0]) + ':</b> ' + ML.rich(b.def[1]) + '</p>';
+        if (b.tip) return '<div class="bk-tip"><b>💡 إضاءة:</b> ' + ML.rich(b.tip) + openBtn(b.open, i, b.label) + '</div>';
+        if (b.warn) return '<div class="bk-warn"><b>⚠ أخطاء شائعة احذرها</b><ul>' + b.warn.map((x) => '<li>' + ML.rich(x) + '</li>').join('') + '</ul></div>';
+        if (b.list) return '<ul class="bk-list">' + b.list.map((x) => '<li>' + ML.rich(x) + '</li>').join('') + '</ul>' + openBtn(b.open, i, b.label);
+        if (b.table) return '<div class="tbl"><table class="bk-table"><thead><tr>' + b.table.head.map((x) => '<th>' + ML.rich(x) + '</th>').join('') + '</tr></thead><tbody>' + b.table.rows.map((r) => '<tr>' + r.map((x) => '<td>' + ML.rich(x) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>' + openBtn(b.open, i, b.label);
+        if (b.code) return (b.code.label ? '<p class="bk-label">◀ ' + ML.rich(b.code.label) + '</p>' : '') + '<pre class="bk-code" dir="ltr"><code>' + esc(b.code.src) + '</code></pre>' + openBtn(b.code.open, i, 'افتح الكود في المختبر');
+        const q = b.predict || b.check; if (!q) return '';
+        const kind = b.predict ? 'predict' : 'check';
+        return '<div class="bk-' + kind + '" data-q="' + i + '"><p class="bk-qh">' + (b.predict ? '🔍 توقّع ثم اكتشف' : '✓ سؤال تحقق') + '</p><p class="bk-q">' + ML.rich(q.q) + '</p><div class="bk-opts">' +
+          q.opts.map((o, j) => '<button class="btn bk-opt" data-j="' + j + '">' + ML.rich(o) + '</button>').join('') + '</div><p class="bk-fb" hidden></p>' +
+          (b.predict && q.open ? '<button class="btn primary bk-open" data-o="' + i + '" hidden>اكتشف في المختبر ←</button>' : '') + '</div>';
+      }).join('');
+      const navB = (p, dir) => (p ? '<button class="btn bk-nav" data-go="' + dir + '">' + (dir < 0 ? '→ ص ' : 'ص ') + L(p.page) + (dir > 0 ? ' ←' : '') + '</button>' : '<span></span>');
+      mp.className = 'card mode-panel book-page';
+      mp.innerHTML = '<div class="bk-head"><span>' + esc(B.unit) + ' · ' + esc(pg.lesson || '') + '</span><span class="bk-pno">صفحة ' + L(pg.page) + '</span></div>' +
+        '<h3 class="bk-title">' + ML.rich(pg.title) + '</h3><div class="bk-body">' + blocks + '</div>' +
+        '<nav class="bk-navbar" aria-label="تقليب صفحات الكتاب">' + navB(prev, -1) + '<span class="bk-count">' + L(this.bookIdx + 1) + ' / ' + L(pages.length) + '</span>' + navB(next, 1) + '</nav>';
+      mp.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => this.goBook(this.bookIdx + Number(b.dataset.go))));
+      mp.querySelectorAll('.bk-open').forEach((b) => b.addEventListener('click', () => { const bl = pg.blocks[Number(b.dataset.o)]; const o = bl.open || (bl.code && bl.code.open) || (bl.predict && bl.predict.open); this.applyOpen(o); }));
+      mp.querySelectorAll('[data-q]').forEach((box) => {
+        const bl = pg.blocks[Number(box.dataset.q)]; const q = bl.predict || bl.check;
+        box.querySelectorAll('.bk-opt').forEach((btn) => btn.addEventListener('click', () => {
+          const j = Number(btn.dataset.j); const ok = j === q.a;
+          box.querySelectorAll('.bk-opt').forEach((x) => x.classList.remove('ok', 'no'));
+          btn.classList.add(ok ? 'ok' : 'no');
+          const fb = box.querySelector('.bk-fb'); fb.hidden = false; fb.className = 'bk-fb ' + (ok ? 'ok' : 'no');
+          fb.innerHTML = (ok ? '✔ صحيح. ' : '✘ ليس هذا. ' + (bl.predict ? 'اكتشف السبب في المختبر.' : 'الجواب: ' + ML.rich(q.opts[q.a]) + '. ')) + (ok || bl.check ? (q.why ? ML.rich(q.why) : '') : '');
+          const ob = box.querySelector('.bk-open'); if (ob) ob.hidden = false;
+        }));
+      });
+    }
+    goBook(idx) {
+      const pages = this.bookPages(); if (!pages[idx]) return;
+      const target = pages[idx].sim;
+      if (target === this.sim.id) { this.bookIdx = idx; this.renderBook(); this.modePanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+      const sim = ML.sims.find((x) => x.id === target && x.subject === this.sim.subject); if (!sim) return;
+      ML.pendingBook = { sim: target, idx: idx }; location.hash = ML.simHref(sim);
+    }
+    // ضبط المختبر على مثال من الكتاب: { sim?, مفتاح: قيمة, step: 'last' }
+    applyOpen(o) {
+      if (!o) return;
+      if (o.sim && o.sim !== this.sim.id) {
+        const sim = ML.sims.find((x) => x.id === o.sim && x.subject === this.sim.subject); if (!sim) return;
+        ML.pendingBook = { sim: o.sim, idx: this.bookIdx, open: Object.assign({}, o, { sim: undefined }) }; location.hash = ML.simHref(sim); return;
+      }
+      Object.keys(o).forEach((k) => { if (k === 'sim' || o[k] === undefined) return; this.set(k, k === 'step' && o[k] === 'last' ? 1e6 : o[k]); });
+      if (o.step === 'last') { const q = this.sim.params.find((x) => x.key === 'step'); if (q && q.stages) { const n = (typeof q.stages === 'function' ? q.stages(this.p) : q.stages).length; this.set('step', Math.max(0, n - 1)); } }
+      if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) this.canvas.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     renderChallenge(init) {
       const s = this.sim; const ch = s.challenges[this.chIdx]; const mp = this.modePanel;

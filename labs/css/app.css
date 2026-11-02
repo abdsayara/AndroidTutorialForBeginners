@@ -7,6 +7,7 @@
   --u1: #0891b2; --u2: #2563eb; --u3: #059669; --u4: #d97706; --u5: #7c3aed; --u6: #db2777;
   --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 16px rgba(15, 23, 42, .06);
   --radius: 14px;
+  --paper: #fffdf7; --paper-edge: #e9e1cf; --paper-ink: #1f2937; --spine: rgba(120, 90, 40, .18); --bk-accent: #0e7490; --bk-predict: #fef9c3; --bk-tip: #ecfeff;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -16,6 +17,7 @@
     --plot-bg: #0f172a; --plot-grid: #1e293b; --plot-grid-minor: #152036; --plot-axis: #cbd5e1; --plot-text: #94a3b8;
     --c1: #60a5fa; --c2: #f87171; --c3: #34d399; --c4: #fbbf24; --c5: #a78bfa; --c6: #f472b6;
     --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 16px rgba(0, 0, 0, .3);
+    --paper: #161e2e; --paper-edge: #2b3548; --paper-ink: #e5e7eb; --spine: rgba(0, 0, 0, .45); --bk-accent: #67e8f9; --bk-predict: #3a3412; --bk-tip: #10303a;
     color-scheme: dark;
   }
 }
@@ -25,6 +27,7 @@
   --plot-bg: #0f172a; --plot-grid: #1e293b; --plot-grid-minor: #152036; --plot-axis: #cbd5e1; --plot-text: #94a3b8;
   --c1: #60a5fa; --c2: #f87171; --c3: #34d399; --c4: #fbbf24; --c5: #a78bfa; --c6: #f472b6;
   --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 16px rgba(0, 0, 0, .3);
+  --paper: #161e2e; --paper-edge: #2b3548; --paper-ink: #e5e7eb; --spine: rgba(0, 0, 0, .45); --bk-accent: #67e8f9; --bk-predict: #3a3412; --bk-tip: #10303a;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -285,3 +288,51 @@ bdi.chem { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-w
 .param[data-k=txt] input.seq, .param[data-k=inp] input.seq { text-transform: none; letter-spacing: normal; font-family: ui-monospace, Consolas, Menlo, monospace; }
 /* اسم الموقع في الشريط العلوي على الهاتف: سطران على الأكثر */
 @media (max-width: 560px) { .brand b { font-size: 13px; line-height: 1.25; } .back .back-t { display: none; } }
+
+/* ---------- وضع الكتاب: صفحة الكتاب يميناً والمختبر يساراً كالكتاب المفتوح ---------- */
+.sim-grid.book-mode { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "mode stage" "mode controls" "mode results" "why steps" "law law"; column-gap: 0; }
+.sim-grid.book-mode.has-graph { grid-template-areas: "mode stage" "mode controls" "mode graph" "mode results" "why steps" "law law"; }
+.sim-grid.book-mode .stage, .sim-grid.book-mode .controls, .sim-grid.book-mode .results, .sim-grid.book-mode .graph { margin-inline-start: 0; border-start-start-radius: 4px; border-end-start-radius: 4px; box-shadow: inset 14px 0 18px -14px var(--spine), var(--shadow); }
+.sim-grid.book-mode .stage { position: static; }
+.sim-grid.book-mode .mode-panel.book-page { position: sticky; top: 74px; max-height: calc(100vh - 90px); overflow-y: auto; overscroll-behavior: contain; align-self: start; }
+.mode-panel.book-page { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--paper-edge); border-inline-start: 1px solid var(--paper-edge); border-start-end-radius: 4px; border-end-end-radius: 4px; box-shadow: inset -14px 0 18px -14px var(--spine), var(--shadow); padding: 18px 22px; line-height: 1.85; font-size: 15.5px; align-self: stretch; }
+.book-page .bk-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--paper-edge); padding-bottom: 6px; margin-bottom: 10px; }
+.book-page .bk-pno { font-weight: 700; color: var(--bk-accent); }
+.book-page .bk-title { font-size: 20px; color: var(--bk-accent); margin: 4px 0 12px; text-wrap: balance; }
+.book-page h4 { margin: 16px 0 6px; font-size: 16px; color: var(--bk-accent); }
+.book-page p { margin: 0 0 10px; }
+.book-page .bk-def { padding: 8px 12px; border-inline-start: 3px solid var(--bk-accent); background: color-mix(in srgb, var(--bk-accent) 7%, transparent); border-radius: 6px; }
+.book-page .bk-list { margin: 0 0 10px; padding-inline-start: 22px; }
+.book-page .bk-list li { margin-bottom: 4px; }
+.book-page .bk-tip { background: var(--bk-tip); border: 1px solid color-mix(in srgb, var(--bk-accent) 30%, transparent); border-radius: 12px; padding: 10px 14px; margin: 10px 0; }
+.book-page .bk-warn { border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent); border-radius: 12px; padding: 10px 14px; margin: 10px 0; }
+.book-page .bk-warn b { color: var(--bad); }
+.book-page .bk-warn ul { margin: 6px 0 0; padding-inline-start: 20px; }
+.book-page .bk-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 6px 0 10px; }
+.book-page .bk-table th { background: var(--bk-accent); color: var(--paper); padding: 6px 8px; font-weight: 700; }
+.book-page .bk-table td { border: 1px solid var(--paper-edge); padding: 5px 8px; text-align: center; }
+.book-page .bk-label { font-weight: 700; color: var(--bk-accent); margin: 12px 0 4px; }
+.book-page .bk-code { background: var(--surface-2); border: 1px solid var(--paper-edge); border-radius: 8px; padding: 10px 12px; margin: 0 0 8px; overflow-x: auto; font: 13.5px/1.6 ui-monospace, Consolas, Menlo, monospace; text-align: left; white-space: pre; }
+.book-page .bk-open { margin: 0 0 12px; font-size: 13.5px; }
+.book-page .bk-predict, .book-page .bk-check { border-radius: 12px; padding: 10px 14px; margin: 12px 0; }
+.book-page .bk-predict { background: var(--bk-predict); border: 1px solid color-mix(in srgb, var(--c4) 45%, transparent); }
+.book-page .bk-check { border: 1.5px solid var(--paper-edge); }
+.book-page .bk-qh { font-weight: 800; font-size: 13.5px; margin: 0 0 4px; color: var(--c4); }
+.book-page .bk-check .bk-qh { color: var(--ok); }
+.book-page .bk-q { font-weight: 600; }
+.book-page .bk-opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.book-page .bk-opt { font-size: 14px; }
+.book-page .bk-opt.ok { border-color: var(--ok); color: var(--ok); }
+.book-page .bk-opt.no { border-color: var(--bad); color: var(--bad); }
+.book-page .bk-fb { margin: 6px 0; font-weight: 600; }
+.book-page .bk-fb.ok { color: var(--ok); } .book-page .bk-fb.no { color: var(--bad); }
+.book-page .bk-predict .bk-open { margin: 4px 0 0; }
+.book-page .bk-navbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--paper-edge); padding-top: 10px; margin-top: 14px; }
+.book-page .bk-count { color: var(--muted); font-size: 13px; }
+@media (max-width: 900px) {
+  .sim-grid.book-mode, .sim-grid.book-mode.has-graph { grid-template-columns: minmax(0, 1fr); grid-template-areas: "mode" "stage" "controls" "graph" "results" "why" "steps" "law"; row-gap: 14px; }
+  .sim-grid.book-mode .stage { position: static; }
+  .sim-grid.book-mode .stage, .sim-grid.book-mode .controls, .sim-grid.book-mode .results, .sim-grid.book-mode .graph { border-radius: var(--radius); box-shadow: var(--shadow); }
+  .sim-grid.book-mode .mode-panel.book-page { position: static; max-height: none; overflow: visible; }
+  .mode-panel.book-page { border-radius: var(--radius); padding: 16px; box-shadow: inset 0 -10px 14px -12px var(--spine), var(--shadow); }
+}
