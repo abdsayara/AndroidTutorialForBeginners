@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>زر يتحكم في LED | تعلّم أردوينو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-base=".." data-page="exp2" data-title-key="e2.title">
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div class="breadcrumb"><a href="../index.html" data-i18n="nav.home"></a> / <a href="../index.html#experiments" data-i18n="nav.experiments"></a> / <span data-i18n="e2.title"></span></div>
+    <div class="exp-header">
+      <span class="exp-num"><span data-i18n="exp.label"></span> 02</span>
+      <h1 data-i18n="e2.title"></h1>
+      <div class="exp-meta"><span class="tag" data-i18n="tag.beginner"></span><span class="tag" data-i18n="tag.input"></span><span class="tag">15 <span data-i18n="tag.min"></span></span></div>
+    </div>
+
+    <div class="layout">
+      <aside class="toc">
+        <h4 data-i18n="toc.title"></h4>
+        <a href="#goal" data-i18n="s.goal"></a>
+        <a href="#parts" data-i18n="s.parts"></a>
+        <a href="#wiring" data-i18n="s.wiring"></a>
+        <a href="#code" data-i18n="s.code"></a>
+        <a href="#explain" data-i18n="s.explain"></a>
+        <a href="#sim" data-i18n="s.sim"></a>
+        <a href="#challenge" data-i18n="s.challenge"></a>
+      </aside>
+
+      <article class="content">
+        <section id="goal">
+          <h2 data-i18n="s.goal"></h2>
+          <p data-i18n="e2.goal"></p>
+        </section>
+
+        <section id="parts">
+          <h2 data-i18n="s.parts"></h2>
+          <table>
+            <thead><tr><th data-i18n="th.part"></th><th data-i18n="th.qty"></th></tr></thead>
+            <tbody>
+              <tr><td data-i18n="kit.board"></td><td>1</td></tr>
+              <tr><td data-i18n="kit.led"></td><td>1</td></tr>
+              <tr><td data-i18n="kit.btn"></td><td>1</td></tr>
+              <tr><td>220Ω</td><td>1</td></tr>
+              <tr><td>10kΩ</td><td>1</td></tr>
+              <tr><td data-i18n="kit.bb"></td><td>1</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="wiring">
+          <h2 data-i18n="s.wiring"></h2>
+          <p data-i18n="e2.wiring.intro"></p>
+          <table>
+            <thead><tr><th data-i18n="th.from"></th><th data-i18n="th.to"></th></tr></thead>
+            <tbody>
+              <tr><td data-i18n="e2.w1"></td><td data-i18n="e2.w2"></td></tr>
+              <tr><td data-i18n="e2.w3"></td><td data-i18n="e2.w4"></td></tr>
+              <tr><td data-i18n="e2.w5"></td><td data-i18n="e2.w6"></td></tr>
+              <tr><td data-i18n="e2.w7"></td><td data-i18n="e2.w8"></td></tr>
+            </tbody>
+          </table>
+          <div class="note" data-i18n="e2.note"></div>
+        </section>
+
+        <section id="code">
+          <h2 data-i18n="s.code"></h2>
+          <div class="code-block"><pre><code><span class="c-c">// Experiment 02 - Button controls LED</span>
+<span class="c-k">const int</span> buttonPin = <span class="c-n">2</span>;
+<span class="c-k">const int</span> ledPin    = <span class="c-n">13</span>;
+
+<span class="c-k">void</span> <span class="c-f">setup</span>() {
+  <span class="c-f">pinMode</span>(buttonPin, INPUT);
+  <span class="c-f">pinMode</span>(ledPin, OUTPUT);
+  Serial.<span class="c-f">begin</span>(<span class="c-n">9600</span>);
+}
+
+<span class="c-k">void</span> <span class="c-f">loop</span>() {
+  <span class="c-k">int</span> state = <span class="c-f">digitalRead</span>(buttonPin);
+
+  <span class="c-k">if</span> (state == HIGH) {
+    <span class="c-f">digitalWrite</span>(ledPin, HIGH);  <span class="c-c">// pressed  -> LED on</span>
+  } <span class="c-k">else</span> {
+    <span class="c-f">digitalWrite</span>(ledPin, LOW);   <span class="c-c">// released -> LED off</span>
+  }
+
+  Serial.<span class="c-f">println</span>(state);
+  <span class="c-f">delay</span>(<span class="c-n">50</span>);
+}</code></pre></div>
+          <ol class="steps" data-i18n="upload.steps"></ol>
+        </section>
+
+        <section id="explain">
+          <h2 data-i18n="s.explain"></h2>
+          <ul>
+            <li data-i18n="e2.x1"></li>
+            <li data-i18n="e2.x2"></li>
+            <li data-i18n="e2.x3"></li>
+            <li data-i18n="e2.x4"></li>
+            <li data-i18n="e2.x5"></li>
+          </ul>
+        </section>
+
+        <section id="sim">
+          <h2 data-i18n="s.sim"></h2>
+          <div class="sim">
+            <p data-i18n="e2.sim.hint"></p>
+            <div class="sim-row">
+              <div class="push-btn" id="push" role="button" tabindex="0" aria-label="button"></div>
+              <div class="led" id="led"></div>
+            </div>
+            <strong id="status" data-i18n="e2.sim.released"></strong>
+            <div class="serial" id="serial"></div>
+          </div>
+        </section>
+
+        <section id="challenge">
+          <h2 data-i18n="s.challenge"></h2>
+          <div class="note warn" data-i18n="e2.challenge"></div>
+        </section>
+
+        <nav class="pager">
+          <a href="01-blink.html"><small data-i18n="prev"></small><span data-i18n="e1.title"></span></a>
+          <a class="next" href="../index.html#experiments"><small data-i18n="next"></small><span data-i18n="nav.experiments"></span></a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/i18n.js"></script>
+  <script src="../assets/app.js"></script>
+  <script>
+    (function () {
+      const push = document.getElementById("push");
+      const led = document.getElementById("led");
+      const status = document.getElementById("status");
+      const serial = document.getElementById("serial");
+      let pressed = false;
+
+      function set(p) {
+        pressed = p;
+        push.classList.toggle("pressed", p);
+        led.classList.toggle("on", p);
+        status.dataset.i18n = p ? "e2.sim.pressed" : "e2.sim.released";
+        status.innerHTML = t(status.dataset.i18n);
+      }
+      push.addEventListener("pointerdown", (e) => { e.preventDefault(); set(true); });
+      ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => push.addEventListener(ev, () => set(false)));
+      push.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); set(true); } });
+      push.addEventListener("keyup", () => set(false));
+
+      // Simulated Serial Monitor (like the loop() with delay(50), throttled for readability)
+      setInterval(() => {
+        const line = document.createElement("div");
+        line.textContent = pressed ? "1" : "0";
+        serial.appendChild(line);
+        while (serial.childNodes.length > 50) serial.removeChild(serial.firstChild);
+        serial.scrollTop = serial.scrollHeight;
+      }, 250);
+    })();
+  </script>
+</body>
+</html>

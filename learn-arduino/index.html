@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تعلّم أردوينو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-base="." data-page="home">
+  <header id="site-header"></header>
+
+  <main>
+    <section class="hero container">
+      <span class="badge" data-i18n="hero.badge"></span>
+      <h1 data-i18n="hero.title"></h1>
+      <p data-i18n="hero.sub"></p>
+      <a class="btn" href="experiments/01-blink.html" data-i18n="hero.cta"></a>
+      <a class="btn btn-outline" href="#experiments" data-i18n="hero.cta2"></a>
+    </section>
+
+    <section class="container" id="what">
+      <h2 class="section-title" data-i18n="what.title"></h2>
+      <p class="section-sub" data-i18n="what.sub"></p>
+      <div class="grid">
+        <div class="card"><div class="icon">💻</div><h3 data-i18n="what.c1.t"></h3><p data-i18n="what.c1.d"></p></div>
+        <div class="card"><div class="icon">🔌</div><h3 data-i18n="what.c2.t"></h3><p data-i18n="what.c2.d"></p></div>
+        <div class="card"><div class="icon">🌍</div><h3 data-i18n="what.c3.t"></h3><p data-i18n="what.c3.d"></p></div>
+      </div>
+    </section>
+
+    <section class="container" id="experiments">
+      <h2 class="section-title" data-i18n="exps.title"></h2>
+      <p class="section-sub" data-i18n="exps.sub"></p>
+      <div class="grid">
+        <a class="card exp-card" href="experiments/01-blink.html">
+          <span class="exp-num"><span data-i18n="exp.label"></span> 01</span>
+          <h3 data-i18n="e1.title"></h3>
+          <p data-i18n="e1.desc"></p>
+          <div class="exp-meta"><span class="tag" data-i18n="tag.beginner"></span><span class="tag" data-i18n="tag.output"></span><span class="tag">10 <span data-i18n="tag.min"></span></span></div>
+        </a>
+        <a class="card exp-card" href="experiments/02-button.html">
+          <span class="exp-num"><span data-i18n="exp.label"></span> 02</span>
+          <h3 data-i18n="e2.title"></h3>
+          <p data-i18n="e2.desc"></p>
+          <div class="exp-meta"><span class="tag" data-i18n="tag.beginner"></span><span class="tag" data-i18n="tag.input"></span><span class="tag">15 <span data-i18n="tag.min"></span></span></div>
+        </a>
+        <div class="card exp-card locked">
+          <span class="exp-num"><span data-i18n="exp.label"></span> 03</span>
+          <h3 data-i18n="e3.title"></h3>
+          <p data-i18n="e3.desc"></p>
+          <div class="exp-meta"><span class="tag" data-i18n="exp.soon"></span></div>
+        </div>
+        <div class="card exp-card locked">
+          <span class="exp-num"><span data-i18n="exp.label"></span> 04</span>
+          <h3 data-i18n="e4.title"></h3>
+          <p data-i18n="e4.desc"></p>
+          <div class="exp-meta"><span class="tag" data-i18n="exp.soon"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container" id="kit">
+      <h2 class="section-title" data-i18n="kit.title"></h2>
+      <p class="section-sub" data-i18n="kit.sub"></p>
+      <div class="grid">
+        <div class="card"><div class="icon">🟦</div><h3 data-i18n="kit.board"></h3><p data-i18n="kit.board.d"></p></div>
+        <div class="card"><div class="icon">💡</div><h3 data-i18n="kit.led"></h3><p data-i18n="kit.led.d"></p></div>
+        <div class="card"><div class="icon">〰️</div><h3 data-i18n="kit.res"></h3><p data-i18n="kit.res.d"></p></div>
+        <div class="card"><div class="icon">🔘</div><h3 data-i18n="kit.btn"></h3><p data-i18n="kit.btn.d"></p></div>
+        <div class="card"><div class="icon">🧩</div><h3 data-i18n="kit.bb"></h3><p data-i18n="kit.bb.d"></p></div>
+      </div>
+    </section>
+
+    <section class="container" id="about">
+      <h2 class="section-title" data-i18n="about.title"></h2>
+      <p class="section-sub" data-i18n="about.text"></p>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="assets/i18n.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

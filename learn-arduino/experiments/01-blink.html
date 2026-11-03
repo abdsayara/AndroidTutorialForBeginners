@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>وميض LED | تعلّم أردوينو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body data-base=".." data-page="exp1" data-title-key="e1.title">
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div class="breadcrumb"><a href="../index.html" data-i18n="nav.home"></a> / <a href="../index.html#experiments" data-i18n="nav.experiments"></a> / <span data-i18n="e1.title"></span></div>
+    <div class="exp-header">
+      <span class="exp-num"><span data-i18n="exp.label"></span> 01</span>
+      <h1 data-i18n="e1.title"></h1>
+      <div class="exp-meta"><span class="tag" data-i18n="tag.beginner"></span><span class="tag" data-i18n="tag.output"></span><span class="tag">10 <span data-i18n="tag.min"></span></span></div>
+    </div>
+
+    <div class="layout">
+      <aside class="toc">
+        <h4 data-i18n="toc.title"></h4>
+        <a href="#goal" data-i18n="s.goal"></a>
+        <a href="#parts" data-i18n="s.parts"></a>
+        <a href="#wiring" data-i18n="s.wiring"></a>
+        <a href="#code" data-i18n="s.code"></a>
+        <a href="#explain" data-i18n="s.explain"></a>
+        <a href="#sim" data-i18n="s.sim"></a>
+        <a href="#challenge" data-i18n="s.challenge"></a>
+      </aside>
+
+      <article class="content">
+        <section id="goal">
+          <h2 data-i18n="s.goal"></h2>
+          <p data-i18n="e1.goal"></p>
+        </section>
+
+        <section id="parts">
+          <h2 data-i18n="s.parts"></h2>
+          <table>
+            <thead><tr><th data-i18n="th.part"></th><th data-i18n="th.qty"></th></tr></thead>
+            <tbody>
+              <tr><td data-i18n="kit.board"></td><td>1</td></tr>
+              <tr><td data-i18n="kit.led"></td><td>1</td></tr>
+              <tr><td>220Ω</td><td>1</td></tr>
+              <tr><td data-i18n="kit.bb"></td><td>1</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="wiring">
+          <h2 data-i18n="s.wiring"></h2>
+          <p data-i18n="e1.wiring.intro"></p>
+          <table>
+            <thead><tr><th data-i18n="th.from"></th><th data-i18n="th.to"></th></tr></thead>
+            <tbody>
+              <tr><td data-i18n="e1.w1"></td><td data-i18n="e1.w2"></td></tr>
+              <tr><td data-i18n="e1.w3"></td><td data-i18n="e1.w4"></td></tr>
+              <tr><td data-i18n="e1.w5"></td><td>GND</td></tr>
+            </tbody>
+          </table>
+          <div class="note" data-i18n="e1.note"></div>
+        </section>
+
+        <section id="code">
+          <h2 data-i18n="s.code"></h2>
+          <div class="code-block"><pre><code><span class="c-c">// Experiment 01 - Blink</span>
+<span class="c-k">void</span> <span class="c-f">setup</span>() {
+  <span class="c-f">pinMode</span>(<span class="c-n">13</span>, OUTPUT);
+}
+
+<span class="c-k">void</span> <span class="c-f">loop</span>() {
+  <span class="c-f">digitalWrite</span>(<span class="c-n">13</span>, HIGH);  <span class="c-c">// LED on</span>
+  <span class="c-f">delay</span>(<span class="c-n">1000</span>);             <span class="c-c">// wait 1 s</span>
+  <span class="c-f">digitalWrite</span>(<span class="c-n">13</span>, LOW);   <span class="c-c">// LED off</span>
+  <span class="c-f">delay</span>(<span class="c-n">1000</span>);             <span class="c-c">// wait 1 s</span>
+}</code></pre></div>
+          <ol class="steps" data-i18n="upload.steps"></ol>
+        </section>
+
+        <section id="explain">
+          <h2 data-i18n="s.explain"></h2>
+          <ul>
+            <li data-i18n="e1.x1"></li>
+            <li data-i18n="e1.x2"></li>
+            <li data-i18n="e1.x3"></li>
+            <li data-i18n="e1.x4"></li>
+            <li data-i18n="e1.x5"></li>
+          </ul>
+        </section>
+
+        <section id="sim">
+          <h2 data-i18n="s.sim"></h2>
+          <div class="sim">
+            <div class="led" id="led"></div>
+            <div class="sim-row">
+              <label for="delay" data-i18n="e1.sim.label"></label>
+              <input type="range" id="delay" min="50" max="2000" step="50" value="1000">
+              <code id="delay-val">1000</code>
+            </div>
+            <button class="btn" id="run-btn" data-i18n="e1.sim.stop"></button>
+          </div>
+        </section>
+
+        <section id="challenge">
+          <h2 data-i18n="s.challenge"></h2>
+          <div class="note warn" data-i18n="e1.challenge"></div>
+        </section>
+
+        <nav class="pager">
+          <a href="../index.html"><small data-i18n="prev"></small><span data-i18n="back.home"></span></a>
+          <a class="next" href="02-button.html"><small data-i18n="next"></small><span data-i18n="e2.title"></span></a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/i18n.js"></script>
+  <script src="../assets/app.js"></script>
+  <script>
+    (function () {
+      const led = document.getElementById("led");
+      const slider = document.getElementById("delay");
+      const val = document.getElementById("delay-val");
+      const runBtn = document.getElementById("run-btn");
+      let running = true, timer = null;
+
+      function tick() {
+        led.classList.toggle("on");
+        timer = setTimeout(tick, Number(slider.value));
+      }
+      function setBtn() { runBtn.dataset.i18n = running ? "e1.sim.stop" : "e1.sim.run"; runBtn.innerHTML = t(runBtn.dataset.i18n); }
+
+      slider.addEventListener("input", () => (val.textContent = slider.value));
+      runBtn.addEventListener("click", () => {
+        running = !running;
+        clearTimeout(timer);
+        if (running) tick(); else led.classList.remove("on");
+        setBtn();
+      });
+      tick();
+    })();
+  </script>
+</body>
+</html>
