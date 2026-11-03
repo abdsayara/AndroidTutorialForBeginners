@@ -14,12 +14,6 @@
   --font2:"Noto Naskh Arabic","Amiri","Traditional Arabic","Times New Roman",var(--font);
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --table:#24190f;--table2:#120c07;--paper:#2a2520;--paper2:#231f1a;--card:#332d26;--ink:#efe6d6;--muted:#b9ad98;--graphite:#ddd2bf;--line:#4b4237;
-    --dist:#f2a253;--disp:#79aef0;--vel:#61d18f;--acc:#f47f70;--time:#c39ff0;--hl:#8c7419;--carR:#e07f9f;--carB:#8fa2ec;--leather:#3a1510;color-scheme:dark;
-  }
-}
 :root[data-theme="dark"]{
   --table:#24190f;--table2:#120c07;--paper:#2a2520;--paper2:#231f1a;--card:#332d26;--ink:#efe6d6;--muted:#b9ad98;--graphite:#ddd2bf;--line:#4b4237;
   --dist:#f2a253;--disp:#79aef0;--vel:#61d18f;--acc:#f47f70;--time:#c39ff0;--hl:#8c7419;--carR:#e07f9f;--carB:#8fa2ec;--leather:#3a1510;color-scheme:dark;
@@ -73,7 +67,6 @@ h3{font-family:var(--font2);font-size:1.18em;margin:0;line-height:1.3}
 sub,sup{font-size:.68em;line-height:0}
 .mnote{font-size:.8em;line-height:1.5;background:#fff6b8;color:#3b3320;padding:.6em .6em .7em;border-radius:.2em;box-shadow:.15em .25em .4em rgba(0,0,0,.18);transform:rotate(-1.6deg);margin:.7em .2em}
 :root[data-theme="dark"] .mnote{background:#5a5130;color:#f6ecc8}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mnote{background:#5a5130;color:#f6ecc8}}
 .mnote b{display:block;font-size:.95em;margin-bottom:.2em}
 .margin{margin-top:.6em}
 .spread .margin{position:absolute;right:.7em;top:5.6em;width:7.7em;display:flex;flex-direction:column;gap:1.1em}
@@ -762,7 +755,7 @@ stage.addEventListener('pointercancel',()=>{sw=null;});
 $('#teach').onclick=()=>{if(busy)return;teacher=!teacher;if(teacher){if(cur%2===0)cur+=1;}else{mode='';}layout();};
 function muteUI(){$('#mute').classList.toggle('on',muted);$('#mute').setAttribute('aria-pressed',muted);$('#mwave').style.display=muted?'none':'';$('#mute').title=muted?'تشغيل الصوت':'كتم الصوت';}
 $('#mute').onclick=()=>{muted=!muted;try{localStorage.setItem('lb-muted',muted?'1':'0');}catch(e){}muteUI();if(!muted)flipSound();};
-function isDark(){const t=document.documentElement.dataset.theme;return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;}
+function isDark(){return document.documentElement.dataset.theme==='dark';}
 $('#theme').onclick=()=>{const d=!isDark();document.documentElement.dataset.theme=d?'dark':'light';try{localStorage.setItem('lb-theme',d?'dark':'light');}catch(e){}};
 try{const t=localStorage.getItem('lb-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}
 muteUI();
