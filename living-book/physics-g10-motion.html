@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>كتاب الحركة الحي</title>
+<style>
+:root{
+  --table:#7a5434;--table2:#4a2f1b;
+  --paper:#f8f1e2;--paper2:#efe4cb;--card:#fffaf0;--ink:#2e2923;--muted:#6f6556;--graphite:#46423b;--line:#dccdaa;
+  --dist:#c46a12;--disp:#2563a8;--vel:#1f8048;--acc:#c0362b;--time:#7a4fb0;--hl:#f2cf55;
+  --carR:#b0476a;--carB:#3b4e96;--leather:#6e2a1f;--bar:rgba(28,18,10,.86);--bartx:#f6ecd9;
+  --font:"Noto Sans Arabic","Segoe UI","Tahoma","Geeza Pro","Arial",sans-serif;
+  --font2:"Noto Naskh Arabic","Amiri","Traditional Arabic","Times New Roman",var(--font);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --table:#24190f;--table2:#120c07;--paper:#2a2520;--paper2:#231f1a;--card:#332d26;--ink:#efe6d6;--muted:#b9ad98;--graphite:#ddd2bf;--line:#4b4237;
+    --dist:#f2a253;--disp:#79aef0;--vel:#61d18f;--acc:#f47f70;--time:#c39ff0;--hl:#8c7419;--carR:#e07f9f;--carB:#8fa2ec;--leather:#3a1510;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --table:#24190f;--table2:#120c07;--paper:#2a2520;--paper2:#231f1a;--card:#332d26;--ink:#efe6d6;--muted:#b9ad98;--graphite:#ddd2bf;--line:#4b4237;
+  --dist:#f2a253;--disp:#79aef0;--vel:#61d18f;--acc:#f47f70;--time:#c39ff0;--hl:#8c7419;--carR:#e07f9f;--carB:#8fa2ec;--leather:#3a1510;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:var(--font);color:var(--ink);background:var(--table2);
+  background-image:repeating-linear-gradient(92deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px),radial-gradient(ellipse at 50% 35%,var(--table),var(--table2) 75%);}
+bdi.n,bdi.u{white-space:nowrap}
+.k-dist{--c:var(--dist)}.k-disp{--c:var(--disp)}.k-vel{--c:var(--vel)}.k-acc{--c:var(--acc)}.k-time{--c:var(--time)}.k-ink{--c:var(--graphite)}
+b.k-dist,b.k-disp,b.k-vel,b.k-acc,b.k-time,span.k-dist,span.k-disp,span.k-vel,span.k-acc,span.k-time{color:var(--c)}
+#stage{position:fixed;left:0;right:0;top:0;bottom:64px;perspective:2300px;perspective-origin:50% 30%;overflow:hidden;touch-action:pan-y}
+#book{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotateX(var(--tilt,16deg));transform-style:preserve-3d;transition:transform .5s}
+.cover{position:absolute;inset:-.55em -.75em;background:var(--leather);border-radius:.45em;transform:translateZ(-15px);
+  box-shadow:0 2.5em 3.5em rgba(0,0,0,.55),inset 0 0 0 .18em rgba(255,255,255,.06);background-image:radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.08),transparent 60%)}
+.edge{position:absolute;left:.15em;right:.15em;top:calc(100% - 2px);height:.55em;transform:translateZ(-7px);border-radius:0 0 .2em .2em;
+  background:repeating-linear-gradient(to bottom,#e6dbc2 0 1px,#bfae8b 1px 2px);}
+.spread .edge{background:linear-gradient(90deg,transparent 49.4%,rgba(0,0,0,.35) 50%,transparent 50.6%),repeating-linear-gradient(to bottom,#e6dbc2 0 1px,#bfae8b 1px 2px)}
+.page{position:absolute;top:0;height:100%;width:50%;transform-style:preserve-3d;background-color:var(--paper);
+  background-image:radial-gradient(circle at 20% 30%,rgba(140,110,60,.05),transparent 40%),radial-gradient(circle at 80% 70%,rgba(140,110,60,.06),transparent 45%);}
+.page.hidden{display:none}
+.slot-r{right:0;border-radius:0 .3em .3em 0}
+.slot-l{left:0;border-radius:.3em 0 0 .3em}
+.slot-s{left:0;width:100%;border-radius:.3em}
+.slot-r::before,.slot-l::before,.slot-s::before{content:"";position:absolute;top:0;bottom:0;width:3.2em;pointer-events:none;z-index:0}
+.slot-r::before{left:0;background:linear-gradient(90deg,rgba(60,40,15,.28),rgba(60,40,15,.06) 35%,transparent)}
+.slot-l::before{right:0;background:linear-gradient(270deg,rgba(60,40,15,.28),rgba(60,40,15,.06) 35%,transparent)}
+.slot-s::before{right:0;width:1.4em;background:linear-gradient(270deg,rgba(60,40,15,.25),transparent)}
+/* ===== text page ===== */
+.page.tp{transform-style:flat}
+.tx{position:relative;z-index:1;height:100%;overflow-y:auto;overflow-x:hidden;padding:1.2em 1.5em 1em 1.6em;line-height:1.55;font-size:.95em;scrollbar-width:thin}
+.spread .tx{padding-inline-start:9.6em}
+.kick{font-size:.78em;color:var(--muted);letter-spacing:.02em}
+h2{font-family:var(--font2);font-size:1.55em;margin:.05em 0 .35em;line-height:1.3}
+h3{font-family:var(--font2);font-size:1.18em;margin:0;line-height:1.3}
+.tx p{margin:.3em 0}
+.hook{display:flex;gap:.7em;align-items:center;background:var(--paper2);border:1.5px dashed var(--line);border-radius:.6em;padding:.45em .7em;margin:.2em 0 .5em}
+.hook p{margin:0;font-size:.95em}
+.hook svg{width:6.2em;flex:none}
+.law{border:2px solid var(--graphite);border-radius:.3em .8em .4em .7em;padding:.45em .8em .5em;margin:.6em 0;background:var(--card);position:relative}
+.law .lt{position:absolute;top:-.8em;right:.8em;background:var(--card);padding:0 .4em;font-size:.78em;font-weight:700;color:var(--muted)}
+.eqline{font-size:1.12em;font-weight:700;color:var(--c,var(--ink));margin:.15em 0;line-height:1.9}
+.eqline small{font-size:.68em;font-weight:400;color:var(--muted)}
+.eq{white-space:nowrap}
+.ro .eq{white-space:normal}
+.vec{position:relative;display:inline-block;padding-top:.18em}
+.vec::before{content:"";position:absolute;top:.12em;left:.12em;right:.05em;border-top:.085em solid currentColor}
+.vec::after{content:"";position:absolute;top:-.02em;left:0;border-top:.14em solid transparent;border-bottom:.14em solid transparent;border-right:.26em solid currentColor}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;margin:0 .15em;line-height:1.25}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em}
+sub,sup{font-size:.68em;line-height:0}
+.mnote{font-size:.8em;line-height:1.5;background:#fff6b8;color:#3b3320;padding:.6em .6em .7em;border-radius:.2em;box-shadow:.15em .25em .4em rgba(0,0,0,.18);transform:rotate(-1.6deg);margin:.7em .2em}
+:root[data-theme="dark"] .mnote{background:#5a5130;color:#f6ecc8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mnote{background:#5a5130;color:#f6ecc8}}
+.mnote b{display:block;font-size:.95em;margin-bottom:.2em}
+.margin{margin-top:.6em}
+.spread .margin{position:absolute;right:.7em;top:5.6em;width:7.7em;display:flex;flex-direction:column;gap:1.1em}
+.spread .mnote{margin:0}
+.legend{font-size:.75em;display:flex;flex-wrap:wrap;gap:.2em .6em;margin-top:.4em}
+.legend span::before{content:"";display:inline-block;width:.7em;height:.7em;border-radius:50%;background:var(--c);margin-inline-end:.25em;vertical-align:-.05em}
+.spread .legend{flex-direction:column;padding-inline-start:.4em}
+.pg{font-size:.78em;color:var(--muted);text-align:center;margin-top:.5em}
+.tx .pg{margin-top:.8em}
+/* predict */
+.predict{border:1.5px solid var(--line);border-radius:.6em;padding:.5em .6em .6em;margin:.6em 0 .2em;background:linear-gradient(var(--paper2),var(--paper))}
+.pq{font-size:.93em}
+.tag{display:inline-block;background:var(--hl);color:#2a2410;font-size:.78em;font-weight:700;padding:.05em .5em;border-radius:1em;margin-inline-end:.3em}
+.opts{display:flex;flex-wrap:wrap;gap:.35em;margin:.4em 0}
+.opt{font:inherit;font-size:.86em;padding:.25em .65em;border:1.5px solid var(--graphite);border-radius:1em;background:var(--card);color:var(--ink);cursor:pointer;min-height:2.2em}
+.opt.sel{background:var(--hl);color:#2a2410}
+.opt.right{outline:.18em solid var(--vel);outline-offset:1px}
+.opt.wrong{text-decoration:line-through;opacity:.7}
+.flapwrap{position:relative;perspective:30em;margin-top:.3em}
+.answer{font-size:.88em;padding:.5em .7em;min-height:3.4em;border:1.5px dashed var(--line);border-radius:.4em;background:var(--paper)}
+.answer .fb{font-weight:700;display:block}
+.flap{position:absolute;inset:0;transform-origin:50% 0;transition:transform .75s cubic-bezier(.3,1.3,.5,1),box-shadow .75s;cursor:pointer;
+  border-radius:.4em;background:var(--card);border:1.5px solid var(--graphite);display:flex;align-items:center;justify-content:center;gap:.4em;
+  font-size:.86em;color:var(--muted);box-shadow:0 .15em .25em rgba(0,0,0,.18);
+  background-image:repeating-linear-gradient(0deg,transparent 0 1.3em,rgba(120,100,60,.12) 1.3em calc(1.3em + 1px));}
+.flap::after{content:"";position:absolute;left:0;bottom:0;width:1.4em;height:1.4em;background:linear-gradient(45deg,var(--paper2) 50%,rgba(0,0,0,.18) 50%,var(--card) 60%);border-radius:0 .4em 0 .4em}
+.flapwrap.open .flap{transform:rotateX(80deg);box-shadow:0 1.2em 1em -0.6em rgba(0,0,0,.35)}
+/* ===== lab page ===== */
+.lab{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:1em 1.4em .7em;transform-style:preserve-3d}
+.lh{display:flex;align-items:baseline;gap:.6em}
+.stage3d{position:relative;height:18.6em;flex:none;transform-style:preserve-3d;margin:.1em 0 .3em}
+.card{position:absolute;bottom:0;transform-origin:50% 100%;transition:transform 1.15s cubic-bezier(.22,1.25,.4,1);transform-style:preserve-3d}
+.card.front{left:5%;right:5%;height:14.4em;background:var(--card);border:1px solid rgba(90,70,40,.35);border-radius:.25em;
+  transform:translateZ(.8px) rotateX(0deg);
+  background-image:linear-gradient(rgba(255,255,255,.0),rgba(120,90,40,.05));}
+.card.back{left:11%;right:11%;bottom:2em;height:16.4em;transform:translateZ(.4px) rotateX(0deg)}
+.card svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.up .card.front{transform:translateZ(.8px) rotateX(calc(-1*var(--rise1,28deg)))}
+.up .card.back{transform:translateZ(.4px) rotateX(calc(-1*var(--rise2,22deg)))}
+.card.front::after{content:"";position:absolute;left:0;right:0;bottom:-.06em;height:.12em;background:rgba(80,60,30,.35);border-radius:0 0 .2em .2em}
+.pshadow{position:absolute;left:4%;right:4%;bottom:0;height:12em;opacity:0;transition:opacity 1.1s;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 100%,rgba(50,30,10,.42),rgba(50,30,10,.12) 45%,transparent 70%);transform:translateZ(.1px)}
+.pshadow.s2{bottom:2em;left:10%;right:10%;height:13em;background:radial-gradient(ellipse at 50% 100%,rgba(50,30,10,.3),transparent 65%)}
+.up .pshadow{opacity:1}
+.cshadow{position:absolute;left:4%;right:4%;bottom:-1.3em;height:1.3em;background:linear-gradient(rgba(60,40,15,.28),transparent);opacity:0;transition:opacity 1.1s;filter:blur(1px);border-radius:0 0 50% 50%}
+.up .cshadow{opacity:1}
+.sshadow{position:absolute;left:0;right:30%;bottom:.1em;height:13em;opacity:0;transition:opacity 1.1s;background:linear-gradient(100deg,rgba(60,40,15,.22),transparent 45%);transform:translateZ(.05px)}
+.up .sshadow{opacity:1}
+.strut{position:absolute;bottom:0;width:2.6em;height:9em;background:var(--paper2);border:1px solid rgba(90,70,40,.35);transition:transform 1.15s cubic-bezier(.22,1.25,.4,1);transform:translateZ(.2px)}
+.strut.sl{right:95%;transform-origin:100% 100%;clip-path:polygon(0 100%,100% 100%,100% 0)}
+.strut.sr{left:95%;transform-origin:0 100%;clip-path:polygon(0 0,0 100%,100% 100%)}
+.up .strut.sl{transform:translateZ(.2px) rotateX(calc(-1*var(--rise1,28deg))) rotateY(-62deg)}
+.up .strut.sr{transform:translateZ(.2px) rotateX(calc(-1*var(--rise1,28deg))) rotateY(62deg)}
+.teacher.wide .strut{height:60%}
+.crease{position:absolute;left:3%;right:3%;bottom:-.05em;height:.12em;border-radius:1em;background:linear-gradient(90deg,transparent,rgba(70,50,25,.45) 10%,rgba(70,50,25,.45) 90%,transparent)}
+.crease.c2{bottom:1.95em;left:9%;right:9%;opacity:.6}
+.ctls{display:flex;flex-direction:column;gap:.35em;min-height:0}
+.row{display:flex;flex-wrap:wrap;gap:.3em;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(10.5em,1fr));gap:.15em .9em}
+.ctl{display:grid;grid-template-columns:1fr auto;align-items:center;font-size:.86em;color:var(--ink)}
+.ctl .nm{color:var(--c)}
+.ctl output{font-weight:700;color:var(--c)}
+.ctl input{grid-column:1/-1;width:100%;margin:.1em 0 0;accent-color:var(--c);height:1.7em;cursor:pointer}
+.btn{font:inherit;font-size:.82em;padding:.3em .75em;min-height:2.3em;border:1.5px solid var(--graphite);border-radius:.45em .7em .4em .65em;background:var(--card);color:var(--ink);cursor:pointer;box-shadow:.08em .14em 0 rgba(0,0,0,.18)}
+.btn:active{box-shadow:inset 0 .12em .2em rgba(0,0,0,.25);filter:brightness(.95)}
+.btn.on{background:var(--hl);color:#2a2410}
+.btn.go{border-color:var(--vel);color:var(--vel);font-weight:700}
+.btn:focus-visible,.opt:focus-visible,.flap:focus-visible,.tb:focus-visible{outline:.15em solid var(--disp);outline-offset:.1em}
+.ro{font-size:.84em;line-height:1.75;border-inline-start:.22em solid var(--line);padding:.15em .6em;background:repeating-linear-gradient(0deg,transparent 0 1.74em,rgba(120,100,60,.13) 1.74em calc(1.74em + 1px))}
+.ro>div{color:var(--c,var(--ink))}
+.ro .ok{color:var(--vel);font-weight:700}
+.lab .pg{margin-top:auto}
+.lab[data-mode="line"] .only-circle,.lab[data-mode="circle"] .only-line,.lab[data-mode="fall"] .only-up,.lab[data-mode="up"] .only-fall{display:none}
+.sep{width:1px;height:1.6em;background:var(--line);margin:0 .2em}
+.stars{color:#d9a400;letter-spacing:.05em;font-size:1.1em}
+.stars .off{color:var(--line)}
+.gq{font-size:.9em;background:var(--paper2);border-radius:.4em;padding:.35em .6em}
+.fbk{font-size:.85em;min-height:2.6em}
+table.score{width:100%;border-collapse:collapse;font-size:.9em;margin:.4em 0}
+table.score td,table.score th{border-bottom:1px solid var(--line);padding:.25em .3em;text-align:start}
+/* SVG pencil */
+svg.m{direction:ltr}
+.m .pen{fill:none;stroke:var(--graphite);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.m .thin{stroke-width:1}
+.m .ghost{opacity:.33;stroke-width:.9}
+.m .dash{stroke-dasharray:5 5}
+.m .t{fill:var(--ink);font-size:12px;font-family:var(--font)}
+.m .sm{font-size:10px;fill:var(--muted)}
+.m .b{font-weight:700}
+.m .tc-dist{fill:var(--dist)}.m .tc-disp{fill:var(--disp)}.m .tc-vel{fill:var(--vel)}.m .tc-acc{fill:var(--acc)}.m .tc-time{fill:var(--time)}
+.arr path{stroke:var(--a);fill:none;stroke-linecap:round}
+.arr .hd{fill:var(--a);stroke:var(--a);stroke-width:1;stroke-linejoin:round}
+.scn .sil{fill:var(--card);stroke:var(--graphite);stroke-width:1.4}
+.scn .pen{fill:none;stroke:var(--graphite);stroke-width:1.2;stroke-linecap:round;opacity:.75}
+/* teacher mode */
+.teacher .lab{padding:1em 1.6em .6em}
+.teacher.wide .lab{display:grid;grid-template-columns:1.55fr 1fr;grid-template-rows:auto 1fr auto;column-gap:1.4em}
+.teacher.wide .lh{grid-column:1/-1}
+.teacher.wide .stage3d{height:auto;min-height:20em;align-self:stretch;grid-row:2}
+.teacher.wide .ctls{grid-row:2;align-self:center}
+.teacher.wide .lab .pg{grid-column:1/-1}
+.teacher.wide .card.front{height:calc(100% - 3.4em)}
+.teacher.wide .card.back{height:calc(100% - 1.6em)}
+.teacher.wide .pshadow{height:80%}
+.teacher:not(.wide) .stage3d{height:22em}
+.teacher:not(.wide) .stage3d{height:22em}
+.teacher:not(.wide) .card.front{height:17em}
+.teacher:not(.wide) .card.back{height:19.4em}
+/* leaf */
+.leaf{position:absolute;top:0;transform-style:preserve-3d;transform:translateZ(3px);pointer-events:none;z-index:50}
+.strip{position:absolute;top:0;height:100%;transform-style:preserve-3d}
+.face{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--paper)}
+.face.bk{transform:rotateY(180deg)}
+.face>.page{position:absolute;top:0;display:block}
+.face::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.25),rgba(255,255,255,.12) 50%,rgba(0,0,0,.18));opacity:var(--sh,0);pointer-events:none}
+/* bar */
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.4rem .7rem;padding-bottom:calc(.4rem + env(safe-area-inset-bottom));background:var(--bar);color:var(--bartx);z-index:100;font-family:var(--font)}
+#bar .mid{display:flex;align-items:center;gap:.35rem;flex-wrap:nowrap;min-width:0}
+.tb{font:inherit;font-size:.92rem;min-width:44px;min-height:44px;padding:0 .7rem;border-radius:.6rem;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.35rem;white-space:nowrap}
+.tb:disabled{opacity:.35;cursor:default}
+.tb.on{background:#f2cf55;color:#2a2410}
+.tb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#ind{font-size:.85rem;opacity:.9;white-space:nowrap;padding:0 .2rem}
+@media (max-width:560px){.tb .lbl{display:none}#ind{font-size:.75rem}}
+@media (prefers-reduced-motion:reduce){.card,.flap,.pshadow{transition-duration:.01s!important}}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<svg class="vh" aria-hidden="true" style="position:absolute;width:0;height:0">
+  <defs>
+    <filter id="pencil" x="-3%" y="-3%" width="106%" height="106%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="1.7" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <pattern id="h-g" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><line x1="0" y1="0" x2="0" y2="5" style="stroke:var(--graphite);stroke-width:.8;opacity:.55"/></pattern>
+    <pattern id="h-r" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><line x1="0" y1="0" x2="0" y2="4" style="stroke:var(--carR);stroke-width:1.3"/></pattern>
+    <pattern id="h-b" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-40)"><line x1="0" y1="0" x2="0" y2="4" style="stroke:var(--carB);stroke-width:1.3"/></pattern>
+    <pattern id="h-y" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)"><line x1="0" y1="0" x2="0" y2="5" style="stroke:var(--disp);stroke-width:1;opacity:.55"/></pattern>
+    <pattern id="h-ball" width="3.5" height="3.5" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><line x1="0" y1="0" x2="0" y2="3.5" style="stroke:var(--graphite);stroke-width:.9;opacity:.6"/></pattern>
+  </defs>
+</svg>
+
+<div id="stage" aria-live="polite">
+  <div id="book" class="spread">
+    <div class="cover"></div>
+    <div class="edge"></div>
+  </div>
+</div>
+
+<nav id="bar" aria-label="التنقل">
+  <button class="tb" id="prev" aria-label="الصفحة السابقة"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span class="lbl">السابق</span></button>
+  <div class="mid">
+    <span id="ind"></span>
+    <button class="tb" id="teach" aria-pressed="false" title="وضع المعلم"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg><span class="lbl">وضع المعلم</span></button>
+    <button class="tb" id="mute" aria-pressed="false" title="كتم الصوت"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path id="mwave" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></button>
+    <button class="tb" id="theme" title="الوضع الداكن"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></svg></button>
+  </div>
+  <button class="tb" id="next" aria-label="الصفحة التالية"><span class="lbl">التالي</span><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+/* ---------- helpers ---------- */
+const AD='٠١٢٣٤٥٦٧٨٩';
+function ar(x,d){ if(d===undefined)d=2; if(!isFinite(x)) return '—'; let v=+(+x).toFixed(d); if(Math.abs(v)<Math.pow(10,-d)/2||Object.is(v,-0)) v=0;
+  let s=v.toFixed(d); if(d>0) s=s.replace(/\.?0+$/,''); return s.replace('-','−').replace('.','٫').replace(/\d/g,c=>AD[c]); }
+const n=(x,d)=>`<bdi dir="ltr" class="n">${ar(x,d)}</bdi>`;
+const np=(x,d)=>x<0?`(${n(x,d)})`:n(x,d);
+const u=s=>`<bdi dir="ltr" class="u">${s}</bdi>`;
+const M='م',KM='كم',SEC='ث',MIN='دقيقة',MS='م/ث',MS2='م/ث<sup>٢</sup>',KG='كغم';
+const nu=(x,d,s)=>n(x,d)+'&nbsp;'+u(s);
+const V=(l,s)=>`<span class="vec">${l}${s?`<sub>${s}</sub>`:''}</span>`;
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const EQ=s=>`<bdi dir="rtl" class="eq">${s}</bdi>`;
+const HALF=fr(n(1),n(2));
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const R1=v=>Math.round(v*10)/10;
+function hsh(a,b){const x=Math.sin(a*12.9898+b*78.233)*43758.5453;return x-Math.floor(x);}
+function pl(pts,cls,extra){cls=cls||'pen';extra=extra||'';
+  const d='M'+pts.map(p=>R1(p[0])+' '+R1(p[1])).join(' L');
+  const j=(hsh(pts[0][0],pts[0][1])-.5)*1.6;
+  const d2='M'+pts.map(p=>R1(p[0]+j)+' '+R1(p[1]-j*.7)).join(' L');
+  return `<path d="${d}" class="${cls}" ${extra}/><path d="${d2}" class="${cls} ghost" ${extra}/>`;}
+function circ(cx,cy,r,cls,fill){cls=cls||'pen';const j=(hsh(cx,cy)-.5)*1.4;
+  return `<circle cx="${R1(cx)}" cy="${R1(cy)}" r="${R1(r)}" class="${cls}" ${fill?`style="fill:${fill}"`:''}/><circle cx="${R1(cx+j)}" cy="${R1(cy-j)}" r="${R1(r)}" class="${cls} ghost"/>`;}
+function arrow(x1,y1,x2,y2,c,w){w=w||2.2;const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy);if(L<2)return '';
+  const ux=dx/L,uy=dy/L,hs=Math.min(7+w,L*.7),bx=x2-ux*hs,by=y2-uy*hs,px=-uy*hs*.45,py=ux*hs*.45;
+  return `<g class="arr" style="--a:var(--${c})"><path d="M${R1(x1)} ${R1(y1)} L${R1(bx)} ${R1(by)}" stroke-width="${w}"/><path class="hd" d="M${R1(x2)} ${R1(y2)} L${R1(bx+px)} ${R1(by+py)} L${R1(bx-px)} ${R1(by-py)} Z"/></g>`;}
+function txt(x,y,s,cls,anc){return `<text x="${R1(x)}" y="${R1(y)}" class="t ${cls||''}" text-anchor="${anc||'middle'}">${s}</text>`;}
+function niceStep(range,maxT){const raw=range/maxT;const p=Math.pow(10,Math.floor(Math.log10(raw)));for(const m of [1,2,5,10]) if(m*p>=raw) return m*p;return 10*p;}
+function tween(D,fn,done){let t0=null,id;function f(ts){if(t0===null)t0=ts;const t=Math.min(1,(ts-t0)/D);fn(t);if(t<1)id=requestAnimationFrame(f);else if(done)done();}id=requestAnimationFrame(f);return()=>cancelAnimationFrame(id);}
+function mk(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function sl(k,label,cls,min,max,step,val){return `<label class="ctl ${cls}"><span class="nm">${label}</span><output data-o="${k}"></output><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${val}"></label>`;}
+function rng(root,k,fmt,cb){const i=$(`input[data-k="${k}"]`,root),o=$(`[data-o="${k}"]`,root);
+  const show=()=>{if(o)o.innerHTML=fmt(parseFloat(i.value));};
+  i.addEventListener('input',()=>{show();cb(parseFloat(i.value));});show();
+  return{el:i,set(v){i.value=v;show();},get v(){return parseFloat(i.value);}};}
+function scene(kind){ // die-cut back layer
+  let top='M0 70 Q40 30 90 55 T190 45 T290 60 T400 38 L400 300 L0 300 Z', deco='';
+  if(kind==='city'){top='M0 300 L0 70 L30 70 L30 45 L60 45 L60 62 L95 62 L95 30 L120 30 L120 58 L160 58 L160 40 L200 40 L200 66 L235 66 L235 25 L262 25 L262 55 L300 55 L300 42 L340 42 L340 64 L370 64 L370 36 L400 36 L400 300 Z';
+    deco=pl([[105,40],[110,40]],'pen')+pl([[245,35],[252,35]],'pen');}
+  if(kind==='stands'){top='M0 300 L0 60 L400 60 L400 300 Z';for(let i=0;i<14;i++){deco+=circ(20+i*27,48+(i%2)*4,6,'pen');}
+    deco+=pl([[0,60],[400,60]],'pen');}
+  if(kind==='sky'){top='M0 300 L0 90 Q60 60 120 80 Q200 50 280 78 Q340 58 400 72 L400 300 Z';deco=circ(340,30,14,'pen')+pl([[40,40],[70,40]],'pen')+pl([[50,32],[85,32]],'pen');}
+  if(kind==='stars'){top='M0 300 L0 75 L400 75 L400 300 Z';for(let i=0;i<7;i++){const x=30+i*57,y=30+(i%3)*12;deco+=`<path class="pen" d="M${x} ${y-8} L${x+2.5} ${y-2} L${x+8} ${y-2} L${x+3.5} ${y+2} L${x+5} ${y+8} L${x} ${y+4} L${x-5} ${y+8} L${x-3.5} ${y+2} L${x-8} ${y-2} L${x-2.5} ${y-2} Z"/>`;}}
+  if(kind==='hills'){deco=circ(60,28,12,'pen')+pl([[300,25],[330,25]],'pen')+pl([[310,18],[345,18]],'pen');}
+  return `<svg class="scn" viewBox="0 0 400 300" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><g filter="url(#pencil)">${deco}<path class="sil" d="${top}"/></g></svg>`;}
+function popup(kind,vb,label){return `<div class="stage3d"><div class="pshadow s2"></div><div class="pshadow"></div>
+  <div class="card back">${scene(kind)}</div>
+  <div class="card front"><svg class="m" viewBox="${vb}" role="img" aria-label="${label}"><g filter="url(#pencil)" class="dyn"></g><g class="lbl"></g></svg></div>
+  <div class="strut sl"></div><div class="strut sr"></div><div class="sshadow"></div><div class="cshadow"></div><div class="crease c2"></div><div class="crease"></div></div>`;}
+function predict(q,opts,correct,ans){return `<div class="predict" data-c="${correct}"><div class="pq"><span class="tag">توقّع ثم اكشف</span>${q}</div>
+  <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+  <div class="flapwrap"><div class="answer"><span class="fb"></span>${ans}</div><div class="flap" role="button" tabindex="0" aria-expanded="false"><span>ارفع اللسان الورقي لتكشف الإجابة</span></div></div></div>`;}
+const legend=`<div class="legend"><span class="k-dist">المسافة</span><span class="k-disp">الإزاحة/الموضع</span><span class="k-vel">السرعة</span><span class="k-acc">التسارع</span><span class="k-time">الزمن</span></div>`;
+function labHead(i,t){return `<div class="lh"><span class="kick">مختبر ${n(i)}</span><h3>${t}</h3></div>`;}
+function setSVG(root,G,T){$('.dyn',root).innerHTML=G;$('.lbl',root).innerHTML=T;}
+
+/* ---------- audio ---------- */
+let actx=null,muted=false;
+try{muted=localStorage.getItem('lb-muted')==='1';}catch(e){}
+function ac(){if(muted)return null;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}catch(e){return null;}}
+function flipSound(){const a=ac();if(!a)return;try{const d=.42,sr=a.sampleRate,b=a.createBuffer(1,Math.floor(sr*d),sr),ch=b.getChannelData(0);
+  for(let i=0;i<ch.length;i++){const k=i/ch.length;ch[i]=(Math.random()*2-1)*Math.pow(1-k,1.6)*(.55+.45*Math.sin(k*30));}
+  const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='bandpass';const t=a.currentTime;f.frequency.setValueAtTime(700,t);f.frequency.exponentialRampToValueAtTime(3200,t+d);f.Q.value=.8;
+  const g=a.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.06);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f).connect(g).connect(a.destination);s.start();}catch(e){}}
+function chime(k){const a=ac();if(!a)return;try{const t=a.currentTime;for(let i=0;i<k;i++){const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=660*Math.pow(1.26,i);
+  g.gain.setValueAtTime(.0001,t+i*.13);g.gain.exponentialRampToValueAtTime(.12,t+i*.13+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*.13+.35);o.connect(g).connect(a.destination);o.start(t+i*.13);o.stop(t+i*.13+.4);}}catch(e){}}
+
+/* =====================================================================
+   CHAPTER 1 : position, distance, displacement
+   ===================================================================== */
+const mapSVG=`<svg viewBox="0 0 120 120" class="m" aria-label="رسم: الطريق من نابلس إلى القدس"><g filter="url(#pencil)">
+ ${pl([[70,14],[52,30],[78,48],[48,66],[72,84],[58,104]],'pen','style="stroke:var(--dist);stroke-width:2.6"')}
+ ${arrow(70,14,58,102,'disp',2)}${circ(70,14,4,'pen')}${circ(58,104,4,'pen')}</g>
+ ${txt(96,18,'نابلس','t sm')}${txt(92,112,'القدس','t sm')}</svg>`;
+function t1(){return `<div class="tx">
+ <div class="kick">الفصل ${n(1)} · وصف الحركة · ص ${n(25)}–${n(27)}</div>
+ <h2>الموضع والمسافة والإزاحة</h2>
+ <div class="hook">${mapSVG}<p><b>لغز البداية:</b> قطعت سيارة ${nu(76,0,KM)} على الطريق من نابلس جنوباً إلى القدس. هل يكفي الرقم ${nu(76,0,KM)} لنعرف أين صارت السيارة؟</p></div>
+ <p><b>الموضع:</b> المتجه الواصل بين نقطة البداية (نقطة الإسناد) وموضع الجسم.</p>
+ <p><b class="k-dist">المسافة</b>: طول المسار الحقيقي الذي يسلكه الجسم خلال حركته.</p>
+ <p><b class="k-disp">الإزاحة</b>: التغيّر في موضع الجسم، ويُعبَّر عنها بالمتجه الواصل بين نقطة البداية ونقطة النهاية.</p>
+ <div class="law"><span class="lt">القانون</span>
+  <div class="eqline k-dist">${EQ(`ف = ف<sub>١</sub> + ف<sub>٢</sub>`)} <small>المسافة: المجموع الجبري للمسافات</small></div>
+  <div class="eqline k-disp">${EQ(`${V('ح')} = ${V('ف','١')} + ${V('ف','٢')}`)} <small>الإزاحة: حاصل جمع الاتجاهات</small></div>
+  <div class="eqline k-dist">${EQ(`ف = ٢ π نق`)} <small>المسافة في دورة كاملة (محيط الدائرة)</small></div>
+ </div>
+ ${predict(`يتحرك طفل في عربته ${nu(10,0,M)} شرقاً ثم يرجع ${nu(7,0,M)} غرباً. كم إزاحته؟`,
+   [nu(17,0,M), nu(3,0,M)+' شرقاً', nu(3,0,M)+' غرباً'],1,
+   `المسافة = ${n(10)} + ${n(7)} = ${nu(17,0,M)}، أما الإزاحة فتعتمد على البداية والنهاية فقط: ${n(10)} − ${n(7)} = ${nu(3,0,M)} شرقاً. جرّبها في المختبر المقابل.`)}
+ <aside class="margin"><div class="mnote"><b>ملاحظة في الهامش</b>المسافة كمية قياسية، أما الإزاحة فكمية متجهة لها مقدار واتجاه. وتُقاسان كلتاهما بالمتر (${u(M)}).</div>
+ <div class="mnote n2"><b>تذكّر</b>في دوار نابلس: المسافة ${nu(31.4,1,M)} لكن الإزاحة صفر، لأن البداية هي النهاية.</div>
+ ${legend}</aside>
+ <div class="pg">${n(1)}</div></div>`;}
+function l1(){return `<div class="lab" data-mode="line">${labHead(1,'عربة الطفل ودوّار نابلس')}
+ ${popup('hills','0 0 400 220','نموذج الحركة: المسافة والإزاحة')}
+ <div class="ctls">
+  <div class="row"><button class="btn on" data-m="line">خط مستقيم · مثال ${n(1)}</button><button class="btn" data-m="circle">دوّار نابلس · مثال ${n(2)}</button></div>
+  <div class="grid only-line">${sl('f1','ف<sub>١</sub> شرقاً','k-dist',0,20,1,10)}${sl('f2','ف<sub>٢</sub> غرباً','k-dist',0,20,1,7)}</div>
+  <div class="grid only-circle">${sl('r','نصف قطر الدوّار نق','k-disp',1,10,.5,5)}</div>
+  <div class="row only-line"><button class="btn go" data-a="go">حرّك العربة</button></div>
+  <div class="row only-circle"><button class="btn" data-f=".25">ربع دورة</button><button class="btn" data-f=".5">نصف دورة</button><button class="btn" data-f=".75">ثلاثة أرباع</button><button class="btn go" data-f="1">دورة كاملة</button></div>
+  <div class="ro" aria-live="polite"></div>
+ </div><div class="pg">${n(2)}</div></div>`;}
+function i1(root){
+  const lab=$('.lab',root);const S={mode:'line',f1:10,f2:7,p:1,r:5,frac:1,cur:1};let stop=null;
+  rng(root,'f1',v=>nu(v,0,M),v=>{S.f1=v;S.p=1;draw();});
+  rng(root,'f2',v=>nu(v,0,M),v=>{S.f2=v;S.p=1;draw();});
+  rng(root,'r',v=>nu(v,1,M),v=>{S.r=v;draw();});
+  $$('[data-m]',root).forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;lab.dataset.mode=S.mode;$$('[data-m]',root).forEach(x=>x.classList.toggle('on',x===b));if(stop)stop();draw();});
+  $('[data-a="go"]',root).onclick=()=>{if(stop)stop();stop=tween(2600,t=>{S.p=t;draw();});};
+  $$('[data-f]',root).forEach(b=>b.onclick=()=>{if(stop)stop();S.frac=parseFloat(b.dataset.f);$$('[data-f]',root).forEach(x=>x.classList.toggle('on',x===b));
+    stop=tween(900+2200*S.frac,t=>{S.cur=S.frac*t;draw();});});
+  function stroller(x,gy){return pl([[x-15,gy-12],[x+13,gy-12],[x+10,gy-26]],'pen')+`<path class="pen" d="M${x-15} ${gy-12} Q${x-18} ${gy-30} ${x+10} ${gy-26}" style="fill:url(#h-g)"/>`+
+    pl([[x-15,gy-18],[x-24,gy-36],[x-29,gy-36]],'pen')+circ(x+1,gy-33,5,'pen')+circ(x-9,gy-5,5,'pen')+circ(x+9,gy-5,5,'pen');}
+  function draw(){let G='',T='',ro='';
+    if(S.mode==='line'){const sc=8.5,x0=200,gy=150,tot=S.f1+S.f2,s=S.p*tot,s1=Math.min(s,S.f1),s2=Math.max(0,s-S.f1),pos=s1-s2,X=x0+pos*sc;
+      G+=pl([[18,gy],[382,gy]],'pen');for(let m=-20;m<=20;m+=5){const x=x0+m*sc;G+=pl([[x,gy-4],[x,gy+4]],'pen thin');}
+      G+=arrow(318,20,382,20,'graphite',1.5);T+=txt(350,13,'شرق','t sm');T+=txt(x0,gy+17,'البداية','t sm');
+      if(s1>.05){G+=arrow(x0,72,x0+s1*sc,72,'dist',2.6);T+=txt(clamp(x0+s1*sc/2,40,360),64,'ف١ = '+ar(s1,1)+' م','t tc-dist b');}
+      if(s2>.05){G+=arrow(x0+S.f1*sc,98,X,98,'dist',2.6);T+=txt(clamp(x0+(S.f1-s2/2)*sc,40,360),114,'ف٢ = '+ar(s2,1)+' م','t tc-dist b');}
+      if(Math.abs(pos)>.05){G+=arrow(x0,184,X,184,'disp',3.2);T+=txt(clamp((x0+X)/2,50,350),206,'الإزاحة = '+ar(Math.abs(pos),1)+' م '+(pos>0?'شرقاً':'غرباً'),'t tc-disp b');}
+      else if(s>0.05) T+=txt(x0,206,'الإزاحة = صفر','t tc-disp b');
+      G+=circ(x0,gy,2.5,'pen')+stroller(X,gy);
+      const dir=pos>0.0001?'شرقاً':pos<-0.0001?'غرباً':'';
+      ro=`<div class="k-dist">المسافة: ${EQ(`ف = ${n(s1,1)} + ${n(s2,1)} = ${nu(s,1,M)}`)}</div>
+          <div class="k-disp">الإزاحة: ${EQ(`|${V('ح')}| = |${V('ف','١')}| − |${V('ف','٢')}| = ${n(s1,1)} − ${n(s2,1)}`)} ⟸ ${nu(Math.abs(pos),1,M)} ${dir}</div>
+          <div class="k-ink">${S.p<1?'العربة تتحرك…':(Math.abs(pos)<1e-9&&s>0?'عادت العربة إلى نقطة البداية: الإزاحة صفر مع أن المسافة ليست صفراً.':(s>Math.abs(pos)?'لاحظ: المسافة أكبر من مقدار الإزاحة لأن العربة غيّرت اتجاهها.':'تحركت العربة في اتجاه واحد: المسافة = مقدار الإزاحة.'))}</div>`;
+    } else {const cx=200,cy=108,Rp=S.r*9,phi0=Math.PI/2,ang=phi0-2*Math.PI*S.cur;
+      G+=circ(cx,cy,Rp+9,'pen');if(Rp>12)G+=circ(cx,cy,Rp-9,'pen thin');G+=circ(cx,cy,Math.max(3,Rp*.32),'pen','url(#h-g)');
+      const pts=[];const N=Math.max(2,Math.ceil(80*S.cur));for(let i=0;i<=N;i++){const a=phi0-2*Math.PI*S.cur*i/N;pts.push([cx+Rp*Math.cos(a),cy+Rp*Math.sin(a)]);}
+      if(S.cur>0.002)G+=pl(pts,'pen','style="stroke:var(--dist);stroke-width:3.2"');
+      const sx=cx,sy=cy+Rp,ex=cx+Rp*Math.cos(ang),ey=cy+Rp*Math.sin(ang);
+      G+=pl([[cx,cy],[sx,sy]],'pen thin dash');T+=txt(cx+8,cy+Rp/2+4,'نق','t sm','start');
+      G+=arrow(sx,sy,ex,ey,'disp',3);
+      const deg=(ang*180/Math.PI)-90;G+=`<g transform="translate(${R1(ex)} ${R1(ey)}) rotate(${R1(deg)})"><rect x="-8" y="-5" width="16" height="10" rx="3" class="pen" style="fill:url(#h-b)"/></g>`;
+      T+=txt(sx,sy+22,'البداية','t sm');
+      const dist=S.cur*2*3.14*S.r,disp=2*S.r*Math.sin(Math.PI*S.cur);
+      let exact='';const done=Math.abs(S.cur-S.frac)<1e-9;
+      if(done){if(S.frac===.25||S.frac===.75)exact=`= نق √${n(2)} = ${n(S.r,1)} × √${n(2)}`;else if(S.frac===.5)exact=`= ${n(2)} × نق = ${n(2)} × ${n(S.r,1)}`;else if(S.frac===1)exact='(البداية = النهاية)';}
+      ro=`<div class="k-dist">المسافة: ${EQ(`ف = ${n(S.cur,2)} × ${n(2)} × ${n(3.14)} × ${n(S.r,1)} = ${nu(dist,2,M)}`)}</div>
+          <div class="k-disp">الإزاحة: ${EQ(`|${V('ف')}| ${exact} = ${nu(disp,2,M)}`)}</div>
+          <div class="k-ink">${S.cur>=1-1e-9?'دورة كاملة: المسافة = محيط الدائرة، والإزاحة = صفر.':'السهم الأزرق يصل البداية بالنهاية مباشرة.'}</div>`;}
+    setSVG(root,G,T);$('.ro',root).innerHTML=ro;}
+  draw();
+}
+
+/* =====================================================================
+   CHAPTER 2 : average velocity
+   ===================================================================== */
+function t2(){return `<div class="tx">
+ <div class="kick">الفصل ${n(2)} · ص ${n(28)}–${n(30)}</div>
+ <h2>السرعة المتوسطة واللحظية</h2>
+ <p>سيارتان تتسابقان: من الأسرع؟ لا يكفي أن نعرف الإزاحة وحدها ولا الزمن وحده.</p>
+ <p><b class="k-vel">السرعة المتوسطة</b>: المعدل الزمني للإزاحة، أي الإزاحة الكلية مقسومة على الزمن اللازم لقطعها.</p>
+ <p>هي كمية متجهة باتجاه الإزاحة نفسها، وتقاس بوحدة ${u(MS)}.</p>
+ <div class="law"><span class="lt">القانون</span>
+  <div class="eqline k-vel">${EQ(`${V('ع')} = ${fr('Δ'+V('ف'),'Δز')}`)}</div>
+  <div style="font-size:.82em"><span class="k-vel">ع: السرعة المتوسطة (${u(MS)})</span> · <span class="k-disp">Δف: الإزاحة (${u(M)})</span> · <span class="k-time">Δز: الزمن (${u(SEC)})</span></div>
+ </div>
+ <p><b class="k-vel">السرعة اللحظية</b>: سرعة الجسم عند لحظة معيّنة، وتساوي ميل المماس لمنحنى (ف−ز) عند تلك اللحظة.</p>
+ ${predict(`المرحلة الثانية: قطعت الحمراء ${nu(20,0,KM)} والزرقاء ${nu(30,0,KM)} شرقاً، في الزمن نفسه ${nu(30,0,MIN)}. أيّهما أسرع؟`,
+  ['الحمراء','الزرقاء','متساويتان'],1,
+  `الزمن ثابت والإزاحة متغيّرة، فالسرعة تتناسب طردياً مع الإزاحة: الزرقاء ${nu(16.67,1,MS)} والحمراء ${nu(11.1,1,MS)}. اضغط «المرحلة الثانية» في المختبر.`)}
+ <aside class="margin"><div class="mnote"><b>ملاحظة في الهامش</b>حوّل الوحدات قبل التعويض: ${nu(1,0,KM)} = ${nu(1000,0,M)}، و${nu(1,0,MIN)} = ${nu(60,0,SEC)}.</div>
+ <div class="mnote n2"><b>انتبه</b>إذا ثبت الزمن تتناسب السرعة طردياً مع الإزاحة، وإذا ثبتت الإزاحة تتناسب عكسياً مع الزمن.</div>${legend}</aside>
+ <div class="pg">${n(3)}</div></div>`;}
+function l2(){return `<div class="lab">${labHead(2,'سباق السيارتين · نشاط ٥')}
+ ${popup('stands','0 0 400 220','سباق السيارتين الحمراء والزرقاء')}
+ <div class="ctls">
+  <div class="grid">${sl('dR','إزاحة الحمراء','k-disp',5,40,1,30)}${sl('tR','زمن الحمراء','k-time',10,60,1,30)}${sl('dB','إزاحة الزرقاء','k-disp',5,40,1,30)}${sl('tB','زمن الزرقاء','k-time',10,60,1,40)}</div>
+  <div class="row"><button class="btn on" data-p="1">المرحلة الأولى</button><button class="btn" data-p="2">المرحلة الثانية</button><button class="btn go" data-a="go">انطلق</button></div>
+  <div class="ro" aria-live="polite"></div>
+ </div><div class="pg">${n(4)}</div></div>`;}
+function i2(root){
+  const S={dR:30,tR:30,dB:30,tB:40,clock:null};let stop=null;
+  const r={};const kmF=v=>nu(v,0,KM),mnF=v=>nu(v,0,MIN);
+  r.dR=rng(root,'dR',kmF,v=>{S.dR=v;reset();});r.tR=rng(root,'tR',mnF,v=>{S.tR=v;reset();});
+  r.dB=rng(root,'dB',kmF,v=>{S.dB=v;reset();});r.tB=rng(root,'tB',mnF,v=>{S.tB=v;reset();});
+  function reset(){if(stop)stop();S.clock=null;draw();}
+  $$('[data-p]',root).forEach(b=>b.onclick=()=>{const p=b.dataset.p==='1'?[30,30,30,40]:[20,30,30,30];
+    [S.dR,S.tR,S.dB,S.tB]=p;r.dR.set(p[0]);r.tR.set(p[1]);r.dB.set(p[2]);r.tB.set(p[3]);$$('[data-p]',root).forEach(x=>x.classList.toggle('on',x===b));reset();});
+  $('[data-a="go"]',root).onclick=()=>{if(stop)stop();const tot=Math.max(S.tR,S.tB);stop=tween(tot*85,t=>{S.clock=t*tot;draw();});};
+  function car(x,y,pat){return `<path class="pen" d="M${x-46} ${y-6} L${x-44} ${y-16} L${x-30} ${y-18} L${x-22} ${y-27} L${x-8} ${y-27} L${x-2} ${y-17} L${x} ${y-12} L${x} ${y-6} Z" style="fill:url(#${pat})"/>`+circ(x-36,y-5,5.5,'pen','var(--card)')+circ(x-11,y-5,5.5,'pen','var(--card)');}
+  function draw(){let G='',T='';const maxD=Math.max(S.dR,S.dB),x0=60,sc=315/maxD,clk=S.clock==null?Math.max(S.tR,S.tB):S.clock;
+    const pR=Math.min(clk/S.tR,1)*S.dR,pB=Math.min(clk/S.tB,1)*S.dB;
+    G+=pl([[x0,40],[x0,200]],'pen dash');T+=txt(x0,214,'البداية','t sm');
+    G+=arrow(330,18,385,18,'graphite',1.5);T+=txt(300,22,'شرقاً','t sm');
+    [[90,S.dR,pR,'h-r','الحمراء'],[170,S.dB,pB,'h-b','الزرقاء']].forEach(([y,d,p,pat,nm])=>{
+      G+=pl([[18,y+2],[388,y+2]],'pen thin');const fx=x0+d*sc;G+=pl([[fx,y+2],[fx,y-38]],'pen')+`<path class="pen" d="M${fx} ${y-38} L${fx-16} ${y-32} L${fx} ${y-26} Z" style="fill:url(#h-g)"/>`;
+      T+=txt(fx-4,y-44,ar(d,0)+' كم','t sm');G+=car(x0+p*sc+(p<0.01?46:0),y,pat);T+=txt(28,y-8,nm,'t sm b','middle');});
+    T+=txt(200,28,'ز = '+ar(clk,1)+' دقيقة','t tc-time b');
+    setSVG(root,G,T);
+    const vR=S.dR*1000/(S.tR*60),vB=S.dB*1000/(S.tB*60);
+    const line=(nm,d,t,v)=>`<div class="k-vel">${nm}: ${EQ(`ع = ${fr(`${n(d)} × ${n(1000)}`,`${n(t)} × ${n(60)}`)} = ${nu(v,1,MS)} شرقاً`)}</div>`;
+    const verdict=Math.abs(vR-vB)<1e-9?'السرعتان متساويتان':(vR>vB?'السيارة الحمراء أسرع':'السيارة الزرقاء أسرع');
+    $('.ro',root).innerHTML=line('الحمراء',S.dR,S.tR,vR)+line('الزرقاء',S.dB,S.tB,vB)+
+      `<div class="k-time">بعد ${nu(clk,1,MIN)}: قطعت الحمراء ${nu(pR,1,KM)} والزرقاء ${nu(pB,1,KM)}.</div><div class="ok">${verdict}</div>`;}
+  draw();
+}
+
+/* =====================================================================
+   CHAPTER 3 : acceleration, graphs, equations
+   ===================================================================== */
+function t3(){return `<div class="tx">
+ <div class="kick">الفصل ${n(3)} · ص ${n(30)}–${n(37)}</div>
+ <h2>التسارع ومعادلات الحركة</h2>
+ <p>إذا تغيّرت سرعة الجسم مع الزمن فهو يتسارع. <b class="k-acc">التسارع</b>: التغيّر في السرعة المتجهة بالنسبة للزمن، ويقاس بوحدة ${u(MS2)}.</p>
+ <div class="law"><span class="lt">القوانين</span>
+  <div class="eqline k-acc">${EQ(`${V('ت')} = ${fr('Δ'+V('ع'),'Δز')} = ${fr('ع<sub>٢</sub> − ع<sub>١</sub>','ز<sub>٢</sub> − ز<sub>١</sub>')}`)}</div>
+  <div class="eqline k-vel">${EQ(`ع<sub>٢</sub> = ع<sub>١</sub> + (ت × ز)`)} <small>معادلة (${n(1)})</small></div>
+  <div class="eqline k-disp">${EQ(`ف = ع<sub>١</sub> × ز + ${HALF} × ت × ز<sup>٢</sup>`)} <small>معادلة (${n(2)})</small></div>
+  <div class="eqline k-vel">${EQ(`ع<sub>٢</sub><sup>٢</sup> = ع<sub>١</sub><sup>٢</sup> + ٢ × ت × ف`)} <small>معادلة (${n(3)})</small></div>
+ </div>
+ <p>ميل منحنى (ف−ز) = السرعة، وميل منحنى (ع−ز) = التسارع، والمساحة تحت منحنى (ع−ز) = الإزاحة.</p>
+ ${predict(`سيارة تسير بسرعة ${nu(5,0,MS)} وتسارعها صفر. كم تصبح سرعتها بعد ${nu(4,0,SEC)}؟`,
+  ['أقل من '+nu(5,0,MS)+'، فالسرعة تتناقص وحدها', 'تبقى '+nu(5,0,MS)+' تماماً','أكبر من '+nu(5,0,MS)],1,
+  `${EQ(`ع<sub>٢</sub> = ع<sub>١</sub> + ت × ز = ${n(5)} + ${n(0)} × ${n(4)} = ${nu(5,0,MS)}`)}. التسارع صفر يعني أن السرعة لا تتغير، فهي لا «تنفد» مع الزمن. وهذا صحيح في أي اتجاه لا يوجد فيه تسارع. جرّب «سرعة ثابتة» في المختبر.`)}
+ <aside class="margin"><div class="mnote"><b>ملاحظة في الهامش</b>إذا زادت السرعة فالجسم يتسارع، وإذا قلّت فإنه يتباطأ (إشارة التسارع عكس إشارة السرعة).</div>
+ <div class="mnote n2"><b>خطأ شائع</b>«الجسم المتحرك يبطؤ وحده». هذا غير صحيح: إن كان التسارع صفراً بقيت السرعة ثابتة.</div>${legend}</aside>
+ <div class="pg">${n(5)}</div></div>`;}
+function l3(){return `<div class="lab">${labHead(3,'عربة على مسار مستقيم ومنحنياتها')}
+ ${popup('city','0 0 400 240','عربة متسارعة مع منحنيات الموضع والسرعة والتسارع')}
+ <div class="ctls">
+  <div class="grid">${sl('v1','ع<sub>١</sub> السرعة الابتدائية','k-vel',0,10,.5,0)}${sl('a','ت التسارع','k-acc',-2,3,.5,2)}${sl('t','ز الزمن','k-time',0,5,.1,3)}</div>
+  <div class="row"><button class="btn" data-q="rest">جسم ساكن</button><button class="btn" data-q="const">سرعة ثابتة</button><button class="btn on" data-q="e6">مثال ${n(6)}</button><button class="btn" data-q="e7">مثال ${n(7)}</button><button class="btn" data-q="e8">مثال ${n(8)}</button><button class="btn go" data-a="play">شغّل</button></div>
+  <div class="ro" aria-live="polite"></div>
+ </div><div class="pg">${n(6)}</div></div>`;}
+function i3(root){
+  const S={v1:0,a:2,t:3};let stop=null;
+  const r={v1:rng(root,'v1',v=>nu(v,1,MS),v=>{S.v1=v;un();draw();}),a:rng(root,'a',v=>nu(v,1,MS2),v=>{S.a=v;un();draw();}),t:rng(root,'t',v=>nu(v,1,SEC),v=>{if(stop)stop();S.t=v;draw();})};
+  function un(){$$('[data-q]',root).forEach(x=>x.classList.remove('on'));}
+  const Q={rest:[0,0,3],const:[5,0,3],e6:[0,2,3],e7:[0,2.5,2],e8:[1,4,2]};
+  $$('[data-q]',root).forEach(b=>b.onclick=()=>{if(stop)stop();const q=Q[b.dataset.q];S.v1=q[0];S.a=q[1];S.t=q[2];r.v1.set(q[0]);r.a.set(q[1]);r.t.set(q[2]);un();b.classList.add('on');draw();});
+  $('[data-a="play"]',root).onclick=()=>{if(stop)stop();stop=tween(5000,k=>{S.t=Math.round(k*50)/10;r.t.set(S.t);draw();});};
+  const F=t=>S.v1*t+.5*S.a*t*t,Vf=t=>S.v1+S.a*t;
+  function panel(x0,y0,w,h,title,col,fn,lo,hi,tNow,area){let G='',T='';
+    const X=t=>x0+8+t/5*(w-14),Y=v=>y0+h-((v-lo)/(hi-lo))*(h-14);const yz=clamp(Y(0),y0+4,y0+h);
+    G+=pl([[x0+8,y0],[x0+8,y0+h]],'pen thin')+arrow(x0+8,yz,x0+w,yz,'graphite',1);
+    if(area&&tNow>0){const p=[[X(0),yz],[X(0),Y(fn(0))],[X(tNow),Y(fn(tNow))],[X(tNow),yz]];G+=`<path d="M${p.map(q=>R1(q[0])+' '+R1(q[1])).join(' L')} Z" style="fill:url(#h-y);stroke:none"/>`;}
+    const pts=[];const N=Math.max(1,Math.ceil(tNow*10));for(let i=0;i<=N;i++){const t=tNow*i/N;pts.push([X(t),Y(fn(t))]);}
+    if(tNow>0)G+=pl(pts,'pen','style="stroke:var(--'+col+');stroke-width:2.4"');
+    G+=circ(X(tNow),Y(fn(tNow)),3,'pen','var(--'+col+')');
+    T+=txt(x0+w/2+4,y0-6,title,'t b tc-'+col);T+=txt(x0+w-2,yz+12,'ز','t sm','end');
+    T+=txt(x0+5,Y(hi)+4,ar(hi,1),'t sm','end');if(lo<0)T+=txt(x0+5,Y(lo)+2,ar(lo,1),'t sm','end');
+    return[G,T];}
+  function draw(){let G='',T='';
+    let fmin=0,fmax=0,vmin=0,vmax=0;for(let i=0;i<=50;i++){const t=i/10,f=F(t),v=Vf(t);fmin=Math.min(fmin,f);fmax=Math.max(fmax,f);vmin=Math.min(vmin,v);vmax=Math.max(vmax,v);}
+    if(fmax-fmin<5)fmax=fmin+5;const X=f=>70+(f-fmin)/(fmax-fmin)*300,gy=62;
+    G+=pl([[20,gy],[388,gy]],'pen');const st=niceStep(fmax-fmin,6);
+    for(let m=Math.ceil(fmin/st)*st;m<=fmax+1e-9;m+=st){G+=pl([[X(m),gy],[X(m),gy+5]],'pen thin');T+=txt(X(m),gy+16,ar(m,1),'t sm');}
+    T+=txt(388,gy+16,'ف (م)','t sm','end');
+    const f=F(S.t),v=Vf(S.t),x=X(f);
+    G+=`<path class="pen" d="M${R1(x-34)} ${gy-5} L${R1(x-32)} ${gy-17} L${R1(x-6)} ${gy-17} L${R1(x)} ${gy-9} L${R1(x)} ${gy-5} Z" style="fill:url(#h-g)"/>`+circ(x-27,gy-4,4,'pen','var(--card)')+circ(x-8,gy-4,4,'pen','var(--card)');
+    const vs=50/Math.max(Math.abs(vmax),Math.abs(vmin),1);
+    if(Math.abs(v)>.01){G+=arrow(x-17,18,x-17+v*vs,18,'vel',2.6);}T+=txt(x-17+v*vs+(v>=0?6:-6),22,'ع','t b tc-vel',v>=0?'start':'end');
+    if(Math.abs(S.a)>.01){G+=arrow(x-17,33,x-17+S.a*14,33,'acc',2.6);}T+=txt(x-17+S.a*14+(S.a>=0?6:-6),37,'ت','t b tc-acc',S.a>=0?'start':'end');
+    const P=[[272,'ف − ز','disp',F,Math.min(0,fmin),Math.max(fmax,1),false],[146,'ع − ز','vel',Vf,Math.min(0,vmin),Math.max(vmax,1),true],[20,'ت − ز','acc',()=>S.a,-3,3,false]];
+    P.forEach(p=>{const o=panel(p[0],104,112,112,p[1],p[2],p[3],p[4],p[5],S.t,p[6]);G+=o[0];T+=o[1];});
+    T+=txt(202,234,'المساحة المظللة = الإزاحة','t sm');
+    setSVG(root,G,T);
+    const lhs=v*v,rhs=S.v1*S.v1+2*S.a*f;
+    $('.ro',root).innerHTML=`<div class="k-vel">(${n(1)}) ${EQ(`ع<sub>٢</sub> = ${n(S.v1,1)} + (${np(S.a,1)} × ${n(S.t,1)}) = ${nu(v,2,MS)}`)}</div>
+     <div class="k-disp">(${n(2)}) ${EQ(`ف = ${n(S.v1,1)} × ${n(S.t,1)} + ${HALF} × ${np(S.a,1)} × ${n(S.t,1)}<sup>٢</sup> = ${nu(f,2,M)}`)}</div>
+     <div class="k-vel">(${n(3)}) ${EQ(`ع<sub>٢</sub><sup>٢</sup> = ${n(lhs,2)}`)} و ${EQ(`ع<sub>١</sub><sup>٢</sup> + ٢ت ف = ${n(rhs,2)}`)} <span class="ok">${Math.abs(lhs-rhs)<1e-6?'✓ متساويان':''}</span></div>
+     <div class="k-acc">${S.a===0?'التسارع صفر: السرعة ثابتة، ومنحنى (ع−ز) خط أفقي.':(S.a*v<0?'التسارع عكس السرعة: الجسم يتباطأ.':'التسارع بنفس اتجاه السرعة: الجسم يتسارع.')}</div>`;}
+  draw();
+}
+
+/* =====================================================================
+   CHAPTER 4 : free fall & vertical projectile
+   ===================================================================== */
+function t4(){return `<div class="tx">
+ <div class="kick">الفصل ${n(4)} · ص ${n(37)}–${n(41)}</div>
+ <h2>السقوط الحر والمقذوف الرأسي</h2>
+ <p>بإهمال مقاومة الهواء يسقط الجسم تحت تأثير وزنه فقط، فتزداد سرعته بتسارع ثابت نحو الأسفل هو <b class="k-acc">تسارع الجاذبية الأرضية</b>.</p>
+ <p>الأجسام المختلفة في الكتلة تكتسب التسارع نفسه، فتصل إلى الأرض في الزمن نفسه.</p>
+ <div class="law"><span class="lt">القانون</span>
+  <div class="eqline k-acc">${EQ(`ت = −جـ = −${n(10)}`)} ${u(MS2)} <small>الاتجاه للأعلى موجب</small></div>
+  <div class="eqline k-vel">${EQ(`ع<sub>٢</sub> = ع<sub>١</sub> + ت × ز`)}</div>
+  <div class="eqline k-vel">${EQ(`ع<sub>٢</sub><sup>٢</sup> = ع<sub>١</sub><sup>٢</sup> + ٢ × ت × ف`)}</div>
+ </div>
+ <p><b>المقذوف الرأسي:</b> عند أقصى ارتفاع تصبح السرعة صفراً لحظياً ثم يعكس الجسم اتجاه حركته. زمن التحليق = ضعفا زمن الوصول لأقصى ارتفاع.</p>
+ ${predict(`قُذفت كرة رأسياً لأعلى. عند أقصى ارتفاع تكون سرعتها صفراً. كم يكون تسارعها عندها؟`,
+  ['صفر', nu(-10,0,MS2), nu(10,0,MS2)],1,
+  `التسارع ثابت طوال الحركة: ${EQ(`ت = −جـ = −${n(10)}`)} ${u(MS2)}. السرعة وحدها صفر لحظياً، والتسارع هو الذي يعكس اتجاه الحركة.`)}
+ <aside class="margin"><div class="mnote"><b>ملاحظة في الهامش</b>القيمة الدقيقة ${EQ(`جـ = ${nu(9.8,1,MS2)}`)}، وتقرّبها أمثلة الكتاب إلى ${n(10)}. جرّب القيمتين في المختبر.</div>
+ <div class="mnote n2"><b>نشاط ٧</b>في الهواء تصل قطعة النقد قبل الورقة. أما في مفرغة الهواء فتصلان معاً.</div>${legend}</aside>
+ <div class="pg">${n(7)}</div></div>`;}
+function l4(){return `<div class="lab" data-mode="fall">${labHead(4,'برج السقوط وقاذف الكرة')}
+ ${popup('sky','0 0 400 240','نموذج السقوط الحر والمقذوف الرأسي')}
+ <div class="ctls">
+  <div class="row"><button class="btn on" data-m="fall">سقوط حر</button><button class="btn" data-m="up">مقذوف رأسي</button><span class="sep"></span><button class="btn on" data-g="10">جـ = ${n(10)}</button><button class="btn" data-g="9.8">جـ = ${n(9.8,1)}</button></div>
+  <div class="grid">
+   <span class="only-fall">${sl('H','ارتفاع السقوط ف','k-disp',0,1000,1,500)}</span>
+   <span class="only-fall">${sl('m','كتلة الكرة الكبيرة','k-ink',1,20,1,10)}</span>
+   <span class="only-up">${sl('v1','ع<sub>١</sub> سرعة القذف للأعلى','k-vel',5,50,.5,20)}</span>
+   ${sl('tp','ز الزمن','k-time',0,1000,1,0)}
+  </div>
+  <div class="row"><button class="btn go" data-a="go">أطلق</button><button class="btn only-fall" data-x="9">مثال ${n(9)}: ${nu(2,0,KM)}</button><button class="btn only-up" data-x="10">مثال ${n(10)}: ${nu(20,0,M)}</button></div>
+  <div class="ro" aria-live="polite"></div>
+ </div><div class="pg">${n(8)}</div></div>`;}
+function i4(root){
+  const lab=$('.lab',root);const S={mode:'fall',g:10,H:20,m:10,v1:20,t:0};let stop=null;
+  const Hmap=s=>{const h=5*Math.pow(400,s/1000);return h<100?Math.round(h):h<500?Math.round(h/5)*5:Math.round(h/50)*50;};
+  const Hinv=h=>Math.round(1000*Math.log(h/5)/Math.log(400));
+  const tot=()=>S.mode==='fall'?Math.sqrt(2*S.H/S.g):2*S.v1/S.g;
+  const rH=rng(root,'H',s=>nu(Hmap(s),0,M),s=>{S.H=Hmap(s);rst();});rH.set(Hinv(20));
+  rng(root,'m',v=>nu(v,0,KG),v=>{S.m=v;draw();});
+  const rv=rng(root,'v1',v=>nu(v,1,MS),v=>{S.v1=v;rst();});
+  const rt=rng(root,'tp',s=>nu(s/1000*tot(),2,SEC),s=>{if(stop)stop();S.t=s/1000*tot();draw();});
+  function rst(){if(stop)stop();S.t=0;rt.set(0);draw();}
+  $$('[data-m]',root).forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;lab.dataset.mode=S.mode;$$('[data-m]',root).forEach(x=>x.classList.toggle('on',x===b));rst();});
+  $$('[data-g]',root).forEach(b=>b.onclick=()=>{S.g=parseFloat(b.dataset.g);$$('[data-g]',root).forEach(x=>x.classList.toggle('on',x===b));rst();});
+  $('[data-x="9"]',root).onclick=()=>{S.H=2000;rH.set(1000);rst();};
+  $('[data-x="10"]',root).onclick=()=>{S.v1=20;rv.set(20);rst();};
+  $('[data-a="go"]',root).onclick=()=>{if(stop)stop();const T=tot(),D=Math.min(Math.max(T,1.2),6)*1000;stop=tween(D,k=>{S.t=k*T;rt.set(k*1000);draw();});};
+  function draw(){let G='',T='';const T0=tot(),t=Math.min(S.t,T0),g=S.g,gy=222;
+    const fall=S.mode==='fall';const top=fall?S.H:S.v1*S.v1/(2*g);const sc=184/top;const Y=h=>gy-h*sc;
+    const y=fall?S.H-.5*g*t*t:S.v1*t-.5*g*t*t;const v=fall?-g*t:S.v1-g*t;
+    G+=pl([[14,gy],[386,gy]],'pen');for(let i=0;i<9;i++)G+=pl([[20+i*44,gy+2],[12+i*44,gy+9]],'pen thin');
+    // ruler
+    const st=niceStep(top,5);G+=pl([[352,gy],[352,Y(top)]],'pen thin');for(let h=0;h<=top+1e-9;h+=st){G+=pl([[348,Y(h)],[356,Y(h)]],'pen thin');T+=txt(362,Y(h)+4,ar(h,0),'t sm','start');}
+    T+=txt(362,Y(top)-10,'م','t sm','start');
+    if(fall){const tw=Y(S.H);G+=`<path class="pen" d="M96 ${gy} L104 ${R1(tw)} L134 ${R1(tw)} L142 ${gy} Z" style="fill:url(#h-g)"/>`;
+      const lv=Math.max(2,Math.min(8,Math.round((gy-tw)/24)));for(let i=1;i<lv;i++){const yy=gy-(gy-tw)*i/lv;G+=pl([[96+8*i/lv,yy],[142-8*i/lv,yy]],'pen thin');}
+      G+=pl([[134,tw],[200,tw]],'pen thin dash');}
+    else{G+=`<path class="pen" d="M186 ${gy} L186 ${gy-14} L214 ${gy-14} L214 ${gy} Z" style="fill:url(#h-g)"/>`;G+=pl([[200,Y(top)],[300,Y(top)]],'pen thin dash');T+=txt(296,Y(top)-5,'أقصى ارتفاع','t sm','end');}
+    // strobe ghosts every k seconds
+    const step=T0>10?Math.ceil(T0/8):1;const bx=fall?175:200;
+    for(let k=step;k<=t+1e-9&&k<T0;k+=step){const yk=fall?S.H-.5*g*k*k:S.v1*k-.5*g*k*k;G+=`<circle cx="${bx}" cy="${R1(Y(yk))}" r="6" class="pen thin" style="opacity:.45"/>`;T+=txt(bx-14,Y(yk)+4,ar(k,0)+'ث','t sm tc-time','end');}
+    const by=Y(y);
+    if(fall){const rB=5+S.m*.4;G+=circ(bx,by-rB+6,rB,'pen','url(#h-ball)');G+=circ(228,by,5,'pen','url(#h-ball)');T+=txt(bx,by-2*rB+2,ar(S.m,0)+' كغم','t sm');T+=txt(228,by-10,'١ كغم','t sm');}
+    else G+=circ(bx,by,7,'pen','url(#h-ball)');
+    const vmax=fall?g*T0:S.v1;const L=v/Math.max(vmax,1)*48;const ax=fall?262:226;
+    if(Math.abs(L)>1.5)G+=arrow(ax,by,ax,by-L,'vel',2.6);T+=txt(ax+8,by-L/2+4,'ع','t b tc-vel','start');
+    G+=arrow(ax+26,by-14,ax+26,by+16,'acc',2.4);T+=txt(ax+34,by+10,'ت','t b tc-acc','start');
+    if(T0>6.05)T+=txt(20,20,'العرض مُسرَّع ×'+ar(T0/6,1),'t sm','start');
+    setSVG(root,G,T);
+    const dir=Math.abs(v)<1e-6?'(صفر لحظياً)':v>0?'للأعلى':'للأسفل';let res='';
+    if(fall){const vf=Math.sqrt(2*g*S.H);
+      res=`<div class="k-vel">${EQ(`ع<sub>٢</sub><sup>٢</sup> = ${n(0)} + ٢ × (−${n(g,1)}) × (−${n(S.H,0)})`)} ⟸ ${EQ(`ع<sub>٢</sub> = ${nu(vf,2,MS)}`)} باتجاه الأسفل</div>
+        <div class="k-time">زمن الوصول: ${EQ(`−${n(vf,2)} = ${n(0)} − ${n(g,1)} × ز`)} ⟸ ${EQ(`ز = ${nu(T0,2,SEC)}`)}، للكرتين معاً، لأن الكتلة لا تظهر في المعادلات.</div>`;}
+    else{const tu=S.v1/g;
+      res=`<div class="k-disp">أقصى ارتفاع: ${EQ(`${n(0)} = ${n(S.v1,1)}<sup>٢</sup> − ٢ × ${n(g,1)} × ف`)} ⟸ ${EQ(`ف = ${nu(top,2,M)}`)}</div>
+        <div class="k-time">زمن الصعود: ${EQ(`${n(0)} = ${n(S.v1,1)} − ${n(g,1)} × ز`)} ⟸ ${nu(tu,2,SEC)}. زمن التحليق = ${n(2)} × ${n(tu,2)} = ${nu(2*tu,2,SEC)}</div>`;}
+    $('.ro',root).innerHTML=`<div><span class="k-time">ز = ${nu(t,2,SEC)}</span> · <span class="k-disp">الارتفاع = ${nu(Math.max(0,y),2,M)}</span> · <span class="k-vel">ع = ${nu(v,2,MS)} ${dir}</span> · <span class="k-acc">ت = ${nu(-g,1,MS2)}</span></div>${res}`;}
+  draw();
+}
+
+/* =====================================================================
+   CHAPTER 5 : challenge game
+   ===================================================================== */
+const GAME={stars:[null,null,null,null,null],round:0,textRoot:null};
+function t5(){return `<div class="tx">
+ <div class="kick">الفصل ${n(5)} · تحدٍّ ختامي · من أسئلة الفصل ص ${n(41)}–${n(43)}</div>
+ <h2>تحدّي المختبر</h2>
+ <p>خمس جولات. في كل جولة احسب بالقلم أولاً، ثم اضبط المنزلق واضغط «أطلق».</p>
+ <p>تحصل على ${n(3,0)} نجوم إذا كان خطؤك أقل من ${n(2,0)}٪، ونجمتين لأقل من ${n(8,0)}٪، ونجمة لأقل من ${n(20,0)}٪.</p>
+ <div class="law"><span class="lt">ستحتاج إلى</span>
+  <div class="eqline k-vel">${EQ(`ع<sub>٢</sub> = ع<sub>١</sub> + ت × ز`)}</div>
+  <div class="eqline k-disp">${EQ(`ف = ع<sub>١</sub> × ز + ${HALF} × ت × ز<sup>٢</sup>`)}</div>
+  <div class="eqline k-vel">${EQ(`ع<sub>٢</sub><sup>٢</sup> = ع<sub>١</sub><sup>٢</sup> + ٢ × ت × ف`)}</div>
+  <div style="font-size:.85em" class="k-acc">في التحدي: ${EQ(`جـ = ${nu(10,0,MS2)}`)}</div>
+ </div>
+ <table class="score"><thead><tr><th>الجولة</th><th>النجوم</th></tr></thead><tbody data-score></tbody></table>
+ <div data-total style="font-weight:700"></div>
+ <aside class="margin"><div class="mnote"><b>نصيحة</b>عند أقصى ارتفاع تكون السرعة صفراً. هذه المعلومة «مخفية» في كثير من الأسئلة.</div></aside>
+ <div class="pg">${n(9)}</div></div>`;}
+function l5(){return `<div class="lab">${labHead(5,'أصِب الهدف!')}
+ ${popup('stars','0 0 400 240','لعبة التحدي')}
+ <div class="ctls">
+  <div class="row" style="justify-content:space-between"><b data-rt></b><span class="stars" data-st></span></div>
+  <div class="gq" data-q></div>
+  <div class="grid"><label class="ctl" data-cl><span class="nm" data-nm></span><output data-o="x"></output><input type="range" data-k="x" min="0" max="50" step=".5" value="10"></label></div>
+  <div class="row"><button class="btn go" data-a="go">أطلق</button><button class="btn" data-a="next">الجولة التالية</button><button class="btn" data-a="again">أعد التحدي</button></div>
+  <div class="ro fbk" aria-live="polite"></div>
+ </div><div class="pg">${n(10)}</div></div>`;}
+function i5(root,textRoot){
+  GAME.textRoot=textRoot;
+  const pick=[15,25,35,40][Math.floor(Math.random()*4)];
+  const R=[
+   {type:'up',H:45,ans:30,cls:'k-vel',nm:'ع<sub>١</sub> سرعة القذف',unit:MS,min:0,max:50,step:.5,start:10,
+    q:`اقذف الكرة رأسياً لأعلى لتبلغ أقصى ارتفاع <b>${nu(45,0,M)}</b> بالضبط. <small>(س${n(8)} ص${n(43)})</small>`,
+    sol:`${EQ(`${n(0)} = ع<sub>١</sub><sup>٢</sup> − ٢ × ${n(10)} × ${n(45)}`)} ⟸ ${EQ(`ع<sub>١</sub> = ${nu(30,0,MS)}`)}`},
+   {type:'drop',T:3,ans:45,cls:'k-disp',nm:'ارتفاع السقوط ف',unit:M,min:0,max:100,step:1,start:20,
+    q:`سقط جسم كتلته ${nu(20,0,KG)} سقوطاً حراً فوصل الأرض بعد <b>${nu(3,0,SEC)}</b>. من أي ارتفاع سقط؟ <small>(سؤال ص${n(41)})</small>`,
+    sol:`${EQ(`ف = ${HALF} × جـ × ز<sup>٢</sup> = ${HALF} × ${n(10)} × ${n(3)}<sup>٢</sup> = ${nu(45,0,M)}`)}. الكتلة لا تؤثر.`},
+   {type:'flight',T:4,ans:20,cls:'k-vel',nm:'ع<sub>١</sub> سرعة القذف',unit:MS,min:0,max:50,step:.5,start:10,
+    q:`اقذف الكرة رأسياً لتبقى في الهواء <b>${nu(4,0,SEC)}</b> (زمن التحليق).`,
+    sol:`زمن الصعود = ${n(4)} ÷ ${n(2)} = ${nu(2,0,SEC)}، ${EQ(`${n(0)} = ع<sub>١</sub> − ${n(10)} × ${n(2)}`)} ⟸ ${EQ(`ع<sub>١</sub> = ${nu(20,0,MS)}`)}`},
+   {type:'car',ans:2,cls:'k-acc',nm:'ت التسارع',unit:MS2,min:0,max:5,step:.1,start:1,
+    q:`جسم بدأ بسرعة ${nu(5,0,MS)} ويتسارع بانتظام، فقطع ${nu(150,0,M)} عندما صارت سرعته <b>${nu(25,0,MS)}</b>. اضبط التسارع. <small>(س${n(7)} ص${n(43)})</small>`,
+    sol:`${EQ(`${n(25)}<sup>٢</sup> = ${n(5)}<sup>٢</sup> + ٢ × ت × ${n(150)}`)} ⟸ ${EQ(`ت = ${n(600)} ÷ ${n(300)} = ${nu(2,0,MS2)}`)}`},
+   {type:'up',H:pick*pick/20,ans:pick,cls:'k-vel',nm:'ع<sub>١</sub> سرعة القذف',unit:MS,min:0,max:50,step:.5,start:10,
+    q:`الجولة الأخيرة: اقذف الكرة لتبلغ أقصى ارتفاع <b>${nu(pick*pick/20,2,M)}</b>.`,
+    sol:`${EQ(`ع<sub>١</sub> = √(٢ × ${n(10)} × ${n(pick*pick/20,2)}) = ${nu(pick,0,MS)}`)}`}
+  ];
+  const inp=$('input[data-k="x"]',root),out=$('[data-o="x"]',root);let S={x:10,anim:null,res:null,done:false};let stop=null;
+  inp.addEventListener('input',()=>{S.x=parseFloat(inp.value);show();if(!S.done){S.anim=null;draw();}});
+  function show(){const r=R[GAME.round];out.innerHTML=nu(S.x,r.step<1?1:0,r.unit);}
+  function setRound(i){if(stop)stop();GAME.round=i;const r=R[i];S={x:r.start,anim:null,res:null,done:false};
+    inp.min=r.min;inp.max=r.max;inp.step=r.step;inp.value=r.start;inp.disabled=false;$('[data-cl]',root).className='ctl '+r.cls;$('[data-nm]',root).innerHTML=r.nm;
+    $('[data-rt]',root).innerHTML=`الجولة ${n(i+1)} من ${n(5)}`;$('[data-q]',root).innerHTML=r.q;$('.fbk',root).innerHTML='احسب، ثم اضبط المنزلق واضغط «أطلق».';
+    $('[data-a="next"]',root).disabled=true;$('[data-a="go"]',root).disabled=false;show();starsUI();draw();}
+  function starsOf(err){return err<=.02?3:err<=.08?2:err<=.2?1:0;}
+  function starStr(k){let s='';for(let i=0;i<3;i++)s+=i<k?'★':'<span class="off">★</span>';return s;}
+  function starsUI(){const k=GAME.stars[GAME.round];$('[data-st]',root).innerHTML=k==null?starStr(0):starStr(k);
+    const tb=$('[data-score]',GAME.textRoot);tb.innerHTML=GAME.stars.map((s,i)=>`<tr><td>${n(i+1)}${i===GAME.round?' ◂':''}</td><td class="stars">${s==null?'<span class="off">— — —</span>':starStr(s)}</td></tr>`).join('');
+    const tot=GAME.stars.reduce((a,b)=>a+(b||0),0),played=GAME.stars.filter(s=>s!=null).length;
+    $('[data-total]',GAME.textRoot).innerHTML=`المجموع: ${n(tot)} من ${n(15)} نجمة <span style="color:var(--muted);font-weight:400">(${n(played)} من ${n(5)} جولات)</span>`;}
+  $('[data-a="go"]',root).onclick=()=>{if(S.done)return;const r=R[GAME.round];const x=S.x;let D,T;
+    if(r.type==='up'||r.type==='flight'){T=2*x/10;}else if(r.type==='drop'){T=Math.sqrt(2*x/10);}else{T=x>0?(-5+Math.sqrt(25+300*x))/x:150/5;}
+    D=clamp(T,1.2,5)*1000;inp.disabled=true;$('[data-a="go"]',root).disabled=true;
+    stop=tween(D,k=>{S.anim={k,T};draw();},()=>{S.done=true;finish();});};
+  $('[data-a="next"]',root).onclick=()=>{if(GAME.round<4)setRound(GAME.round+1);};
+  $('[data-a="again"]',root).onclick=()=>{GAME.stars=[null,null,null,null,null];setRound(0);};
+  function finish(){const r=R[GAME.round];const err=Math.abs(S.x-r.ans)/r.ans;const k=starsOf(err);GAME.stars[GAME.round]=k;chime(Math.max(1,k));
+    let got='';if(r.type==='up')got=`بلغت الكرة ${nu(S.x*S.x/20,2,M)}`;else if(r.type==='flight')got=`زمن التحليق ${nu(S.x/5,2,SEC)}`;
+    else if(r.type==='drop')got=`زمن السقوط ${nu(Math.sqrt(S.x/5),2,SEC)}`;else got=`سرعته عند ${nu(150,0,M)} = ${nu(Math.sqrt(25+300*S.x),2,MS)}`;
+    const msg=k===3?'إصابة دقيقة!':k===2?'قريب جداً!':k===1?'اقتربت، راجع الحساب.':'بعيد عن الهدف، تتبّع الحل.';
+    let end='';if(GAME.round===4){const tot=GAME.stars.reduce((a,b)=>a+(b||0),0);end=`<div class="ok">انتهى التحدي: ${n(tot)} من ${n(15)} ★ · ${tot>=13?'عالِم حركة!':tot>=9?'أداء رائع':tot>=5?'جيد، راجع المعادلات':'حاول مرة أخرى'}</div>`;}
+    $('.fbk',root).innerHTML=`<div><b>${msg}</b> ${got}.</div><div class="k-ink">الحل: ${r.sol}</div>${end}`;
+    $('[data-a="next"]',root).disabled=GAME.round>=4;starsUI();draw();}
+  function draw(){const r=R[GAME.round];let G='',T='';const gy=222;G+=pl([[14,gy],[386,gy]],'pen');for(let i=0;i<9;i++)G+=pl([[20+i*44,gy+2],[12+i*44,gy+9]],'pen thin');
+    const a=S.anim;
+    if(r.type==='up'||r.type==='flight'){const hT=r.type==='up'?r.H:r.ans*r.ans/20;const hS=S.x*S.x/20;const top=Math.max(hT*1.35,hS*1.05,5);const sc=190/top,Y=h=>gy-h*sc;
+      if(r.type==='up'){G+=pl([[90,Y(hT)],[330,Y(hT)]],'pen dash','style="stroke:var(--acc)"');T+=txt(334,Y(hT)+4,'الهدف '+ar(hT,2)+' م','t sm tc-acc','start');}
+      G+=`<path class="pen" d="M186 ${gy} L186 ${gy-14} L214 ${gy-14} L214 ${gy} Z" style="fill:url(#h-g)"/>`;
+      let t=a?a.k*a.T:0;const h=Math.max(0,S.x*t-5*t*t);G+=circ(200,Y(h)-(h<=0?21:0),7,'pen','url(#h-ball)');
+      if(S.done&&r.type==='up'){G+=pl([[150,Y(hS)],[250,Y(hS)]],'pen','style="stroke:var(--disp)"');T+=txt(146,Y(hS)+4,'بلغتَ '+ar(hS,2),'t sm tc-disp','end');}
+      if(r.type==='flight'){T+=txt(60,40,'⏱ '+ar(t,2)+' ث','t b tc-time');T+=txt(60,58,'الهدف: ٤ ث','t sm');}}
+    else if(r.type==='drop'){const top=110,sc=190/top,Y=h=>gy-h*sc;const tw=Y(S.x);
+      G+=`<path class="pen" d="M110 ${gy} L116 ${R1(tw)} L144 ${R1(tw)} L150 ${gy} Z" style="fill:url(#h-g)"/>`;T+=txt(160,tw+4,ar(S.x,0)+' م','t sm tc-disp','start');
+      let t=a?a.k*a.T:0;const h=Math.max(0,S.x-5*t*t);G+=circ(200,Y(h)-8,8,'pen','url(#h-ball)');T+=txt(300,60,'⏱ '+ar(t,2)+' ث','t b tc-time');T+=txt(300,80,'الهدف: ٣ ث','t sm');}
+    else{const x0=40,sc=320/170;G+=pl([[x0+150*sc,gy],[x0+150*sc,gy-50]],'pen','style="stroke:var(--acc)"');T+=txt(x0+150*sc,gy-56,'١٥٠ م','t sm tc-acc');
+      let t=a?a.k*a.T:0;const f=Math.min(5*t+.5*S.x*t*t,170);const v=5+S.x*t;const X=x0+f*sc;
+      G+=`<path class="pen" d="M${R1(X-34)} ${gy-5} L${R1(X-32)} ${gy-17} L${R1(X-6)} ${gy-17} L${R1(X)} ${gy-9} L${R1(X)} ${gy-5} Z" style="fill:url(#h-g)"/>`+circ(X-27,gy-4,4,'pen','var(--card)')+circ(X-8,gy-4,4,'pen','var(--card)');
+      T+=txt(200,50,'ع = '+ar(Math.min(v,Math.sqrt(25+2*S.x*170)),1)+' م/ث','t b tc-vel');T+=txt(200,70,'الهدف: ٢٥ م/ث عند ١٥٠ م','t sm');T+=txt(x0,gy+18,'البداية','t sm');}
+    setSVG(root,G,T);}
+  setRound(0);
+}
+
+/* ---------- build book ---------- */
+const CH=[[t1,l1,i1],[t2,l2,i2],[t3,l3,i3],[t4,l4,i4],[t5,l5,i5]];
+const book=$('#book'),stage=$('#stage');const P=[];
+CH.forEach(c=>{const a=mk('div','page tp hidden',c[0]());const b=mk('div','page hidden',c[1]());book.appendChild(a);book.appendChild(b);P.push(a,b);c[2](b,a);});
+// predictions
+$$('.predict').forEach(p=>{const c=+p.dataset.c;const opts=$$('.opt',p);const wrap=$('.flapwrap',p),flap=$('.flap',p),fb=$('.fb',p);let sel=null;
+  opts.forEach(o=>o.onclick=()=>{sel=+o.dataset.i;opts.forEach(x=>x.classList.toggle('sel',x===o));if(wrap.classList.contains('open'))judge();});
+  function judge(){opts.forEach((o,i)=>{o.classList.toggle('right',i===c);o.classList.toggle('wrong',sel!==null&&i===sel&&i!==c);});
+    fb.textContent=sel===null?'الإجابة:':(sel===c?'✔ توقّعك صحيح!':'✘ ليس تماماً، انظر لماذا:');fb.style.color=sel===null?'':(sel===c?'var(--vel)':'var(--acc)');}
+  const tog=()=>{const o=wrap.classList.toggle('open');flap.setAttribute('aria-expanded',o);if(o)judge();else opts.forEach(x=>x.classList.remove('right','wrong'));};
+  flap.onclick=tog;flap.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog();}};});
+
+/* ---------- layout & navigation ---------- */
+let mode='spread',cur=0,busy=false,teacher=false,pw=0,ph=0;
+function layout(){const bar=$('#bar');stage.style.bottom=bar.offsetHeight+'px';const W=stage.clientWidth,H=stage.clientHeight;
+  let m=teacher?'teacher':((W>=860&&W/H>=1.12)?'spread':'single');let fs,tilt,bw;
+  if(m==='spread'){ph=Math.min(H*.86,(W*.9/2)/.78);pw=ph*.78;fs=ph/44;bw=pw*2;tilt=16;}
+  else if(m==='single'){pw=Math.min(W-18,720);let ph0=Math.min(H-22,pw/.56);fs=Math.min(ph0/44,21);ph=fs*44;pw=Math.min(pw,ph*.86);bw=pw;tilt=6;}
+  else{pw=W*.96;ph=H*.93;fs=Math.min(ph/34,pw/28,30);bw=pw;tilt=7;}
+  if(m!==mode){mode=m;normalize();}
+  book.className=m+(m==='teacher'?' teacher'+(pw/ph>1.15?' wide':''):'');
+  book.style.width=bw+'px';book.style.height=ph+'px';book.style.fontSize=fs+'px';book.style.setProperty('--tilt',tilt+'deg');
+  book.style.setProperty('--rise1',(tilt+12)+'deg');book.style.setProperty('--rise2',(tilt+6)+'deg');
+  show();}
+function normalize(){if(mode==='spread')cur-=cur%2;else if(mode==='teacher'&&cur%2===0)cur+=1;}
+function slotOf(){return mode==='spread'?[[cur,'slot-r'],[cur+1,'slot-l']]:[[cur,'slot-s']];}
+function place(p,slot){p.classList.remove('hidden','slot-r','slot-l','slot-s');p.classList.add(slot);}
+function hide(p){p.classList.add('hidden');p.classList.remove('slot-r','slot-l','slot-s');}
+function show(){P.forEach(p=>{if(!p.classList.contains('hidden'))return;});P.forEach(hide);slotOf().forEach(([i,s])=>{place(P[i],s);rise(P[i]);});ind();}
+function rise(p,delay){const l=$('.lab',p);if(!l)return;if(l.classList.contains('up')&&!delay)return;l.classList.remove('up');void l.offsetWidth;setTimeout(()=>l.classList.add('up'),delay||120);}
+function fold(p){const l=$('.lab',p);if(l)l.classList.remove('up');}
+function ind(){const ch=Math.floor(cur/2)+1;$('#ind').textContent=`الفصل ${ar(ch,0)} من ${ar(5,0)}`+(mode==='single'?(cur%2?' · المختبر':' · الشرح'):'');
+  const st=mode==='single'?1:2;$('#prev').disabled=cur-st<0&&!(mode==='single'&&cur>0);$('#next').disabled=(mode==='spread'?cur+2>8:mode==='teacher'?cur+2>9:cur+1>9);
+  $('#teach').classList.toggle('on',teacher);$('#teach').setAttribute('aria-pressed',teacher);$('#teach .lbl').textContent=teacher?'عودة للكتاب':'وضع المعلم';}
+function snap(p,w,h){const c=p.cloneNode(true);c.classList.remove('hidden','slot-r','slot-l','slot-s');c.style.width=w+'px';c.style.height=h+'px';c.style.left='0';
+  const l=$('.lab',c);if(l)l.classList.remove('up');const a=$$('input',p),b=$$('input',c);b.forEach((x,i)=>x.value=a[i].value);c.removeAttribute('id');return c;}
+function buildLeaf(fp,bp,type,left,w,h){const N=6,s=w/N;const leaf=mk('div','leaf');leaf.style.cssText=`left:${left}px;width:${w}px;height:${h}px`;
+  let par=leaf;const strips=[];
+  for(let k=0;k<N;k++){const st=mk('div','strip');st.style.width=s+'px';
+    if(type==='R'){st.style.right=k===0?'0':'100%';st.style.transformOrigin='100% 50%';}else{st.style.left=k===0?'0':'100%';st.style.transformOrigin='0 50%';}
+    const fo=type==='R'?-(N-1-k)*s:-k*s,bo=type==='R'?-k*s:-(N-1-k)*s;
+    const f=mk('div','face'),b=mk('div','face bk');
+    if(fp){const c=snap(fp,w,h);c.style.left=fo+'px';f.appendChild(c);}
+    if(bp){const c=snap(bp,w,h);c.style.left=bo+'px';b.appendChild(c);}
+    st.appendChild(f);st.appendChild(b);par.appendChild(st);par=st;strips.push(st);}
+  book.appendChild(leaf);
+  // keep text page scroll
+  [[fp,0],[bp,1]].forEach(([pg,j])=>{if(!pg)return;const tx=$('.tx',pg);if(!tx)return;strips.forEach(st=>{const c=$(j?'.face.bk .tx':'.face:not(.bk) .tx',st);if(c)c.scrollTop=tx.scrollTop;});});
+  return{leaf,strips};}
+function animLeaf(L,from,to,onMid){return new Promise(res=>{const red=matchMedia('(prefers-reduced-motion: reduce)').matches;let mid=false;
+  tween(red?200:820,t=>{const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;const base=from+(to-from)*e;const curl=-Math.sign(to-from)*Math.sin(Math.PI*t)*9;
+    L.strips[0].style.transform=`rotateY(${base}deg)`;for(let k=1;k<L.strips.length;k++)L.strips[k].style.transform=`rotateY(${curl}deg)`;
+    L.leaf.style.setProperty('--sh',(Math.sin(Math.PI*e)*.55).toFixed(3));if(!mid&&t>.45){mid=true;onMid&&onMid();}},res);});}
+async function go(dir){if(busy)return;const step=mode==='single'?1:2;const tgt=cur+dir*step;
+  if(tgt<0||tgt>(mode==='spread'?8:9)||(mode==='teacher'&&tgt<1))return;busy=true;flipSound();
+  const W=book.clientWidth,H=book.clientHeight;
+  try{
+  if(mode==='spread'){const half=W/2;
+    if(dir>0){const front=P[cur+1],back=P[cur+2],under=P[cur+3];const L=buildLeaf(front,back,'R',0,half,H);hide(front);place(under,'slot-l');fold(under);
+      await animLeaf(L,0,180,()=>rise(under,1));place(back,'slot-r');hide(P[cur]);L.leaf.remove();}
+    else{const front=P[cur],back=P[cur-1],under=P[cur-2];const L=buildLeaf(front,back,'L',half,half,H);hide(front);place(under,'slot-r');
+      await animLeaf(L,0,-180);place(back,'slot-l');fold(back);rise(back,1);hide(P[cur+1]);L.leaf.remove();}
+  }else{
+    if(dir>0){const front=P[cur],under=P[tgt];const L=buildLeaf(front,null,'R',0,W,H);hide(front);place(under,'slot-s');fold(under);
+      await animLeaf(L,0,180,()=>rise(under,1));L.leaf.remove();}
+    else{const land=P[tgt];const L=buildLeaf(land,null,'R',0,W,H);L.strips[0].style.transform='rotateY(180deg)';
+      await animLeaf(L,180,0);hide(P[cur]);place(land,'slot-s');fold(land);rise(land,1);L.leaf.remove();}
+  }}finally{cur=tgt;busy=false;ind();}}
+$('#next').onclick=()=>go(1);$('#prev').onclick=()=>go(-1);
+document.addEventListener('keydown',e=>{const a=document.activeElement;if(a&&(a.type==='range'))return;
+  if(e.key==='ArrowLeft'){e.preventDefault();go(1);}else if(e.key==='ArrowRight'){e.preventDefault();go(-1);}});
+// swipe
+let sw=null;
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('input,button,.flap,label,.opt,a'))return;sw={x:e.clientX,y:e.clientY,id:e.pointerId};});
+stage.addEventListener('pointerup',e=>{if(!sw||e.pointerId!==sw.id)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;sw=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.3)go(dx>0?1:-1);});
+stage.addEventListener('pointercancel',()=>{sw=null;});
+// toolbar
+$('#teach').onclick=()=>{if(busy)return;teacher=!teacher;if(teacher){if(cur%2===0)cur+=1;}else{mode='';}layout();};
+function muteUI(){$('#mute').classList.toggle('on',muted);$('#mute').setAttribute('aria-pressed',muted);$('#mwave').style.display=muted?'none':'';$('#mute').title=muted?'تشغيل الصوت':'كتم الصوت';}
+$('#mute').onclick=()=>{muted=!muted;try{localStorage.setItem('lb-muted',muted?'1':'0');}catch(e){}muteUI();if(!muted)flipSound();};
+function isDark(){const t=document.documentElement.dataset.theme;return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;}
+$('#theme').onclick=()=>{const d=!isDark();document.documentElement.dataset.theme=d?'dark':'light';try{localStorage.setItem('lb-theme',d?'dark':'light');}catch(e){}};
+try{const t=localStorage.getItem('lb-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}
+muteUI();
+let rz=0;window.addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(layout);});
+layout();
+window.__book={go,P,get cur(){return cur},get mode(){return mode}};
+})();
+</script>
+</body>
+</html>
