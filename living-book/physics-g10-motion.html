@@ -189,6 +189,9 @@ svg.m{direction:ltr}
 .tb:disabled{opacity:.35;cursor:default}
 .tb.on{background:#f2cf55;color:#2a2410}
 .tb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tb.wa{text-decoration:none;border-color:rgba(37,211,102,.6)}
+.tb.wa .wai{width:22px;height:22px}
+@media (max-width:420px){#bar{padding-left:.35rem;padding-right:.35rem;gap:.2rem}#bar .mid{gap:.2rem}.tb{padding:0 .45rem}#ind{display:none}}
 #ind{font-size:.85rem;opacity:.9;white-space:nowrap;padding:0 .2rem}
 @media (max-width:560px){.tb .lbl{display:none}#ind{font-size:.75rem}}
 @media (prefers-reduced-motion:reduce){.card,.flap,.pshadow{transition-duration:.01s!important}}
@@ -223,6 +226,7 @@ svg.m{direction:ltr}
     <span id="ind"></span>
     <button class="tb" id="teach" aria-pressed="false" title="وضع المعلم"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg><span class="lbl">وضع المعلم</span></button>
     <button class="tb" id="mute" aria-pressed="false" title="كتم الصوت"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path id="mwave" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></button>
+    <a class="tb wa" id="wa" href="https://wa.me/970598034164?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AA%D9%88%D8%A7%D8%B5%D9%84%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D9%83%D8%AA%D8%A7%D8%A8%20%D8%A7%D9%84%D8%AD%D8%B1%D9%83%D8%A9%20%D8%A7%D9%84%D8%AA%D9%81%D8%A7%D8%B9%D9%84%D9%8A" target="_blank" rel="noopener" title="تواصل مع المصمم عبر واتساب: 970598034164+" aria-label="تواصل مع المصمم عبر واتساب"><svg viewBox="0 0 24 24" class="wai"><path d="M12 2.2A9.7 9.7 0 0 0 3.7 16.9L2.4 21.6l4.8-1.3A9.7 9.7 0 1 0 12 2.2z" fill="#25d366" stroke="none"/><path d="M8.6 7.4c.3-.3.7-.3.9 0l1 1.6c.2.3.1.6-.1.9l-.5.6c.6 1.3 1.6 2.3 2.9 2.9l.6-.5c.3-.2.6-.3.9-.1l1.6 1c.3.2.3.6 0 .9l-.7.8c-.5.5-1.3.6-2 .3-2.4-1-4.3-2.9-5.3-5.3-.3-.7-.2-1.5.3-2z" fill="#fff" stroke="none"/></svg><span class="lbl">تواصل</span></a>
     <button class="tb" id="theme" title="الوضع الداكن"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></svg></button>
   </div>
   <button class="tb" id="next" aria-label="الصفحة التالية"><span class="lbl">التالي</span><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
