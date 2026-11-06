@@ -195,6 +195,8 @@ svg.m{direction:ltr}
 .tb.wa{text-decoration:none;border-color:rgba(37,211,102,.6)}
 .tb.wa .wai{width:22px;height:22px}
 @media (max-width:420px){#bar{padding-left:.35rem;padding-right:.35rem;gap:.2rem}#bar .mid{gap:.2rem}.tb{padding:0 .45rem}#ind{display:none}}
+body.has-badge #bar{padding-right:calc(.7rem + var(--badge-w,201px))}
+@media (max-width:640px){body.has-badge #bar{padding-right:.35rem;bottom:var(--badge-h,64px)}}
 #ind{font-size:.85rem;opacity:.9;white-space:nowrap;padding:0 .2rem}
 @media (max-width:560px){.tb .lbl{display:none}#ind{font-size:.75rem}}
 @media (prefers-reduced-motion:reduce){.card,.flap,.pshadow{transition-duration:.01s!important}}
@@ -771,7 +773,7 @@ $$('.predict').forEach(p=>{const c=+p.dataset.c;const opts=$$('.opt',p);const wr
 
 /* ---------- layout & navigation ---------- */
 let mode='spread',cur=0,busy=false,teacher=false,pw=0,ph=0;
-function layout(){const bar=$('#bar');stage.style.bottom=bar.offsetHeight+'px';const W=stage.clientWidth,H=stage.clientHeight;
+function layout(){const bar=$('#bar');stage.style.bottom=Math.max(0,innerHeight-bar.getBoundingClientRect().top)+'px';const W=stage.clientWidth,H=stage.clientHeight;
   let m=teacher?'teacher':((W>=860&&W/H>=1.12)?'spread':'single');let fs,tilt,bw;
   if(m==='spread'){ph=Math.min(H*.86,(W*.9/2)/.78);pw=ph*.78;fs=ph/44;bw=pw*2;tilt=16;}
   else if(m==='single'){pw=Math.min(W-18,720);let ph0=Math.min(H-22,pw/.56);fs=Math.min(ph0/44,21);ph=fs*44;pw=Math.min(pw,ph*.86);bw=pw;tilt=6;}
@@ -841,6 +843,10 @@ function isDark(){return document.documentElement.dataset.theme==='dark';}
 $('#theme').onclick=()=>{const d=!isDark();document.documentElement.dataset.theme=d?'dark':'light';try{localStorage.setItem('lb-theme',d?'dark':'light');}catch(e){}window.dispatchEvent(new Event('lb-theme'));};
 try{const t=localStorage.getItem('lb-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}
 muteUI();
+// make room for a host-injected corner badge (e.g. Netlify) instead of letting it cover the nav buttons
+function badgeCheck(){const f=document.getElementById('nl-badge-frame');if(!f||document.body.classList.contains('has-badge'))return;const r=f.getBoundingClientRect();if(!r.width)return;
+  document.body.style.setProperty('--badge-w',Math.ceil(r.width)+'px');document.body.style.setProperty('--badge-h',Math.ceil(r.height)+'px');document.body.classList.add('has-badge');layout();}
+try{new MutationObserver(()=>setTimeout(badgeCheck,300)).observe(document.body,{childList:true});}catch(e){}
 let rz=0;window.addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(layout);});
 layout();
 window.__book={go,P,get cur(){return cur},get mode(){return mode}};
