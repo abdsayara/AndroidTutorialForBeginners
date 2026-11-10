@@ -42,7 +42,7 @@ test('parseReports reads both reports of a row with byline, tag and date', () =>
   const r = W.parseReports(ARTICLES);
   assert.deepEqual(r.map((x) => x.id), [3293, 3292]);
   assert.equal(r[0].excerpt, null, 'a stub excerpt is dropped');
-  assert.equal(r[0].tag, 'طقس الوطن');
+  assert.equal(r[0].tag, null); // a tag that only names the site is dropped
   assert.equal(r[0].image, 'https://www.p-weather.ps/photo/article/3293.png');
   assert.equal(r[1].byline, 'قصي الحلايقة - موقع طقس الوطن');
   assert.match(r[1].excerpt, /^لا يُقاس فصل الصيف.*مُنا…$/);

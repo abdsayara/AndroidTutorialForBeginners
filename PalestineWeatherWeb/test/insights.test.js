@@ -95,15 +95,15 @@ test('prayerWeather finds the next prayer and its hour', () => {
   assert.deepEqual([fajr.name, fajr.tomorrow, fajr.minutes, fajr.hour.temp], ['الفجر', true, 535, 9]);
 });
 
-test('seasonCard: olive harvest days, frost nights, nothing in between', () => {
+test('seasonCard: frost nights in winter, nothing otherwise', () => {
   const name = (d) => d;
   const days = [
     { date: 'الأحد', precipProbMax: 10, windMax: 15, max: 22, min: 12 },
     { date: 'الاثنين', precipProbMax: 70, windMax: 15, max: 18, min: 10 },
     { date: 'الثلاثاء', precipProbMax: 5, windMax: 12, max: 24, min: 13 },
   ];
-  assert.equal(seasonCard(days, '2026-11-10', name).text, 'أنسب أيام القطاف هذا الأسبوع: الأحد، الثلاثاء.');
-  assert.equal(seasonCard([{ ...days[1] }], '2026-10-20', name).text, 'لا أيام مناسبة للقطاف هذا الأسبوع بسبب المطر أو الرياح.');
+  assert.equal(seasonCard(days, '2026-11-10', name), null);
+  assert.equal(seasonCard(days, '2026-10-20', name), null);
   assert.equal(seasonCard(days, '2027-01-10', name), null);
   assert.match(seasonCard([{ date: 'الأربعاء', min: 1 }], '2027-01-10', name).text, /^ليالٍ باردة قد يتكوّن فيها الصقيع: الأربعاء\./);
   assert.equal(seasonCard(days, '2026-06-01', name), null);

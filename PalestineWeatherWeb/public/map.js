@@ -38,7 +38,8 @@ const LEGEND = {
   quakes: [['#D9452B', '3 فأكثر'], ['#C77700', 'أقل من 3']],
 };
 const THEME = {
-  light: { sea: '#CFE2EC', land: '#F4F1E6', coast: '#6E8577', lake: '#9CC3DA' },
+  // Glass: the sea lets the page's sky through, the land is a frosted light shape.
+  light: { sea: 'rgba(8, 24, 40, 0.30)', land: 'rgba(248, 246, 238, 0.93)', coast: '#6E8577', lake: '#9CC3DA' },
   storms: { sea: '#13202A', land: '#24343F', coast: '#8FA67F', lake: '#2C5878' },
   clouds: { sea: '#1B3A55', land: '#5E7A4E', coast: '#8FA67F', lake: '#2C5878' },
 };

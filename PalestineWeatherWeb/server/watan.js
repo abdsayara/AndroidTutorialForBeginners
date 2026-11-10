@@ -39,6 +39,12 @@ export function parseBulletin(html) {
   return { days, source: BULLETIN_URL };
 }
 
+/** A report's tag, or null when the tag only names the site itself (no source is shown). */
+function cleanTag(raw) {
+  const t = text(raw ?? '').replace(/^#/, '').replace(/_/g, ' ').trim();
+  return t && !/طقس\s*الوطن/.test(t) ? t : null;
+}
+
 /** The reports list (article.php): title, author line, short excerpt, tag, date, image, link. */
 export function parseReports(html) {
   const out = [];
@@ -58,7 +64,7 @@ export function parseReports(html) {
       byline,
       // The site cuts excerpts at a fixed length; a stub like "قسم ال" says nothing.
       excerpt: excerpt.length >= 25 ? `${excerpt}…` : null,
-      tag: text(chunk.match(/class="tags-article-page">([\s\S]*?)<\/a>/)?.[1] ?? '').replace(/^#/, '').replace(/_/g, ' ') || null,
+      tag: cleanTag(chunk.match(/class="tags-article-page">([\s\S]*?)<\/a>/)?.[1]),
       date: chunk.match(/<span class="date">\s*(\d{4}-\d{2}-\d{2})/)?.[1] ?? null,
       image: absolute(chunk.match(/<amp-img[^>]*\ssrc="([^"]+)"/)?.[1]),
       url: absolute(link[1]),
@@ -184,7 +190,7 @@ export function parseArticle(html, id) {
     title,
     date: main.match(/<span class="date">\s*(\d{4}-\d{2}-\d{2})/)?.[1] ?? null,
     image: absolute(main.match(/data-bg-image="([^"]+)"/)?.[1] || null),
-    tag: text(main.match(/class="tags-article-page">([\s\S]*?)<\/a>/)?.[1] ?? '').replace(/^#/, '').replace(/_/g, ' ') || null,
+    tag: cleanTag(main.match(/class="tags-article-page">([\s\S]*?)<\/a>/)?.[1]),
     html: sanitize(raw),
   };
 }

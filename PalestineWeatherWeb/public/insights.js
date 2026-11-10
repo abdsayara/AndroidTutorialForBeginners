@@ -175,25 +175,10 @@ export function prayerWeather(times, hours, nowIso) {
   };
 }
 
-/** Days good for field work: dry, calm and mild (the farming page's "ممتاز"). */
-const fieldDay = (d) => d.precipProbMax < 25 && d.windMax < 25 && d.max >= 12 && d.max <= 32;
-
-/**
- * A card for the farming season, or null outside one:
- * the olive harvest (October to mid-December) and the frost months (December to February).
- */
+/** A frost warning for the cold months (December to February), or null. */
 export function seasonCard(days, dateIso, dayName) {
-  const [, m, d] = String(dateIso).slice(0, 10).split('-').map(Number);
+  const [, m] = String(dateIso).slice(0, 10).split('-').map(Number);
   const week = (days ?? []).slice(0, 7);
-  if (m === 10 || m === 11 || (m === 12 && d <= 15)) {
-    const good = week.filter(fieldDay).slice(0, 4).map((x) => dayName(x.date));
-    return {
-      title: 'موسم قطاف الزيتون',
-      text: good.length
-        ? `أنسب أيام القطاف هذا الأسبوع: ${good.join('، ')}.`
-        : 'لا أيام مناسبة للقطاف هذا الأسبوع بسبب المطر أو الرياح.',
-    };
-  }
   if (m === 12 || m === 1 || m === 2) {
     const frost = week.slice(0, 3).filter((x) => x.min != null && x.min <= 3).map((x) => dayName(x.date));
     if (!frost.length) return null;

@@ -548,12 +548,12 @@ async function farming(el, ctx, cancelled) {
     const spray = days.slice(0, 4).find((d) => d.precipProbMax < 20 && d.windMax < 15);
     return `<div class="page" style="max-width:none">
       ${rain || frost ? `<div class="notice">${icon('bell', 24)}<div>
-        ${rain ? `<div class="bold">أمطار متوقعة ${F.relativeDay(rain.date)}</div><div class="small">احتمال ${rain.precipProbMax}% — أنهِ القطف وغطِّ المحصول المقطوف قبلها.</div>` : ''}
+        ${rain ? `<div class="bold">أمطار متوقعة ${F.relativeDay(rain.date)}</div><div class="small">احتمال ${rain.precipProbMax}% — أنجز أعمالك الحقلية وغطِّ المحاصيل قبلها.</div>` : ''}
         ${frost ? `<div class="bold">خطر صقيع ${F.relativeDay(frost.date)}</div><div class="small">الصغرى ${F.deg(frost.min)} — احمِ الشتلات والمزروعات الحساسة.</div>` : ''}
       </div></div>` : ''}
       <section class="card">
         <h2>ملاءمة الأيام للعمل في الأرض</h2>
-        <div class="muted tiny">قطف الزيتون والأعمال الحقلية: مطر قليل ورياح هادئة وحرارة معتدلة</div>
+        <div class="muted tiny">الأعمال الحقلية: مطر قليل ورياح هادئة وحرارة معتدلة</div>
         <div class="suit">${days.slice(0, 5).map((d) => {
           const [label, bg, fg] = SUIT[suitability(d)];
           return `<div style="background:${bg};color:${fg}">${F.relativeDay(d.date)}<b>${label}</b></div>`;
