@@ -113,7 +113,7 @@ function homeBody(fc, aqi) {
     </section>
 
     <section class="card flush list" aria-label="توقعات 7 أيام">${days}</section>
-    <div class="source">المصدر: Open-Meteo</div>`;
+`;
 }
 
 async function home(el, ctx, cancelled) {
@@ -384,10 +384,10 @@ function more(el) {
     ['/reports', 'news', 'التقارير اليومية'],
     ['/stations', 'thermo', 'محطات الطقس'],
     ['/currency', 'coins', 'أسعار العملات'],
-    ['/about', 'compass', 'مصادر البيانات وحول الموقع'],
   ];
   el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label]) =>
-    `<a href="${href}" data-link><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav></div>`;
+    `<a href="${href}" data-link><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
+    <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى والخرائط © OpenStreetMap · العملات ExchangeRate-API</div></div>`;
 }
 
 // ---------------------------------------------------------------- prayer
@@ -425,7 +425,7 @@ async function prayer(el, ctx, cancelled) {
       </div></section>
       <section class="card"><h2>طريقة الحساب</h2>
         <div class="pills">${Object.entries(d.methods).map(([id, label]) => pill(label, `data-action="method" data-m="${id}"`, Number(id) === method)).join('')}</div>
-        <div class="source">المصدر: aladhan.com — قارن مع تقويم الأوقاف المعتمد في منطقتك.</div>
+        <div class="source">قارن مع تقويم الأوقاف المعتمد في منطقتك.</div>
       </section>
     </div>`;
   };
@@ -656,11 +656,11 @@ async function roads(el, ctx, cancelled) {
     if (!anyOk) {
       slot.querySelector('#overview').innerHTML = `<h2>مصدر أحوال الطرق غير متاح الآن</h2>
         <p class="muted small" style="margin:0">سنعرض حالة الحواجز هنا تلقائياً فور عودة المصدر.</p>`;
-      for (const id of ['filters', 'status', 'list', 'feed', 'sources']) slot.querySelector(`#${id}`).innerHTML = '';
-      slot.querySelectorAll('.search, #h-feed, #sources').forEach((e) => { e.hidden = true; });
+      for (const id of ['filters', 'status', 'list', 'feed']) slot.querySelector(`#${id}`).innerHTML = '';
+      slot.querySelectorAll('.search, #h-feed').forEach((e) => { e.hidden = true; });
       return;
     }
-    slot.querySelectorAll('.search, #sources').forEach((e) => { e.hidden = false; });
+    slot.querySelectorAll('.search').forEach((e) => { e.hidden = false; });
     const all = data.checkpoints;
     const count = (s) => all.filter((c) => c.status === s).length;
     const newest = all.map((c) => c.at).filter(Boolean).sort().at(-1);
@@ -709,8 +709,6 @@ async function roads(el, ctx, cancelled) {
         <div class="row tiny muted"><span class="grow">${esc(F.ago(Date.parse(p.time)))}</span></div>
       </article>`).join('');
 
-    slot.querySelector('#sources').innerHTML = `<h2>المصادر</h2>${data.sources.filter((s) => s.ok).map((s) => `
-      <div class="row small"><span class="grow">${esc(s.name)}</span><span class="tiny muted">${s.count} ${s.id === 'palhub' ? 'حاجزاً' : 'رسالة'}</span></div>`).join('')}`;
   };
 
   const run = async () => {
@@ -722,7 +720,6 @@ async function roads(el, ctx, cancelled) {
       <div class="pills" id="status"></div>
       <div id="list" aria-label="حالة الحواجز"></div>
       <section aria-labelledby="h-feed"><h2 id="h-feed" style="margin-bottom:8px" hidden>رسائل السائقين</h2><div class="feed" id="feed"></div></section>
-      <section class="card" id="sources"></section>
     </div>`, cancelled);
     if (!r) return;
     data = r;
@@ -786,7 +783,7 @@ async function currency(el, ctx, cancelled) {
       <section class="card flush list">${Object.entries(d.rates).map(([code, r]) => `
         <div class="rate"><div class="grow"><div class="bold">${esc(r.name)}</div><div class="muted tiny">${code}</div></div>
           <span class="bold num">${fmt(r.ils, r.ils < 1 ? 3 : 2)} ₪</span></div>`).join('')}</section>
-      <div class="source">أسعار مرجعية يومية من open.er-api.com${d.updated ? ` (${esc(d.updated.slice(0, 16))})` : ''}. أسعار الصرافين للبيع والشراء تختلف عنها.</div>
+      <div class="source">أسعار مرجعية يومية${d.updated ? ` (${esc(d.updated.slice(0, 16))})` : ''}. أسعار الصرافين للبيع والشراء تختلف عنها.</div>
     </div>`, cancelled);
     if (!data) return;
     result();
@@ -794,25 +791,6 @@ async function currency(el, ctx, cancelled) {
   };
   run();
   return actions(el, { code: (t) => { from = t.dataset.c; result(); }, retry: run });
-}
-
-// ---------------------------------------------------------------- about
-
-function about(el) {
-  const sources = [
-    ['الطقس والتوقعات والأمطار والسحب والعواصف', 'Open-Meteo — open-meteo.com'],
-    ['جودة الهواء', 'Open-Meteo Air Quality'],
-    ['الزلازل', 'USGS — earthquake.usgs.gov'],
-    ['أوقات الصلاة', 'Aladhan — aladhan.com'],
-    ['أسعار العملات', 'ExchangeRate-API — open.er-api.com'],
-    ['النشرة التفصيلية والتقارير اليومية ومحطات الرصد', 'طقس الوطن — p-weather.ps (المحطات عبر WeatherLink وWeathercloud)'],
-    ['أحوال الطرق والحواجز', 'مجموعات تلغرام العامة: ahwalaltreq و a7walstreet و road_jehad (أخبار يرسلها الناس)'],
-    ['حدود الخريطة', 'Natural Earth (ملكية عامة)'],
-  ];
-  el.innerHTML = `<div class="page">${header('حول الموقع', 'طقس فلسطين', { back: true })}
-    <section class="card"><h2>مصادر البيانات</h2>${sources.map(([w, s]) => `<div><div class="bold small">${w}</div><div class="muted tiny">${s}</div></div>`).join('')}</section>
-    <section class="card"><p class="muted small" style="margin:0">طبقة «العواصف» على الخريطة تعرض مؤشر CAPE (طاقة الحمل الكامنة) من نموذج الطقس، وهو يدل على ملاءمة الجو للعواصف الرعدية وليس رصداً مباشراً لمواقع البرق.</p></section>
-  </div>`;
 }
 
 export const views = {
@@ -828,5 +806,4 @@ export const views = {
   '/stations': stations,
   '/roads': roads,
   '/currency': currency,
-  '/about': about,
 };

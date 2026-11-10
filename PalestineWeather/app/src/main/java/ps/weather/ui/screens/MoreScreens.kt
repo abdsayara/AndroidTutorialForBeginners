@@ -75,7 +75,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-enum class Sub { HOURLY, PRAYER, ALERTS, NEWS, CURRENCY, ABOUT }
+enum class Sub { HOURLY, PRAYER, ALERTS, NEWS, CURRENCY }
 
 // ---------------------------------------------------------------- "More" hub
 
@@ -87,11 +87,17 @@ fun MoreScreen(onOpen: (Sub) -> Unit) {
         Triple(Sub.ALERTS, PwIcons.Bell, "التنبيهات السابقة"),
         Triple(Sub.NEWS, PwIcons.News, "أخبار الطقس والمناخ"),
         Triple(Sub.CURRENCY, PwIcons.Coins, "أسعار العملات"),
-        Triple(Sub.ABOUT, PwIcons.Compass, "مصادر البيانات وحول التطبيق"),
     )
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text("المزيد", fontSize = 24.sp, fontWeight = FontWeight.Bold) }
         items(entries) { (sub, icon, label) -> MenuRow(icon, label) { onOpen(sub) } }
+        // Credits these data licences require (CC BY 4.0, ODbL, ExchangeRate-API's terms).
+        item {
+            Text(
+                "بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى والخرائط © OpenStreetMap · العملات ExchangeRate-API",
+                fontSize = 11.sp, color = Pw.Muted,
+            )
+        }
     }
 }
 
@@ -183,7 +189,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
                 PrayerMethod.entries.forEach { m ->
                     PillButton(m.label, m == method, Modifier.fillMaxWidth()) { method = m; prefs.prayerMethod = m }
                 }
-                Text("المصدر: aladhan.com — قارن مع تقويم الأوقاف المعتمد في منطقتك.", fontSize = 11.sp, color = Pw.Muted)
+                Text("قارن مع تقويم الأوقاف المعتمد في منطقتك.", fontSize = 11.sp, color = Pw.Muted)
             }
         }
     }
@@ -393,7 +399,7 @@ fun CurrencyScreen(onBack: () -> Unit) {
                     }
                 }
                 Text(
-                    "أسعار مرجعية يومية من open.er-api.com (${rates.updated.take(16)}). أسعار الصرافين للبيع والشراء تختلف عنها.",
+                    "أسعار مرجعية يومية (${rates.updated.take(16)}). أسعار الصرافين للبيع والشراء تختلف عنها.",
                     fontSize = 11.sp, color = Pw.Muted,
                 )
             }
@@ -401,39 +407,3 @@ fun CurrencyScreen(onBack: () -> Unit) {
     }
 }
 
-// ---------------------------------------------------------------- About
-
-@Composable
-fun AboutScreen(onBack: () -> Unit) {
-    val sources = listOf(
-        "الطقس والتوقعات والأمطار والسحب والعواصف" to "Open-Meteo — open-meteo.com",
-        "جودة الهواء" to "Open-Meteo Air Quality",
-        "الزلازل" to "USGS — earthquake.usgs.gov",
-        "أوقات الصلاة" to "Aladhan — aladhan.com",
-        "أسعار العملات" to "ExchangeRate-API — open.er-api.com",
-        "الأخبار" to "Google News RSS",
-        "حدود الخريطة" to "Natural Earth (ملكية عامة)",
-    )
-    LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { ScreenHeader("حول التطبيق", "طقس فلسطين 1.0", onBack) }
-        item {
-            SectionCard {
-                Text("مصادر البيانات", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                sources.forEach { (what, src) ->
-                    Column {
-                        Text(what, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        Text(src, fontSize = 12.sp, color = Pw.Muted)
-                    }
-                }
-            }
-        }
-        item {
-            SectionCard {
-                Text(
-                    "طبقة «العواصف» على الخريطة تعرض مؤشر CAPE (طاقة الحمل الكامنة) من نموذج الطقس، وهو يدل على ملاءمة الجو للعواصف الرعدية وليس رصداً مباشراً لمواقع البرق. رصد الصواعق الفعلي يحتاج مزوّد بيانات تجارياً.",
-                    fontSize = 13.sp, color = Pw.Muted, lineHeight = 20.sp,
-                )
-            }
-        }
-    }
-}

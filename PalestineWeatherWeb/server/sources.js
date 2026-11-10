@@ -1,5 +1,5 @@
 // Upstream data sources: URL builders and pure parsers (unit-tested in test/).
-import { CITIES, describePlace } from './cities.js';
+import { CITIES, describePlace, areaCity } from './cities.js';
 import { OUTER } from '../public/shape.js';
 
 const FORECAST = 'https://api.open-meteo.com/v1/forecast';
@@ -295,15 +295,40 @@ export function reverseUrl(lat, lon) {
   return `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&accept-language=ar`;
 }
 
-export function parseReverse(o) {
+// Occupation-era administrative names (regional councils, districts, "Judea and Samaria")
+// that OpenStreetMap and GeoNames attach to Palestinian places. Never shown as an area.
+const ISRAELI_ADMIN = /مجلس|إقليمي|اقليمي|لواء|يهودا|السامرة|المستوطن|منطقة [أا]|יהודה|מועצה/;
+const palestinianName = (s) => (isArabicName(s) && !ISRAELI_ADMIN.test(s) ? s : null);
+
+/** The Palestinian city a place belongs to ("راس الجورة" → "الخليل", "ترمسعيا" → "رام الله"). */
+export const palestinianArea = (lat, lon) =>
+  (Number.isFinite(lat) && Number.isFinite(lon) ? areaCity(lat, lon).name : null);
+
+export function parseReverse(o, lat = Number(o.lat), lon = Number(o.lon)) {
   const a = o.address ?? {};
   // Most precise first: a neighbourhood inside a city beats the city's own name.
   // Arabic only: a component that came back in Hebrew (no Arabic name in OSM) is skipped;
   // the caller falls back to "near <city>" when nothing Arabic is left.
-  const name = arabic(a.hamlet, a.village, a.neighbourhood, a.suburb, a.quarter, a.town, a.city, a.municipality, o.name);
-  const town = arabic(a.town, a.city, a.municipality);
-  const area = (town && town !== name ? town : null) ?? arabic(a.county, a.state_district, a.state);
-  return { name, area };
+  const name = [a.hamlet, a.village, a.neighbourhood, a.suburb, a.quarter, a.town, a.city, a.municipality, o.name].map(palestinianName).find(Boolean) ?? null;
+  const town = [a.town, a.city, a.municipality].map(palestinianName).find(Boolean) ?? null;
+  // A Palestinian governorate ("محافظة رام الله والبيرة") when OSM has one, else our nearest city.
+  const governorate = [a.county, a.state_district, a.state].map(palestinianName)
+    .find((s) => s && /^محافظة\s/.test(s))?.replace(/^محافظة\s+/, '');
+  // The area is the Palestinian town, governorate or city, never a council or district.
+  const area = (town && town !== name ? town : null) ?? governorate ?? palestinianArea(lat, lon);
+  return { name, area: area !== name ? area : null };
+}
+
+/** Arabic name of the nearest village/town in our places list within `maxKm`, or null. */
+export function nearestPlaceName(places, lat, lon, maxKm = 2) {
+  let best = null;
+  let bestD = maxKm;
+  const k = Math.cos((lat * Math.PI) / 180);
+  for (const [name, la, lo] of places ?? []) {
+    const d = Math.hypot((la - lat) * 111.2, (lo - lon) * 111.2 * k);
+    if (d <= bestD) { best = name; bestD = d; }
+  }
+  return best;
 }
 
 /** Search villages and towns by name (GeoNames data via Open-Meteo), in Palestine only. */
@@ -319,7 +344,8 @@ export function parseSearch(responses) {
     for (const r of o?.results ?? []) {
       if (!insidePalestine(r.latitude, r.longitude) || seen.has(r.id) || !isArabicName(r.name)) continue;
       seen.add(r.id);
-      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: arabic(r.admin2, r.admin1), elevation: num(r.elevation), population: r.population ?? 0 });
+      // GeoNames' admin areas follow Israeli districts; use the nearest Palestinian city instead.
+      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: palestinianArea(r.latitude, r.longitude), elevation: num(r.elevation), population: r.population ?? 0 });
     }
   }
   return out.sort((a, b) => b.population - a.population).slice(0, 20);

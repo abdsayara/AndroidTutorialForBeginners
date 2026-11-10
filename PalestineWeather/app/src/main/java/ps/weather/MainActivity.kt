@@ -49,7 +49,6 @@ import ps.weather.data.Http
 import ps.weather.data.Prefs
 import ps.weather.ui.components.PwIcons
 import ps.weather.ui.map.MapScreen
-import ps.weather.ui.screens.AboutScreen
 import ps.weather.ui.screens.AlertsScreen
 import ps.weather.ui.screens.CitiesScreen
 import ps.weather.ui.screens.CurrencyScreen
@@ -123,7 +122,6 @@ private fun App(initialSub: Sub?) {
                 Sub.ALERTS -> AlertsScreen(prefs, back)
                 Sub.NEWS -> NewsScreen(back)
                 Sub.CURRENCY -> CurrencyScreen(back)
-                Sub.ABOUT -> AboutScreen(back)
                 null -> when (tab) {
                     Tab.HOME -> HomeScreen(
                         city, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },

@@ -49,6 +49,8 @@ function requirePlace(q) {
 
 /** Route table: path → (query, cache) → {data, fetchedAt, stale} | plain object. */
 export function makeRoutes(cache, alerts, { demo = false } = {}) {
+  const fetchPlaces = async () => S.parsePlaces(await cache.json(S.placesUrl()));
+  const placesList = async () => (await cache.get('places', 7 * 86400, fetchPlaces)).data;
   return {
     '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo, liveAlerts: !!alerts.live } }),
 
@@ -171,13 +173,23 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     // Villages, towns and cities from OpenStreetMap; changes rarely, so cache for a week.
     '/api/places': async () => {
-      const r = await cache.get('places', 7 * 86400, async () => S.parsePlaces(await cache.json(S.placesUrl())));
+      const r = await cache.get('places', 7 * 86400, fetchPlaces);
       return { ...r, cdnSeconds: 86400 };
     },
 
     '/api/reverse': async (q) => {
       const p = requirePlace(q);
-      const r = await cache.get(`reverse_${p.id}`, 30 * 86400, async () => S.parseReverse(await cache.json(S.reverseUrl(p.lat, p.lon))));
+      const r = await cache.get(`reverse2_${p.id}`, 30 * 86400, async () => {
+        const out = S.parseReverse(await cache.json(S.reverseUrl(p.lat, p.lon)), p.lat, p.lon);
+        if (!out.name) {
+          // OSM has some villages only in English (e.g. Ras Al-Joura): take the nearest Arabic
+          // village name from our places list, without waiting long for it.
+          const places = await Promise.race([placesList(), new Promise((res) => setTimeout(res, 8000, null))]).catch(() => null);
+          const near = S.nearestPlaceName(places, p.lat, p.lon);
+          if (near) return { name: near, area: out.area !== near ? out.area : null };
+        }
+        return out;
+      });
       return { ...r, cdnSeconds: 86400 };
     },
 

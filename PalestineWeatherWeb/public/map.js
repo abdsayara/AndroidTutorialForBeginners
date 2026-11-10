@@ -309,7 +309,6 @@ export function mountMap(el, ctx, cancelled) {
         </div>
         <div class="muted tiny">${list.length} هزة في الفترة · اضغط على دائرة لعرض تفاصيلها</div>`
         : `<div class="muted small">${st.loading.quakesError ? 'تعذّر تحميل بيانات الزلازل' : st.loading.quakes ? 'جارٍ التحميل…' : 'لا توجد هزات مسجّلة في هذه الفترة'}</div>`}
-        <div class="source">المصدر: هيئة المسح الجيولوجي الأمريكية USGS</div>
       </section>`;
     } else {
       const gd = st.grid;

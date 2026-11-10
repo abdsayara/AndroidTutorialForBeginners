@@ -602,6 +602,5 @@ private fun QuakePanel(days: Int, quakes: List<Quake>, selected: Quake?, onDays:
                 }
             }
         }
-        Text("المصدر: هيئة المسح الجيولوجي الأمريكية USGS", fontSize = 11.sp, color = Pw.Muted)
     }
 }

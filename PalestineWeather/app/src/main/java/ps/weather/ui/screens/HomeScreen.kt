@@ -189,7 +189,6 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
             }
         }
     }
-    Text("المصدر: Open-Meteo", fontSize = 11.sp, color = Pw.Muted)
 }
 
 @Composable

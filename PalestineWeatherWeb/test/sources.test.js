@@ -106,8 +106,19 @@ test('parsePlaces keeps named places inside Palestine, Arabic names first, citie
 });
 
 test('parseReverse picks the village or neighbourhood name', () => {
-  assert.deepEqual(S.parseReverse({ address: { village: 'بيرزيت', county: 'محافظة رام الله والبيرة' } }), { name: 'بيرزيت', area: 'محافظة رام الله والبيرة' });
+  assert.deepEqual(S.parseReverse({ address: { village: 'بيرزيت', county: 'محافظة رام الله والبيرة' } }, 31.968, 35.197), { name: 'بيرزيت', area: 'رام الله والبيرة' });
   assert.deepEqual(S.parseReverse({ address: { suburb: 'الشيخ جراح', city: 'القدس', state: 'القدس' } }), { name: 'الشيخ جراح', area: 'القدس' });
+});
+
+test('areas are Palestinian cities, never occupation councils or districts', () => {
+  const r = S.parseReverse({ lat: '31.552', lon: '35.106', address: { village: 'راس الجورة', county: 'مجلس جنوب جبل الخليل الإقليمي', state: 'منطقة يهودا والسامرة' } });
+  assert.deepEqual(r, { name: 'راس الجورة', area: 'الخليل' });
+  assert.deepEqual(S.parseReverse({ address: { village: 'ترمسعيا', town: 'مجلس ماطيه بنيامين الإقليمي', state_district: 'محافظة رام الله والبيرة' } }, 32.03, 35.29),
+    { name: 'ترمسعيا', area: 'رام الله والبيرة' }, 'an OSM governorate wins');
+  assert.deepEqual(S.parseReverse({ address: { village: 'ترمسعيا', town: 'مجلس ماتي بنيامين الإقليمي' } }, 32.03, 35.29),
+    { name: 'ترمسعيا', area: 'رام الله' }, 'its governorate, not the nearest city (سلفيت)');
+  const found = S.parseSearch([{ results: [{ id: 9, name: 'دورا', latitude: 31.507, longitude: 35.028, admin1: 'منطقة يهودا والسامرة', admin2: 'مجلس جبل الخليل' }] }]);
+  assert.equal(found[0].area, 'الخليل');
 });
 
 test('parseSearch merges, filters to Palestine and ranks by population', () => {
@@ -132,6 +143,13 @@ test('only Arabic names are shown, never Hebrew', () => {
     { id: 1, name: 'עפולה', latitude: 32.6, longitude: 35.29, admin1: 'מחוז הצפון' },
     { id: 2, name: 'عرابة', latitude: 32.85, longitude: 35.33, admin1: 'מחוז הצפון', population: 25000 },
   ] }]);
-  assert.deepEqual(found.map((p) => [p.name, p.area]), [['عرابة', null]]);
+  assert.deepEqual(found.map((p) => [p.name, p.area]), [['عرابة', 'الناصرة']], 'area from our list, not the Hebrew district');
   assert.equal(S.isArabicName('Ramallah'), false);
+});
+
+test('nearestPlaceName finds an Arabic village close by, and nothing far away', () => {
+  const places = [['راس الجورة', 31.5545, 35.1062, 'v'], ['حلحول', 31.58, 35.1, 't']];
+  assert.equal(S.nearestPlaceName(places, 31.552, 35.106), 'راس الجورة');
+  assert.equal(S.nearestPlaceName(places, 31.3, 35.0), null);
+  assert.equal(S.nearestPlaceName(null, 31.5, 35.1), null);
 });

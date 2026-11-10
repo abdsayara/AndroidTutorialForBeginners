@@ -19,7 +19,6 @@ const MORE = [
   { path: '/reports', label: 'التقارير اليومية', icon: 'news' },
   { path: '/stations', label: 'محطات الطقس', icon: 'thermo' },
   { path: '/currency', label: 'أسعار العملات', icon: 'coins' },
-  { path: '/about', label: 'حول الموقع', icon: 'compass' },
 ];
 const TITLES = { ...Object.fromEntries([...TABS, ...MORE].map((t) => [t.path, t.label])), '/report': 'تقرير' };
 

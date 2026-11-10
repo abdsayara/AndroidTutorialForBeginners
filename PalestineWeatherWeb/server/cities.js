@@ -35,6 +35,38 @@ export const CITIES = [
 
 export const cityById = (id) => CITIES.find((c) => c.id === id);
 
+// West Bank towns tied to their governorate's city, so a village is placed in the right
+// governorate rather than simply the nearest city (ترمسعيا is in رام الله, not سلفيت).
+// Positions are approximate (town centres).
+const ANCHORS = [
+  ['ramallah', 31.968, 35.197], ['ramallah', 32.031, 35.265], ['ramallah', 31.912, 35.272], ['ramallah', 31.872, 35.06],
+  ['ramallah', 31.951, 35.023], ['ramallah', 32.006, 35.07], ['ramallah', 31.984, 35.286], ['ramallah', 31.935, 35.335],
+  ['nablus', 32.13, 35.34], ['nablus', 32.144, 35.288], ['nablus', 32.155, 35.256], ['nablus', 32.1, 35.28], ['nablus', 32.27, 35.2],
+  ['salfit', 32.11, 35.08], ['salfit', 32.12, 35.15], ['salfit', 32.06, 35.14],
+  ['hebron', 31.507, 35.028], ['hebron', 31.446, 35.09], ['hebron', 31.515, 35.165], ['hebron', 31.58, 35.1], ['hebron', 31.62, 35.1],
+  ['hebron', 31.58, 35.14], ['hebron', 31.41, 34.97], ['hebron', 31.4, 35.07], ['hebron', 31.552, 35.106],
+  ['bethlehem', 31.704, 35.226], ['bethlehem', 31.715, 35.187], ['bethlehem', 31.69, 35.165], ['bethlehem', 31.635, 35.215],
+  ['bethlehem', 31.62, 35.155], ['bethlehem', 31.72, 35.27],
+  ['jerusalem', 31.771, 35.264], ['jerusalem', 31.762, 35.262], ['jerusalem', 31.85, 35.233], ['jerusalem', 31.835, 35.26],
+  ['jenin', 32.447, 35.17], ['jenin', 32.41, 35.28], ['jenin', 32.409, 35.199], ['jenin', 32.46, 35.27],
+  ['tulkarm', 32.307, 35.12], ['tulkarm', 32.33, 35.11], ['tulkarm', 32.355, 35.08],
+  ['qalqilya', 32.17, 35.06], ['qalqilya', 32.16, 34.98],
+  ['tubas', 32.28, 35.385], ['tubas', 32.33, 35.41], ['jericho', 31.95, 35.46],
+].map(([id, lat, lon]) => ({ id, lat, lon }));
+
+/** The governorate city a West Bank place belongs to, else the nearest listed city. */
+export function areaCity(lat, lon) {
+  const { city, km } = nearestCity(lat, lon);
+  if (city.region !== 'westbank') return city;
+  let best = city;
+  let bestD = km;
+  for (const a of ANCHORS) {
+    const d = distanceKm(lat, lon, a.lat, a.lon);
+    if (d < bestD) { best = cityById(a.id); bestD = d; }
+  }
+  return best;
+}
+
 export function distanceKm(lat1, lon1, lat2, lon2) {
   const r = 6371;
   const rad = (d) => (d * Math.PI) / 180;
