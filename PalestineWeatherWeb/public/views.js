@@ -281,6 +281,11 @@ async function home(el, ctx, cancelled) {
   const draw = () => {
     const [fc, air, prayer] = last;
     const y = window.scrollY;
+    const sky = skyKind(fc.data, fc.data.current.time);
+    document.documentElement.dataset.sky = sky;
+    settings.sky = sky;
+    const SKY_HEX = { day: '#1F74B0', night: '#16304F', dusk: '#A44F27', cloudy: '#4A6476', fog: '#5E707B', rain: '#2E4A60', storm: '#213042', snow: '#4B6E8C' };
+    document.getElementById('theme-color')?.setAttribute('content', SKY_HEX[sky] ?? '#1F74B0');
     slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
     loadBulletin(slot.querySelector('#bulletin'), cancelled);
     loadRoadsHome(slot.querySelector('#roads-home'), cancelled);

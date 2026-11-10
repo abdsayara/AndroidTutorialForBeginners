@@ -123,7 +123,7 @@ fun HomeScreen(
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(PwIcons.Pin, null, tint = Pw.Brand, modifier = Modifier.size(20.dp))
+                        Icon(PwIcons.Pin, null, tint = Pw.Link, modifier = Modifier.size(20.dp))
                         Text(city.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     }
                     Text(
@@ -169,9 +169,16 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
         Sky.SNOW -> Color(0xFF4B6E8C)
     }
 
+    // The whole screen takes this place's sky; the hero is glass over it.
+    val sky = skyKind(fc)
+    LaunchedEffect(sky) { Pw.sky = sky }
+
     // Hero
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(heroColor).padding(22.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
+            .background(if (Pw.glass) Color.White.copy(alpha = 0.14f) else heroColor)
+            .border(1.dp, if (Pw.glass) Color.White.copy(alpha = 0.2f) else Color.Transparent, RoundedCornerShape(28.dp))
+            .padding(22.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -200,7 +207,7 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("الساعات القادمة", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
         Text(
-            "التفاصيل", color = Pw.Brand, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
+            "التفاصيل", color = Pw.Link, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
             modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onHourly).padding(8.dp),
         )
     }
@@ -208,7 +215,7 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
         items(fc.hours.drop(now).take(24)) { h ->
             val isNow = h == fc.hours.getOrNull(now)
             Column(
-                Modifier.width(56.dp).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Ink else Pw.Card).padding(vertical = 10.dp),
+                Modifier.width(56.dp).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Panel else Pw.Card).padding(vertical = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -354,8 +361,12 @@ private fun SkyCard(today: DayPoint, now: LocalDateTime) {
 
 @Composable
 private fun DustCard(d: DustAlert) {
-    val (bg, line, tint) = if (d.heavy) Triple(Color(0xFFFDEDE8), Color(0xFFF1C2B5), Pw.Red)
-    else Triple(Color(0xFFFFF8EA), Color(0xFFF0D9A8), Pw.Amber)
+    val (bg, line, tint) = when {
+        Pw.glass && d.heavy -> Triple(Pw.RedTint, Pw.Red.copy(alpha = 0.45f), Pw.Red)
+        Pw.glass -> Triple(Pw.AmberTint, Pw.Amber.copy(alpha = 0.4f), Pw.Amber)
+        d.heavy -> Triple(Color(0xFFFDEDE8), Color(0xFFF1C2B5), Pw.Red)
+        else -> Triple(Color(0xFFFFF8EA), Color(0xFFF0D9A8), Pw.Amber)
+    }
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(bg)
             .border(1.dp, line, RoundedCornerShape(20.dp)).padding(16.dp),
@@ -377,7 +388,7 @@ private fun MiniCard(icon: androidx.compose.ui.graphics.vector.ImageVector, titl
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Icon(icon, null, tint = Pw.Brand, modifier = Modifier.size(18.dp))
+            Icon(icon, null, tint = Pw.Link, modifier = Modifier.size(18.dp))
             Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
         Text(text, fontSize = 14.sp, color = Pw.Muted, lineHeight = 23.sp)
@@ -389,12 +400,12 @@ private fun MiniCard(icon: androidx.compose.ui.graphics.vector.ImageVector, titl
 private fun NowcastCard(nc: Nowcast) {
     val peak = maxOf(1.0, nc.steps.maxOf { it.precip })
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color(0xFFF3F8FC))
-            .border(1.dp, Color(0xFFCFE2F1), RoundedCornerShape(20.dp)).padding(16.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(if (Pw.glass) Pw.BlueTint else Color(0xFFF3F8FC))
+            .border(1.dp, if (Pw.glass) Pw.Blue.copy(alpha = 0.32f) else Color(0xFFCFE2F1), RoundedCornerShape(20.dp)).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(PwIcons.Drop, null, tint = Pw.Brand, modifier = Modifier.size(20.dp))
+            Icon(PwIcons.Drop, null, tint = Pw.Link, modifier = Modifier.size(20.dp))
             Text(nc.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
         Row(Modifier.fillMaxWidth().height(44.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
@@ -403,7 +414,7 @@ private fun NowcastCard(nc: Nowcast) {
                 Box(
                     Modifier.weight(1f).fillMaxHeight(maxOf(0.06f, (s.precip / peak).toFloat()))
                         .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
-                        .background(if (wet) Pw.Brand else Color(0xFFD8E3EA)),
+                        .background(if (wet) (if (Pw.glass) Color(0xFF9AD2FF) else Pw.Brand) else if (Pw.glass) Color.White.copy(alpha = 0.22f) else Color(0xFFD8E3EA)),
                 )
             }
         }

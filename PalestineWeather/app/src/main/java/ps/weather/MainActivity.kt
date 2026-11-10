@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +35,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
@@ -114,11 +118,28 @@ private fun App(initialSub: Sub?) {
         tab = Tab.HOME
     }
 
+    // Glass over the sky everywhere but the map; the system bars take the sky's ends.
+    val view = LocalView.current
+    val onMap = sub == null && tab == Tab.MAP
+    SideEffect {
+        Pw.glass = !onMap
+        val activity = context as? ComponentActivity ?: return@SideEffect
+        val stops = Pw.skyStops()
+        @Suppress("DEPRECATION")
+        activity.window.statusBarColor = if (onMap) 0xFFF6F7F5.toInt() else stops.first().toArgb()
+        @Suppress("DEPRECATION")
+        activity.window.navigationBarColor = if (onMap) 0xFFFFFFFF.toInt() else stops.last().toArgb()
+        WindowCompat.getInsetsController(activity.window, view).apply {
+            isAppearanceLightStatusBars = onMap
+            isAppearanceLightNavigationBars = onMap
+        }
+    }
+
     BackHandler(enabled = sub != null || tab != Tab.HOME) {
         if (sub != null) sub = null else tab = Tab.HOME
     }
 
-    Column(Modifier.fillMaxSize().background(Pw.Ground).statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().background(Pw.background()).statusBarsPadding()) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             val back = { sub = null }
             when (sub) {
@@ -142,7 +163,7 @@ private fun App(initialSub: Sub?) {
             }
         }
         HorizontalDivider(color = Pw.Line)
-        Row(Modifier.fillMaxWidth().background(Pw.Card).navigationBarsPadding().height(72.dp)) {
+        Row(Modifier.fillMaxWidth().background(Pw.Bar).navigationBarsPadding().height(72.dp)) {
             Tab.entries.forEach { t ->
                 val active = sub == null && tab == t
                 Column(
@@ -152,7 +173,7 @@ private fun App(initialSub: Sub?) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
                 ) {
-                    val color = if (active) Pw.Brand else Pw.Muted
+                    val color = if (active) Pw.Link else Pw.Muted
                     Icon(t.icon, null, tint = color, modifier = Modifier.size(24.dp))
                     Text(t.label, fontSize = 12.sp, color = color, fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal)
                 }

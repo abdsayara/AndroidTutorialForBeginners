@@ -71,7 +71,7 @@ fun <T> rememberLoad(vararg keys: Any?, block: suspend () -> Fetched<T>): Pair<L
 fun <T> LoadBox(load: Load<T>, retry: () -> Unit, content: @Composable (T) -> Unit) {
     when (load) {
         is Load.Loading -> Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Pw.Brand)
+            CircularProgressIndicator(color = Pw.Link)
         }
         is Load.Error -> Column(
             Modifier.fillMaxWidth().padding(24.dp),
@@ -141,15 +141,15 @@ fun PillButton(text: String, selected: Boolean, modifier: Modifier = Modifier, o
     val shape = RoundedCornerShape(22.dp)
     Box(
         modifier.heightIn(min = 44.dp).clip(shape)
-            .background(if (selected) Pw.Ink else Pw.Card)
-            .border(BorderStroke(1.dp, if (selected) Pw.Ink else Pw.Border), shape)
+            .background(if (selected) Pw.Selected else Pw.Card)
+            .border(BorderStroke(1.dp, if (selected) Pw.Selected else Pw.Border), shape)
             .clickable(role = Role.Tab, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
-            color = if (selected) Color.White else Pw.Ink,
+            color = if (selected) Pw.OnSelected else Pw.Ink,
         )
     }
 }
@@ -166,7 +166,7 @@ fun <T> PillRow(options: List<T>, selected: T, label: (T) -> String, onSelect: (
 fun Toggle(on: Boolean, label: String, onChange: (Boolean) -> Unit) {
     Box(
         Modifier.size(52.dp, 32.dp).clip(RoundedCornerShape(16.dp))
-            .background(if (on) Pw.Brand else Color(0xFFB9C3BC))
+            .background(if (on) (if (Pw.glass) Pw.Ok else Pw.Brand) else if (Pw.glass) Color.White.copy(alpha = 0.25f) else Color(0xFFB9C3BC))
             .clickable(role = Role.Switch, onClickLabel = label) { onChange(!on) }
             .padding(3.dp),
         contentAlignment = if (on) Alignment.CenterStart else Alignment.CenterEnd,

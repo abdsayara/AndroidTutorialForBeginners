@@ -110,7 +110,7 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(Modifier.size(40.dp).clip(CircleShape).background(Pw.BrandTint), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = Pw.Brand, modifier = Modifier.size(22.dp))
+            Icon(icon, null, tint = Pw.Link, modifier = Modifier.size(22.dp))
         }
         Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
         Icon(PwIcons.Forward, null, tint = Pw.Muted, modifier = Modifier.size(20.dp))
@@ -135,7 +135,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
                 val untilMin = Duration.between(now, next.second).toMinutes().let { if (it < 0) it + 24 * 60 else it }
 
                 Column(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Pw.Ink).padding(22.dp),
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Pw.Panel).padding(22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
@@ -159,12 +159,12 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
                             Text(
                                 name, fontSize = 16.sp, modifier = Modifier.weight(1f).padding(start = 12.dp),
                                 fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium,
-                                color = if (past) Color(0xFF6B786F) else Pw.Ink,
+                                color = if (past) Pw.Faint else Pw.Ink,
                             )
                             Text(
                                 clock(t), fontSize = 17.sp,
                                 fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium,
-                                color = if (past) Color(0xFF6B786F) else Pw.Ink,
+                                color = if (past) Pw.Faint else Pw.Ink,
                             )
                         }
                     }
@@ -175,7 +175,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
             val bearing = PrayerRepository.qiblaBearing(city.lat, city.lon)
             SectionCard {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Icon(PwIcons.ArrowUp, null, tint = Pw.Brand, modifier = Modifier.size(36.dp).rotate(bearing.toFloat()))
+                    Icon(PwIcons.ArrowUp, null, tint = Pw.Link, modifier = Modifier.size(36.dp).rotate(bearing.toFloat()))
                     Column {
                         Text("اتجاه القبلة", fontSize = 12.sp, color = Pw.Muted)
                         Text("${bearing.toInt()}° من الشمال", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
@@ -340,7 +340,7 @@ fun CurrencyScreen(onBack: () -> Unit) {
                 val rate = rates.ilsPer[from]
                 val n = amount.replace(',', '.').toDoubleOrNull() ?: 0.0
                 Column(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(Pw.Ink).padding(18.dp),
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(Pw.Panel).padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     OutlinedTextField(
@@ -366,7 +366,7 @@ fun CurrencyScreen(onBack: () -> Unit) {
                                         .background(if (sel) Color.White else Color.White.copy(alpha = 0.12f))
                                         .clickable(role = Role.RadioButton) { from = code },
                                     contentAlignment = Alignment.Center,
-                                ) { Text(code, color = if (sel) Pw.Ink else Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
+                                ) { Text(code, color = if (sel) Color(0xFF17324A) else Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
                             }
                         }
                     }

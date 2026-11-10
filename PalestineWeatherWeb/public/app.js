@@ -101,6 +101,8 @@ async function render() {
   renderNav();
   const main = document.getElementById('main');
   const path = location.pathname in TITLES ? location.pathname : '/';
+  // The glass theme covers every page but the map, which is drawn for a light page.
+  document.documentElement.dataset.page = path === '/' ? 'home' : path.slice(1);
   document.title = path === '/' ? 'طقس فلسطين' : `${TITLES[path]} — طقس فلسطين`;
   main.innerHTML = '';
   const view = path === '/map' ? mountMap : views[path];

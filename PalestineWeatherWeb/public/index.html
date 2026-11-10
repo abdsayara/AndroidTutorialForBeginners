@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1F74B0">
+  <meta name="theme-color" content="#1F74B0" id="theme-color">
   <meta name="description" content="طقس فلسطين: التوقعات، خريطة الأمطار والسحب والزلازل، أوقات الصلاة، والتنبيهات الزراعية.">
   <title>طقس فلسطين</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -11,6 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="/styles.css">
+  <script>
+    // The last sky seen on the home page, before the first paint, so pages open on it.
+    try { document.documentElement.dataset.sky = JSON.parse(localStorage.getItem('pw.sky')) || 'day'; } catch { document.documentElement.dataset.sky = 'day'; }
+  </script>
   <script type="module" src="/app.js"></script>
 </head>
 <body>

@@ -140,8 +140,8 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(PwIcons.Locate, null, tint = Pw.Brand, modifier = Modifier.size(20.dp))
-                Text("استخدم موقعي الدقيق", color = Pw.Brand, fontWeight = FontWeight.SemiBold)
+                Icon(PwIcons.Locate, null, tint = Pw.Link, modifier = Modifier.size(20.dp))
+                Text("استخدم موقعي الدقيق", color = Pw.Link, fontWeight = FontWeight.SemiBold)
             }
             message?.let {
                 Text(it, color = if (locating) Pw.Muted else Pw.Red, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
@@ -213,7 +213,7 @@ private fun PlaceRow(place: City, selected: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (place.kind == PlaceKind.GPS) Icon(PwIcons.Locate, null, tint = Pw.Brand, modifier = Modifier.size(18.dp))
+        if (place.kind == PlaceKind.GPS) Icon(PwIcons.Locate, null, tint = Pw.Link, modifier = Modifier.size(18.dp))
         Column(Modifier.weight(1f)) {
             Text(place.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             Text(

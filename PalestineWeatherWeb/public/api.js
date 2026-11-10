@@ -38,6 +38,9 @@ export const settings = {
   set homeOrder(v) { write('homeOrder', v); },
   get homeHidden() { return read('homeHidden', []); },
   set homeHidden(v) { write('homeHidden', v); },
+  /** The sky of the chosen place, last seen on the home page; it colours every page. */
+  get sky() { return read('sky', 'day'); },
+  set sky(v) { write('sky', v); },
   get seenAlerts() { return read('seenAlerts', []); },
   set seenAlerts(v) { write('seenAlerts', v.slice(0, 300)); },
 };
