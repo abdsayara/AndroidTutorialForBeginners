@@ -122,14 +122,16 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Pw.Card, unfocusedContainerColor = Pw.Card,
-                    focusedBorderColor = Pw.Brand, unfocusedBorderColor = Pw.Border,
+                    focusedBorderColor = Pw.Ink, unfocusedBorderColor = Pw.Border,
+                    focusedTextColor = Pw.Ink, unfocusedTextColor = Pw.Ink, cursorColor = Pw.Ink,
+                    focusedPlaceholderColor = Pw.Faint, unfocusedPlaceholderColor = Pw.Faint,
                 ),
             )
         }
         item {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(16.dp))
-                    .border(BorderStroke(1.dp, Pw.Brand), RoundedCornerShape(16.dp))
+                    .border(BorderStroke(1.dp, Pw.Link.copy(alpha = 0.7f)), RoundedCornerShape(16.dp))
                     .clickable(role = Role.Button, enabled = !locating) {
                         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
