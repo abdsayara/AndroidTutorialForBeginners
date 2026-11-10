@@ -29,6 +29,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import ps.weather.data.Prefs
+import ps.weather.ui.components.Toggle
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -98,10 +104,17 @@ import kotlin.math.sin
 
 @Composable
 fun HomeScreen(
-    city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onElevation: (Double) -> Unit = {},
+    city: City, prefs: Prefs, onPickCity: () -> Unit, onHourly: () -> Unit, onOpenRoads: () -> Unit,
+    onElevation: (Double) -> Unit = {},
     prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
 ) {
     val context = LocalContext.current
+    var order by remember { mutableStateOf(homeOrder(prefs.homeOrder)) }
+    var hidden by remember { mutableStateOf(prefs.homeHidden) }
+    val onChange: (List<String>, Set<String>) -> Unit = { o, h ->
+        order = o; hidden = h
+        prefs.homeOrder = o; prefs.homeHidden = h
+    }
     val (load, refresh) = rememberLoad(city.id) { WeatherRepository.forecast(city.lat, city.lon) }
     val elevation = (load as? Load.Ok)?.value?.elevation ?: city.elevation
     LaunchedEffect(elevation) { elevation?.let(onElevation) }
@@ -146,13 +159,16 @@ fun HomeScreen(
             }
         }
         item {
-            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly) }
+            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange) }
         }
     }
 }
 
 @Composable
-private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourly: () -> Unit) {
+private fun HomeContent(
+    fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourly: () -> Unit, onOpenRoads: () -> Unit,
+    order: List<String>, hidden: Set<String>, onChange: (List<String>, Set<String>) -> Unit,
+) {
     val aqi = air?.aqi
     val now = fc.nowIndex
     val today = fc.days.firstOrNull()
@@ -203,50 +219,99 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
     dustAlert(air)?.let { DustCard(it) }
     rainNowcast(fc.minutely, fc.currentTime ?: LocalDateTime.now())?.let { NowcastCard(it) }
 
-    // Next hours
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("الساعات القادمة", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-        Text(
-            "التفاصيل", color = Pw.Link, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
-            modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onHourly).padding(8.dp),
-        )
+    val nowTime = fc.currentTime ?: LocalDateTime.now()
+    // The sections the person keeps, in the order they chose.
+    order.filter { it !in hidden }.forEach { id ->
+        when (id) {
+            "hours" -> HoursSection(fc, onHourly)
+            "today" -> TodaySection(fc, prayer, nowTime)
+            "bulletin" -> BulletinCard()
+            "roads" -> RoadsSummaryCard(onOpenRoads)
+            "sky" -> if (today != null) SkyCard(today, nowTime)
+            "details" -> DetailsSection(fc, aqi)
+            "week" -> WeekSection(fc)
+        }
     }
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(fc.hours.drop(now).take(24)) { h ->
-            val isNow = h == fc.hours.getOrNull(now)
-            Column(
-                Modifier.width(56.dp).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Panel else Pw.Card).padding(vertical = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                val fg = if (isNow) Color.White else Pw.Ink
-                Text(if (isNow) "الآن" else hourLabel(h.time), fontSize = 12.sp, color = fg)
-                WeatherIcon(h.code, isDay = h.isDay, size = 22.dp, cloudColor = if (isNow) Color.White else Pw.Muted)
-                Text(deg(h.temp), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = fg)
-                if (h.precipProb >= 20) Text("${h.precipProb}%", fontSize = 11.sp, color = if (isNow) Color.White else Pw.Blue)
+    CustomizeHome(order, hidden, onChange)
+}
+
+/** The home sections the person can move or hide, in their default order; same as the website. */
+val HOME_SECTIONS = listOf(
+    "hours" to "الساعات القادمة",
+    "today" to "شو نلبس والصلاة والموسم",
+    "bulletin" to "النشرة التفصيلية",
+    "roads" to "أحوال الطرق",
+    "sky" to "الشمس والقمر",
+    "details" to "الرطوبة والأشعة والهواء",
+    "week" to "توقعات 7 أيام",
+)
+
+/** The saved order, with any section added since put back at its default place. */
+fun homeOrder(saved: List<String>): List<String> {
+    val ids = HOME_SECTIONS.map { it.first }
+    val out = saved.filter { it in ids }.toMutableList()
+    ids.forEachIndexed { i, id -> if (id !in out) out.add(minOf(i, out.size), id) }
+    return out
+}
+
+@Composable
+private fun HoursSection(fc: Forecast, onHourly: () -> Unit) {
+    val now = fc.nowIndex
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("الساعات القادمة", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(
+                "التفاصيل", color = Pw.Link, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onHourly).padding(8.dp),
+            )
+        }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(fc.hours.drop(now).take(24)) { h ->
+                val isNow = h == fc.hours.getOrNull(now)
+                Column(
+                    Modifier.width(56.dp).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Panel else Pw.Card).padding(vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    val fg = if (isNow) Color.White else Pw.Ink
+                    Text(if (isNow) "الآن" else hourLabel(h.time), fontSize = 12.sp, color = fg)
+                    WeatherIcon(h.code, isDay = h.isDay, size = 22.dp, cloudColor = if (isNow) Color.White else Pw.Muted)
+                    Text(deg(h.temp), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = fg)
+                    if (h.precipProb >= 20) Text("${h.precipProb}%", fontSize = 11.sp, color = if (isNow) Color.White else Pw.Blue)
+                }
             }
         }
-    }
 
-    // "شو نلبس؟", the next prayer's weather and the farming season
-    val nowTime = fc.currentTime ?: LocalDateTime.now()
-    val late = nowTime.hour >= 15
-    clothingAdvice(if (late) fc.days.getOrNull(1) else fc.days.firstOrNull())?.let {
-        MiniCard(PwIcons.Thermometer, if (late) "شو نلبس بكرا؟" else "شو نلبس اليوم؟", it)
     }
-    prayer?.let { prayerWeather(it.times, fc.hours, nowTime) }?.let { pw ->
-        val whenText = when {
-            pw.tomorrow -> "غداً"
-            pw.minutes < 15 -> "بعد ${pw.minutes} دقائق"
-            pw.minutes < 180 -> "بعد ${minutesText((pw.minutes + 7) / 15 * 15)}"
-            else -> "الساعة ${clock(pw.time)}"
+}
+
+@Composable
+private fun TodaySection(fc: Forecast, prayer: PrayerDay?, nowTime: LocalDateTime) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // "شو نلبس؟", the next prayer's weather and the farming season
+        val late = nowTime.hour >= 15
+        clothingAdvice(if (late) fc.days.getOrNull(1) else fc.days.firstOrNull())?.let {
+            MiniCard(PwIcons.Thermometer, if (late) "شو نلبس بكرا؟" else "شو نلبس اليوم؟", it)
         }
-        val wx = pw.hour?.let { "، والطقس وقتها ${weatherText(it.code)} ${deg(it.temp)}" } ?: ""
-        MiniCard(PwIcons.Moon, "${pw.name} $whenText", "أذان ${pw.name} الساعة ${clock(pw.time)}$wx")
-    }
-    seasonCard(fc.days, nowTime.toLocalDate()) { relativeDayName(it) }?.let { MiniCard(PwIcons.Leaf, it.title, it.text) }
+        prayer?.let { prayerWeather(it.times, fc.hours, nowTime) }?.let { pw ->
+            val whenText = when {
+                pw.tomorrow -> "غداً"
+                pw.minutes < 15 -> "بعد ${pw.minutes} دقائق"
+                pw.minutes < 180 -> "بعد ${minutesText((pw.minutes + 7) / 15 * 15)}"
+                else -> "الساعة ${clock(pw.time)}"
+            }
+            val wx = pw.hour?.let { "، والطقس وقتها ${weatherText(it.code)} ${deg(it.temp)}" } ?: ""
+            MiniCard(PwIcons.Moon, "${pw.name} $whenText", "أذان ${pw.name} الساعة ${clock(pw.time)}$wx")
+        }
+        seasonCard(fc.days, nowTime.toLocalDate()) { relativeDayName(it) }?.let { MiniCard(PwIcons.Leaf, it.title, it.text) }
 
-    // Details
+    }
+}
+
+@Composable
+private fun DetailsSection(fc: Forecast, aqi: Int?) {
+    val c = fc.current
+    val today = fc.days.firstOrNull()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile("الرطوبة", "${c.humidity}%", Modifier.weight(1f))
@@ -255,10 +320,11 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
         StatTile("جودة الهواء", aqi?.let { "$it · ${aqiText(it)}" } ?: "—", Modifier.fillMaxWidth())
     }
 
-    // The sun's path today and tonight's moon
-    if (today != null) SkyCard(today, nowTime)
+}
 
-    // 7 days
+@Composable
+private fun WeekSection(fc: Forecast) {
+    val c = fc.current
     val lo = fc.days.minOfOrNull { it.min } ?: 0.0
     val hi = fc.days.maxOfOrNull { it.max } ?: 1.0
     val span = (hi - lo).coerceAtLeast(1.0)
@@ -291,6 +357,61 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
             }
         }
     }
+}
+
+/** «تخصيص الرئيسية»: ↑ / ↓ to move a section, a switch to show or hide it. */
+@Composable
+private fun CustomizeHome(order: List<String>, hidden: Set<String>, onChange: (List<String>, Set<String>) -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Row(
+            Modifier.clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button) { open = !open }.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(PwIcons.Edit, null, tint = Pw.Link, modifier = Modifier.size(16.dp))
+            Text(if (open) "تم" else "تخصيص الرئيسية", color = Pw.Link, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+        }
+    }
+    if (!open) return
+    val names = HOME_SECTIONS.toMap()
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Pw.Card).padding(horizontal = 16.dp, vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("تخصيص الرئيسية", fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(
+                "الترتيب الأصلي", color = Pw.Link, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button) { onChange(homeOrder(emptyList()), emptySet()) }.padding(8.dp),
+            )
+        }
+        Text("رتّب أقسام الصفحة الرئيسية كما تحب، وأخفِ ما لا تحتاجه.", fontSize = 12.sp, color = Pw.Muted)
+        order.forEachIndexed { i, id ->
+            HorizontalDivider(color = Pw.Line, modifier = Modifier.padding(top = 8.dp))
+            Row(Modifier.fillMaxWidth().height(52.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    names[id] ?: id, fontSize = 14.sp, modifier = Modifier.weight(1f),
+                    fontWeight = if (id in hidden) FontWeight.Normal else FontWeight.SemiBold,
+                    color = if (id in hidden) Pw.Faint else Pw.Ink,
+                )
+                MoveButton("↑", "نقل ${names[id]} للأعلى", i > 0) {
+                    onChange(order.toMutableList().apply { add(i - 1, removeAt(i)) }, hidden)
+                }
+                MoveButton("↓", "نقل ${names[id]} للأسفل", i < order.size - 1) {
+                    onChange(order.toMutableList().apply { add(i + 1, removeAt(i)) }, hidden)
+                }
+                Toggle(id !in hidden, "إظهار ${names[id]}") { show ->
+                    onChange(order, if (show) hidden - id else hidden + id)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoveButton(label: String, description: String, enabled: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.size(36.dp).clip(CircleShape).background(Pw.Card)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = description, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) { Text(label, fontSize = 16.sp, color = if (enabled) Pw.Ink else Pw.Faint) }
 }
 
 /** The sun's arc across today's sky (sunrise on the right, where an Arabic line starts) and the moon's phase. */

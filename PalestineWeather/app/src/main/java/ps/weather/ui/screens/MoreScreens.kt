@@ -51,8 +51,6 @@ import ps.weather.data.AlertRecord
 import ps.weather.data.AlertType
 import ps.weather.data.City
 import ps.weather.data.CurrencyRepository
-import ps.weather.data.NewsRepository
-import ps.weather.data.NewsTopic
 import ps.weather.data.PrayerMethod
 import ps.weather.data.PrayerRepository
 import ps.weather.data.Prefs
@@ -75,17 +73,19 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-enum class Sub { HOURLY, PRAYER, ALERTS, NEWS, CURRENCY }
+enum class Sub { FARMING, HOURLY, PRAYER, ALERTS, REPORTS, REPORT, STATIONS, CURRENCY }
 
 // ---------------------------------------------------------------- "More" hub
 
 @Composable
 fun MoreScreen(onOpen: (Sub) -> Unit) {
     val entries = listOf(
+        Triple(Sub.FARMING, PwIcons.Leaf, "الزراعة والتنبيهات"),
         Triple(Sub.HOURLY, PwIcons.Clock, "تفاصيل اليوم ساعة بساعة"),
         Triple(Sub.PRAYER, PwIcons.Moon, "أوقات الصلاة والقبلة"),
         Triple(Sub.ALERTS, PwIcons.Bell, "التنبيهات السابقة"),
-        Triple(Sub.NEWS, PwIcons.News, "أخبار الطقس والمناخ"),
+        Triple(Sub.REPORTS, PwIcons.News, "التقارير اليومية"),
+        Triple(Sub.STATIONS, PwIcons.Thermometer, "محطات الطقس"),
         Triple(Sub.CURRENCY, PwIcons.Coins, "أسعار العملات"),
     )
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -155,7 +155,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
                         val isNext = name == next.first
                         val past = t.isBefore(now) && !isNext
                         Row(Modifier.fillMaxWidth().heightIn(min = 54.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(8.dp).clip(CircleShape).background(if (isNext) Pw.Brand else Color.Transparent))
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(if (isNext) Pw.Link else Color.Transparent))
                             Text(
                                 name, fontSize = 16.sp, modifier = Modifier.weight(1f).padding(start = 12.dp),
                                 fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium,
@@ -289,38 +289,6 @@ private fun AlertCard(a: AlertRecord) {
                 a.level.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = lvlFg,
                 modifier = Modifier.padding(top = 2.dp).clip(RoundedCornerShape(8.dp)).background(lvlBg).padding(horizontal = 8.dp, vertical = 2.dp),
             )
-        }
-    }
-}
-
-// ---------------------------------------------------------------- News
-
-@Composable
-fun NewsScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
-    var topic by rememberSaveable { mutableStateOf(NewsTopic.WEATHER) }
-    val (load, refresh) = rememberLoad(topic) { NewsRepository.headlines(topic) }
-
-    LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { ScreenHeader("أخبار الطقس والمناخ", "عناوين من Google News", onBack) }
-        item { PillRow(NewsTopic.entries, topic, { it.label }) { topic = it } }
-        item {
-            LoadBox(load, refresh) { items ->
-                if (items.isEmpty()) Text("لا توجد أخبار الآن", color = Pw.Muted)
-                items.take(30).forEach { n ->
-                    Column(
-                        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Pw.Card)
-                            .clickable(role = Role.Button) {
-                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(n.link))) }
-                            }
-                            .padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(n.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 22.sp)
-                        Text(listOf(n.source, ago(n.published)).filter { it.isNotBlank() }.joinToString(" · "), fontSize = 12.sp, color = Pw.Muted)
-                    }
-                }
-            }
         }
     }
 }

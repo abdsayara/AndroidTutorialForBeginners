@@ -37,19 +37,20 @@ import ps.weather.ui.components.PwIcons
 import ps.weather.ui.components.SectionCard
 import ps.weather.ui.components.StatTile
 import ps.weather.ui.components.Toggle
+import ps.weather.ui.components.ScreenHeader
 import ps.weather.ui.components.rememberLoad
 import ps.weather.ui.relativeDayName
 import ps.weather.ui.theme.Pw
 import kotlin.math.roundToInt
 
 private enum class Suitability(val label: String, val bg: Color, val fg: Color) {
-    GREAT("ممتاز", Color(0xFF0F7A4A), Color.White),
-    OK("جيد", Color(0xFFE3F1E9), Color(0xFF0B5E39)),
-    RAINY("ماطر", Color(0xFFE7ECF5), Color(0xFF1F3F6E)),
-    HARSH("غير مناسب", Color(0xFFFBE2DD), Color(0xFF8C1D0E)),
+    GREAT("ممتاز", Color(0xFF3FCF8A), Color(0xFF0B3B24)),
+    OK("جيد", Color(0xFF3FCF8A).copy(alpha = 0.22f), Color.White),
+    RAINY("ماطر", Color(0xFFAED7FF).copy(alpha = 0.24f), Color.White),
+    HARSH("غير مناسب", Color(0xFFFF9F90).copy(alpha = 0.26f), Color.White),
 }
 
-/** Rough rule for outdoor field work such as olive picking. */
+/** Rough rule for outdoor field work. */
 private fun suitability(d: DayPoint): Suitability = when {
     d.precipProbMax >= 50 -> Suitability.RAINY
     d.max >= 36 || d.windMax >= 40 -> Suitability.HARSH
@@ -58,16 +59,11 @@ private fun suitability(d: DayPoint): Suitability = when {
 }
 
 @Composable
-fun FarmingScreen(city: City, prefs: Prefs) {
+fun FarmingScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
     val (load, refresh) = rememberLoad(city.id) { WeatherRepository.forecast(city.lat, city.lon) }
 
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item {
-            Column {
-                Text("الزراعة والتنبيهات", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Text(city.name, fontSize = 13.sp, color = Pw.Muted)
-            }
-        }
+        item { ScreenHeader("الزراعة والتنبيهات", city.name, onBack) }
         item {
             LoadBox(load, refresh) { fc ->
                 val days = fc.days
@@ -83,7 +79,7 @@ fun FarmingScreen(city: City, prefs: Prefs) {
                         Column {
                             if (nextRain != null) {
                                 Text("أمطار متوقعة ${relativeDayName(nextRain.date)}", fontWeight = FontWeight.SemiBold, color = Pw.AmberInk)
-                                Text("احتمال ${nextRain.precipProbMax}% — أنهِ القطف وغطِّ المحصول المقطوف قبلها.", fontSize = 13.sp, color = Pw.AmberInk)
+                                Text("احتمال ${nextRain.precipProbMax}% — أنجز أعمالك الحقلية وغطِّ المحاصيل قبلها.", fontSize = 13.sp, color = Pw.AmberInk)
                             }
                             if (nextFrost != null) {
                                 Text("خطر صقيع ${relativeDayName(nextFrost.date)}", fontWeight = FontWeight.SemiBold, color = Pw.AmberInk)
@@ -95,7 +91,7 @@ fun FarmingScreen(city: City, prefs: Prefs) {
 
                 SectionCard {
                     Text("ملاءمة الأيام للعمل في الأرض", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Text("قطف الزيتون والأعمال الحقلية: مطر قليل ورياح هادئة وحرارة معتدلة", fontSize = 12.sp, color = Pw.Muted)
+                    Text("الأعمال الحقلية: مطر قليل ورياح هادئة وحرارة معتدلة", fontSize = 12.sp, color = Pw.Muted)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         days.take(5).forEach { d ->
                             val s = suitability(d)

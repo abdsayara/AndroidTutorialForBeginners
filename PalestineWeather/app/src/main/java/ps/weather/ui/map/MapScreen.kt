@@ -109,6 +109,9 @@ enum class MapLayer(val label: String) {
     CLOUDS("السحب"), STORMS("العواصف"), QUAKES("الزلازل"),
 }
 
+/** Dark ink for everything drawn on the light land, whatever the theme. */
+private val MAP_INK = Color(0xFF12241B)
+
 private val OUTER = MapProjection.parse(PalestineShape.OUTER)
 private val REGIONS = PalestineShape.REGION_LINES.map(MapProjection::parse)
 private val LAKES = PalestineShape.LAKES.map(MapProjection::parse)
@@ -234,8 +237,9 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
 
     val tm = rememberTextMeasurer()
     val dark = layer == MapLayer.STORMS || layer == MapLayer.CLOUDS
-    val sea = when (layer) { MapLayer.STORMS -> Color(0xFF13202A); MapLayer.CLOUDS -> Color(0xFF1B3A55); else -> Color(0xFFCFE2EC) }
-    val land = when (layer) { MapLayer.STORMS -> Color(0xFF24343F); MapLayer.CLOUDS -> Color(0xFF5E7A4E); else -> Color(0xFFF4F1E6) }
+    // Glass: on the light layers the sea lets the screen's sky through and the land is a frosted light shape.
+    val sea = when (layer) { MapLayer.STORMS -> Color(0xFF13202A); MapLayer.CLOUDS -> Color(0xFF1B3A55); else -> Color(0xFF08182A).copy(alpha = 0.30f) }
+    val land = when (layer) { MapLayer.STORMS -> Color(0xFF24343F); MapLayer.CLOUDS -> Color(0xFF5E7A4E); else -> Color(0xFFF8F6EE).copy(alpha = 0.93f) }
     val coast = if (dark) Color(0xFF8FA67F) else Color(0xFF6E8577)
     val lake = if (dark) Color(0xFF2C5878) else Color(0xFF9CC3DA)
 
@@ -358,7 +362,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                         val strong = q.mag >= 3
                         drawCircle(if (strong) Color(0x59D9452B) else Color(0x4DC77700), r, c)
                         drawCircle(
-                            if (q == selectedQuake) Pw.Ink else if (strong) Color(0xFFD9452B) else Pw.Amber, r, c,
+                            if (q == selectedQuake) MAP_INK else if (strong) Color(0xFFD9452B) else Pw.Amber, r, c,
                             style = Stroke(2.dp.toPx()),
                         )
                     }
@@ -372,13 +376,13 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                     taken += Rect(pt.x - 24.dp.toPx(), pt.y - 12.dp.toPx(), pt.x + 24.dp.toPx(), pt.y + 32.dp.toPx())
                 }
                 if (zoom >= PLACES_ZOOM) {
-                    val townStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Pw.Ink)
-                    val villageStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Pw.Ink)
+                    val townStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MAP_INK)
+                    val villageStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = MAP_INK)
                     villages.forEach { v ->
                         val pt = toScreen(MapProjection.point(v.lat, v.lon))
                         if (pt.x < -10 || pt.y < -10 || pt.x > size.width + 10 || pt.y > size.height + 10) return@forEach
                         drawCircle(
-                            if (dark) Color(0xD9FFFFFF) else if (v.isTown) Pw.Ink else Color(0xFF5C6B62),
+                            if (dark) Color(0xD9FFFFFF) else if (v.isTown) MAP_INK else Color(0xFF5C6B62),
                             (if (v.isTown) 3f else 2.2f).dp.toPx(), pt,
                         )
                         if (zoom >= (if (v.isTown) 2.8f else 4.5f)) {
@@ -394,7 +398,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
 
                 // City markers
                 val valueStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                val nameStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Pw.Ink)
+                val nameStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MAP_INK)
                 val showValues = layer == MapLayer.TEMP || layer == MapLayer.WIND
                 visibleCities.forEach { city ->
                     if (!showValues && !city.major) return@forEach
@@ -424,7 +428,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                         drawText(name, topLeft = nameTl)
                     } else {
                         drawCircle(Color.White, 4.dp.toPx(), c)
-                        drawCircle(Pw.Ink, 2.5.dp.toPx(), c)
+                        drawCircle(MAP_INK, 2.5.dp.toPx(), c)
                         val nameTl = Offset(c.x + 6.dp.toPx(), c.y - name.size.height / 2f)
                         drawRoundRect(Color(0xD9FFFFFF), nameTl - Offset(3.dp.toPx(), 0f), Size(name.size.width + 6.dp.toPx(), name.size.height.toFloat()), CornerRadius(4.dp.toPx()))
                         drawText(name, topLeft = nameTl)
@@ -444,7 +448,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                     drawCircle(Pw.Brand, 8.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
                     drawLine(Pw.Brand, pt - Offset(0f, 8.dp.toPx()), pt, 3.dp.toPx())
                     drawCircle(Color.White, 3.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
-                    val lbl = tm.measure(selected.name, TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Pw.Ink))
+                    val lbl = tm.measure(selected.name, TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MAP_INK))
                     val tl = Offset(pt.x - lbl.size.width / 2f, pt.y + 4.dp.toPx())
                     drawRoundRect(Color(0xEBFFFFFF), tl - Offset(4.dp.toPx(), 0f), Size(lbl.size.width + 8.dp.toPx(), lbl.size.height.toFloat()), CornerRadius(4.dp.toPx()))
                     drawText(lbl, topLeft = tl)
@@ -458,7 +462,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                 RoundIconButton(PwIcons.Expand, "عرض فلسطين كاملة", { cx = 65f; cy = 185f; zoom = 1f })
                 RoundIconButton(
                     PwIcons.Regions, "حدود المناطق", { showRegions = !showRegions },
-                    background = if (showRegions) Pw.Ink else Pw.Card, tint = if (showRegions) Color.White else Pw.Ink,
+                    background = if (showRegions) Pw.Selected else Pw.Card, tint = if (showRegions) Pw.OnSelected else Pw.Ink,
                 )
                 RoundIconButton(PwIcons.Locate, "موقعي الدقيق", {
                     val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
@@ -513,14 +517,14 @@ private fun capeColor(cape: Double): Pair<Color, Float> = when {
 }
 
 private fun pinColors(layer: MapLayer, now: CityNow?): Pair<Color, Color> {
-    if (now == null) return Color.White to Pw.Ink
+    if (now == null) return Color.White to MAP_INK
     return if (layer == MapLayer.WIND) {
-        if (now.wind >= 30) Pw.Ink to Color.White else Color.White to Pw.Ink
+        if (now.wind >= 30) MAP_INK to Color.White else Color.White to MAP_INK
     } else when {
         now.temp >= 30 -> Color(0xFFB4441C) to Color.White
         now.temp >= 25 -> Color(0xFFF2B84B) to Color(0xFF3B2600)
         now.temp <= 8 -> Color(0xFF1F5FA8) to Color.White
-        else -> Color.White to Pw.Ink
+        else -> Color.White to MAP_INK
     }
 }
 
@@ -541,7 +545,7 @@ private fun Legend(layer: MapLayer, modifier: Modifier) {
         items.forEach { (c, t) ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.size(10.dp).clip(RoundedCornerShape(3.dp)).background(if (c == Color.White) Color(0xFFB0BEC5) else c))
-                Text(t, fontSize = 11.sp, color = Pw.Ink)
+                Text(t, fontSize = 11.sp, color = MAP_INK)
             }
         }
     }
@@ -554,11 +558,11 @@ private fun ScaleBar(pxPerUnit: Float, modifier: Modifier) {
     val km = listOf(100, 50, 20, 10, 5, 2, 1).firstOrNull { it * pxPerKm <= 260f } ?: 1
     Column(modifier.clip(RoundedCornerShape(8.dp)).background(Color(0xE6FFFFFF)).padding(horizontal = 8.dp, vertical = 4.dp)) {
         Canvas(Modifier.width(with(androidx.compose.ui.platform.LocalDensity.current) { (km * pxPerKm).toDp() }).height(6.dp)) {
-            drawLine(Pw.Ink, Offset(0f, size.height), Offset(size.width, size.height), 2.dp.toPx())
-            drawLine(Pw.Ink, Offset(0f, 0f), Offset(0f, size.height), 2.dp.toPx())
-            drawLine(Pw.Ink, Offset(size.width, 0f), Offset(size.width, size.height), 2.dp.toPx())
+            drawLine(MAP_INK, Offset(0f, size.height), Offset(size.width, size.height), 2.dp.toPx())
+            drawLine(MAP_INK, Offset(0f, 0f), Offset(0f, size.height), 2.dp.toPx())
+            drawLine(MAP_INK, Offset(size.width, 0f), Offset(size.width, size.height), 2.dp.toPx())
         }
-        Text("$km كم", fontSize = 11.sp, color = Pw.Ink)
+        Text("$km كم", fontSize = 11.sp, color = MAP_INK)
     }
 }
 
@@ -660,7 +664,7 @@ private fun QuakePanel(days: Int, quakes: List<Quake>, selected: Quake?, onDays:
                     Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(if (strong) Color(0xFFD9452B) else Color(0xFFFFE3B0)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(String.format(Locale.US, "%.1f", q.mag), fontWeight = FontWeight.Bold, color = if (strong) Color.White else Pw.AmberInk)
+                    Text(String.format(Locale.US, "%.1f", q.mag), fontWeight = FontWeight.Bold, color = if (strong) Color.White else Color(0xFF5C3800))
                 }
                 Column(Modifier.weight(1f)) {
                     Text(q.placeAr, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)

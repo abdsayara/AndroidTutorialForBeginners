@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -52,6 +53,7 @@ import ps.weather.data.City
 import ps.weather.data.Http
 import ps.weather.data.Prefs
 import ps.weather.ui.components.PwIcons
+import ps.weather.ui.components.SkyBackground
 import ps.weather.ui.map.MapScreen
 import ps.weather.ui.screens.AlertsScreen
 import ps.weather.ui.screens.CitiesScreen
@@ -60,7 +62,10 @@ import ps.weather.ui.screens.FarmingScreen
 import ps.weather.ui.screens.HomeScreen
 import ps.weather.ui.screens.HourlyScreen
 import ps.weather.ui.screens.MoreScreen
-import ps.weather.ui.screens.NewsScreen
+import ps.weather.ui.screens.ReportScreen
+import ps.weather.ui.screens.ReportsScreen
+import ps.weather.ui.screens.RoadsScreen
+import ps.weather.ui.screens.StationsScreen
 import ps.weather.ui.screens.PrayerScreen
 import ps.weather.ui.screens.Sub
 import ps.weather.ui.theme.Pw
@@ -93,7 +98,7 @@ private enum class Tab(val label: String, val icon: ImageVector) {
     HOME("الرئيسية", PwIcons.Home),
     MAP("الخريطة", PwIcons.Map),
     CITIES("المدن", PwIcons.Pin),
-    FARMING("الزراعة", PwIcons.Leaf),
+    ROADS("الطرق", PwIcons.Road),
     MORE("المزيد", PwIcons.More),
 }
 
@@ -104,6 +109,7 @@ private fun App(initialSub: Sub?) {
     var city by remember { mutableStateOf(prefs.selectedPlace()) }
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     var sub by rememberSaveable { mutableStateOf(initialSub) }
+    var reportId by rememberSaveable { mutableStateOf(0) }
 
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     LaunchedEffect(Unit) {
@@ -118,46 +124,57 @@ private fun App(initialSub: Sub?) {
         tab = Tab.HOME
     }
 
-    // Glass over the sky everywhere but the map; the system bars take the sky's ends.
+    // Glass over the sky on every screen; the system bars take the sky's ends.
     val view = LocalView.current
-    val onMap = sub == null && tab == Tab.MAP
     SideEffect {
-        Pw.glass = !onMap
+        Pw.glass = true
         val activity = context as? ComponentActivity ?: return@SideEffect
         val stops = Pw.skyStops()
         @Suppress("DEPRECATION")
-        activity.window.statusBarColor = if (onMap) 0xFFF6F7F5.toInt() else stops.first().toArgb()
+        activity.window.statusBarColor = stops.first().toArgb()
         @Suppress("DEPRECATION")
-        activity.window.navigationBarColor = if (onMap) 0xFFFFFFFF.toInt() else stops.last().toArgb()
+        activity.window.navigationBarColor = stops.last().toArgb()
         WindowCompat.getInsetsController(activity.window, view).apply {
-            isAppearanceLightStatusBars = onMap
-            isAppearanceLightNavigationBars = onMap
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
         }
     }
 
     BackHandler(enabled = sub != null || tab != Tab.HOME) {
-        if (sub != null) sub = null else tab = Tab.HOME
+        sub = when (sub) {
+            null -> { tab = Tab.HOME; null }
+            Sub.REPORT -> Sub.REPORTS
+            else -> null
+        }
     }
 
-    Column(Modifier.fillMaxSize().background(Pw.background()).statusBarsPadding()) {
+    // Text and icons take the theme's ink unless they say otherwise.
+    CompositionLocalProvider(LocalContentColor provides Pw.Ink) {
+    Box(Modifier.fillMaxSize()) {
+    SkyBackground(Pw.sky, Modifier.matchParentSize())
+    Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             val back = { sub = null }
             when (sub) {
+                Sub.FARMING -> FarmingScreen(city, prefs, back)
                 Sub.HOURLY -> HourlyScreen(city, back)
                 Sub.PRAYER -> PrayerScreen(city, prefs, back)
                 Sub.ALERTS -> AlertsScreen(prefs, back)
-                Sub.NEWS -> NewsScreen(back)
+                Sub.REPORTS -> ReportsScreen(onOpen = { reportId = it; sub = Sub.REPORT }, onBack = back)
+                Sub.REPORT -> ReportScreen(reportId) { sub = Sub.REPORTS }
+                Sub.STATIONS -> StationsScreen(back)
                 Sub.CURRENCY -> CurrencyScreen(back)
                 null -> when (tab) {
                     Tab.HOME -> HomeScreen(
-                        city, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },
+                        city, prefs, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },
+                        onOpenRoads = { tab = Tab.ROADS },
                         // Keep a village / GPS point's height so the cities page can show it too.
                         onElevation = { e -> if (!city.isListed && city.elevation != e) { city = city.copy(elevation = e); prefs.select(city) } },
                         prayerMethod = prefs.prayerMethod,
                     )
                     Tab.MAP -> MapScreen(city, onOpenCity = ::selectCity)
                     Tab.CITIES -> CitiesScreen(prefs, city, onSelect = ::selectCity)
-                    Tab.FARMING -> FarmingScreen(city, prefs)
+                    Tab.ROADS -> RoadsScreen()
                     Tab.MORE -> MoreScreen(onOpen = { sub = it })
                 }
             }
@@ -179,5 +196,7 @@ private fun App(initialSub: Sub?) {
                 }
             }
         }
+    }
+    }
     }
 }

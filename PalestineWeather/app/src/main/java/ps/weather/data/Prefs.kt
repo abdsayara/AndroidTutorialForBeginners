@@ -86,6 +86,14 @@ class Prefs(context: Context) {
         get() = sp.getLong("rain_soon_last", 0L)
         set(v) = sp.edit().putLong("rain_soon_last", v).apply()
 
+    /** Home sections in the order the person chose, and the ones they hid. */
+    var homeOrder: List<String>
+        get() = sp.getString("home_order", "")!!.split(',').filter { it.isNotBlank() }
+        set(v) = sp.edit().putString("home_order", v.joinToString(",")).apply()
+    var homeHidden: Set<String>
+        get() = sp.getStringSet("home_hidden", emptySet())!!.toSet()
+        set(v) = sp.edit().putStringSet("home_hidden", v.toSet()).apply()
+
     fun alertEnabled(type: AlertType): Boolean = sp.getBoolean("alert_${type.name}", type != AlertType.HEAT)
     fun setAlertEnabled(type: AlertType, on: Boolean) = sp.edit().putBoolean("alert_${type.name}", on).apply()
 

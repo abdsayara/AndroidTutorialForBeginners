@@ -175,18 +175,10 @@ fun prayerWeather(times: List<Pair<String, java.time.LocalTime>>, hours: List<Ho
 
 data class SeasonCard(val title: String, val text: String)
 
-/** The olive harvest (October to mid-December) and the frost months (December to February). */
+/** A frost warning for the cold months (December to February), or null. */
 fun seasonCard(days: List<DayPoint>, date: java.time.LocalDate, dayName: (java.time.LocalDate) -> String): SeasonCard? {
     val week = days.take(7)
     val m = date.monthValue
-    if (m == 10 || m == 11 || (m == 12 && date.dayOfMonth <= 15)) {
-        val good = week.filter { it.precipProbMax < 25 && it.windMax < 25 && it.max in 12.0..32.0 }.take(4).map { dayName(it.date) }
-        return SeasonCard(
-            "موسم قطاف الزيتون",
-            if (good.isNotEmpty()) "أنسب أيام القطاف هذا الأسبوع: ${good.joinToString("، ")}."
-            else "لا أيام مناسبة للقطاف هذا الأسبوع بسبب المطر أو الرياح.",
-        )
-    }
     if (m == 12 || m == 1 || m == 2) {
         val frost = week.take(3).filter { it.min <= 3 }.map { dayName(it.date) }
         if (frost.isEmpty()) return null

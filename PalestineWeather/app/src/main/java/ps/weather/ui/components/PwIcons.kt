@@ -38,6 +38,8 @@ object PwIcons {
     val Clock = icon("clock", circle(12f, 12f, 9f), "M12 7v5l3 2")
     val Bell = icon("bell", "M6 16V11a6 6 0 0 1 12 0v5l2 2H4z", "M10 21h4")
     val Share = icon("share", circle(18f, 5f, 2.5f), circle(6f, 12f, 2.5f), circle(18f, 19f, 2.5f), "M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4")
+    val Road = icon("road", "M8 3L4 21M16 3l4 18", "M12 4v2.5M12 10.5v3M12 17.5V20")
+    val Edit = icon("edit", "M4 20h4L19 9l-4-4L4 16z", "M13 7l4 4")
     val Refresh = icon("refresh", "M20 11a8 8 0 1 0-2.3 5.7", "M20 4v7h-7")
     val Star = icon("star", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z")
     val StarFilled = icon("starFilled", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z", filled = true)
