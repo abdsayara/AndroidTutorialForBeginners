@@ -16,8 +16,9 @@ const staleBanner = (r) => (r.stale
 const errorBox = (retryAction = 'retry') =>
   `<div class="empty">لا يمكن جلب البيانات الآن ولا توجد نسخة محفوظة.<br><button class="pill" data-action="${retryAction}">إعادة المحاولة</button></div>`;
 
-function header(title, subtitle, { back = false, actions = '' } = {}) {
+function header(title, subtitle, { back = false, actions = '', logo = false } = {}) {
   return `<header class="header">
+    ${logo ? '<img class="header-logo" src="/logo.svg" width="54" height="41" alt="">' : ''}
     ${back ? `<a class="icon-btn" href="${typeof back === 'string' ? back : '/more'}" data-link aria-label="رجوع">${icon('back')}</a>` : ''}
     <div class="titles"><h1>${esc(title)}</h1>${subtitle ? `<div class="subtitle">${esc(subtitle)}</div>` : ''}</div>
     ${actions}
@@ -121,6 +122,7 @@ async function home(el, ctx, cancelled) {
   const subtitle = (elev) => [city.kind === 'gps' ? 'موقعك الحالي' : null, city.region ? null : city.area, elev, F.arabicDate()].filter(Boolean).join(' · ');
   el.innerHTML = `<div class="page">
     ${header(city.name, subtitle(null), {
+      logo: true,
       actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
     })}
@@ -214,7 +216,7 @@ async function cities(el, ctx, cancelled) {
 
   const placeRow = (p, i, current) => `<div class="city ${current ? 'current' : ''}">
       <button class="pick" data-action="pickPlace" data-i="${i}">
-        <span class="bold" style="font-size:16px">${p.kind === 'gps' ? icon('locate', 16, 'style="display:inline;vertical-align:-2px;color:var(--green)"') + ' ' : ''}${esc(p.name)}</span>
+        <span class="bold" style="font-size:16px">${p.kind === 'gps' ? icon('locate', 16, 'style="display:inline;vertical-align:-2px;color:var(--brand)"') + ' ' : ''}${esc(p.name)}</span>
         <span class="muted tiny">${esc([p.kind === 'gps' ? `موقعك الدقيق${p.accuracy ? ` (±${p.accuracy} م)` : ''}` : null, p.area, F.elevation(p.elevation)].filter(Boolean).join(' · '))}</span>
       </button>
     </div>`;
@@ -333,7 +335,7 @@ function alertSettings() {
 
 async function farming(el, ctx, cancelled) {
   const city = ctx.city;
-  el.innerHTML = `<div class="page">${header('الزراعة والتنبيهات', city.name)}<div id="slot"></div><div id="settings">${alertSettings()}</div></div>`;
+  el.innerHTML = `<div class="page">${header('الزراعة والتنبيهات', city.name, { back: true })}<div id="slot"></div><div id="settings">${alertSettings()}</div></div>`;
   const slot = el.querySelector('#slot');
   const run = () => load(slot, `/api/forecast?${ctx.placeQuery()}`, (fc) => {
     const days = fc.days;
@@ -377,7 +379,7 @@ async function farming(el, ctx, cancelled) {
 
 function more(el) {
   const items = [
-    ['/roads', 'road', 'أحوال الطرق والحواجز'],
+    ['/farming', 'leaf', 'الزراعة والتنبيهات'],
     ['/hourly', 'clock', 'تفاصيل اليوم ساعة بساعة'],
     ['/prayer', 'moon', 'أوقات الصلاة والقبلة'],
     ['/alerts', 'bell', 'التنبيهات السابقة'],
@@ -420,7 +422,7 @@ async function prayer(el, ctx, cancelled) {
         return `<div class="prow ${isNext ? 'next' : ''} ${past ? 'past' : ''}"><span class="dot"></span><span class="grow">${esc(t.name)}</span><span>${F.clock(t.time)}</span></div>`;
       }).join('')}</section>
       <section class="card"><div class="row">
-        <span style="color:var(--green);transform:rotate(${d.qibla}deg);display:inline-flex" aria-hidden="true">${icon('arrowUp', 36)}</span>
+        <span style="color:var(--brand);transform:rotate(${d.qibla}deg);display:inline-flex" aria-hidden="true">${icon('arrowUp', 36)}</span>
         <div><div class="muted tiny">اتجاه القبلة</div><div class="bold">${Math.round(d.qibla)}° من الشمال</div></div>
       </div></section>
       <section class="card"><h2>طريقة الحساب</h2>
@@ -486,8 +488,6 @@ async function alerts(el, ctx, cancelled) {
 
 // ---------------------------------------------------------------- طقس الوطن (p-weather.ps)
 
-/** A short source line for text written by others. */
-const credit = '<div class="source">المصدر: طقس الوطن</div>';
 
 /** The detailed bulletin card on the home page; stays hidden if the source can't be read. */
 async function loadBulletin(box, cancelled) {
@@ -500,8 +500,7 @@ async function loadBulletin(box, cancelled) {
     box.innerHTML = `
       <h2 id="h-bulletin">النشرة التفصيلية</h2>
       ${day(first)}
-      ${rest.length ? `<details><summary>الأيام القادمة (${rest.length})</summary>${rest.map(day).join('')}</details>` : ''}
-      ${credit}`;
+      ${rest.length ? `<details><summary>الأيام القادمة (${rest.length})</summary>${rest.map(day).join('')}</details>` : ''}`;
     box.hidden = false;
   } catch { /* the home page works without it */ }
 }
@@ -535,7 +534,6 @@ async function report(el, ctx, cancelled) {
       <div class="muted tiny">${esc([a.tag, a.date ? F.arabicDate(a.date) : null].filter(Boolean).join(' · '))}</div>
       ${a.image ? `<img class="article-hero" src="${esc(a.image)}" alt="" referrerpolicy="no-referrer">` : ''}
       <div class="article-body">${a.html}</div>
-      ${credit}
     </article>`, cancelled).then((a) => { if (a) document.title = `${a.title} — طقس فلسطين`; });
   run();
   return actions(el, { retry: run });
@@ -632,7 +630,6 @@ async function roads(el, ctx, cancelled) {
   let data = null;
   el.innerHTML = `<div class="page">
     ${header('أحوال الطرق', 'حالة الحواجز في الاتجاهين، تتحدّث كل دقيقتين', {
-      back: true,
       actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>`,
     })}
     <div class="banner" role="note">الحالة قد تتغيّر في أي لحظة. انظر دائماً إلى وقت آخر تحديث وتحقّق قبل السفر.</div>

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ground">#F4F6F3</color>
-    <color name="green">#146B45</color>
+    <color name="ground">#F6F7F5</color>
+    <!-- Brand blue from the logo's cloud; the launcher icon sits on white. -->
+    <color name="brand">#1F74B0</color>
+    <color name="launcher_bg">#FFFFFF</color>
 </resources>

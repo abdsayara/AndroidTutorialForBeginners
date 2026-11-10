@@ -6,14 +6,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 object Pw {
-    val Green = Color(0xFF146B45)
-    val GreenDark = Color(0xFF0E4F33)
-    val GreenTint = Color(0xFFE3F0E8)
+    // Brand: the logo's cloud blue, darkened so white text and links stay readable.
+    val Brand = Color(0xFF1F74B0)
+    val BrandDark = Color(0xFF165A8A)
+    val BrandTint = Color(0xFFE8F2FA)
+    // Status "good / suitable": stays green whatever the brand.
+    val Ok = Color(0xFF0F7A4A)
+    val OkTint = Color(0xFFE3F1E9)
     val Ink = Color(0xFF12241B)
-    val Ground = Color(0xFFF4F6F3)
+    val Ground = Color(0xFFF6F7F5)
     val Card = Color.White
     val Muted = Color(0xFF4F5E55)
-    val Line = Color(0xFFE3E8E4)
+    val Line = Color(0xFFE3E6E1)
     val Border = Color(0xFFDCE2DD)
     val Amber = Color(0xFFC77700)
     val AmberTint = Color(0xFFFFF4DE)
@@ -23,14 +27,14 @@ object Pw {
     val BlueInk = Color(0xFF1F3F6E)
     val Red = Color(0xFFB42318)
     val RedTint = Color(0xFFFBE2DD)
-    val Sun = Color(0xFFFFC24A)
+    val Sun = Color(0xFFFAAE3C) // the logo's sun rays
 }
 
 @Composable
 fun PalestineWeatherTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = Pw.Green,
+            primary = Pw.Brand,
             onPrimary = Color.White,
             secondary = Pw.Amber,
             background = Pw.Ground,

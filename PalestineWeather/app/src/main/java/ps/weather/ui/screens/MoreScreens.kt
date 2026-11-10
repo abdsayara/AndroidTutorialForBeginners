@@ -109,8 +109,8 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(Modifier.size(40.dp).clip(CircleShape).background(Pw.GreenTint), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = Pw.Green, modifier = Modifier.size(22.dp))
+        Box(Modifier.size(40.dp).clip(CircleShape).background(Pw.BrandTint), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = Pw.Brand, modifier = Modifier.size(22.dp))
         }
         Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
         Icon(PwIcons.Forward, null, tint = Pw.Muted, modifier = Modifier.size(20.dp))
@@ -155,7 +155,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
                         val isNext = name == next.first
                         val past = t.isBefore(now) && !isNext
                         Row(Modifier.fillMaxWidth().heightIn(min = 54.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(8.dp).clip(CircleShape).background(if (isNext) Pw.Green else Color.Transparent))
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(if (isNext) Pw.Brand else Color.Transparent))
                             Text(
                                 name, fontSize = 16.sp, modifier = Modifier.weight(1f).padding(start = 12.dp),
                                 fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium,
@@ -175,7 +175,7 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
             val bearing = PrayerRepository.qiblaBearing(city.lat, city.lon)
             SectionCard {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Icon(PwIcons.ArrowUp, null, tint = Pw.Green, modifier = Modifier.size(36.dp).rotate(bearing.toFloat()))
+                    Icon(PwIcons.ArrowUp, null, tint = Pw.Brand, modifier = Modifier.size(36.dp).rotate(bearing.toFloat()))
                     Column {
                         Text("اتجاه القبلة", fontSize = 12.sp, color = Pw.Muted)
                         Text("${bearing.toInt()}° من الشمال", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)

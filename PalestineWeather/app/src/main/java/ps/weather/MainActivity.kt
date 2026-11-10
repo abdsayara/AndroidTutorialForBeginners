@@ -146,7 +146,7 @@ private fun App(initialSub: Sub?) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
                 ) {
-                    val color = if (active) Pw.Green else Pw.Muted
+                    val color = if (active) Pw.Brand else Pw.Muted
                     Icon(t.icon, null, tint = color, modifier = Modifier.size(24.dp))
                     Text(t.label, fontSize = 12.sp, color = color, fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal)
                 }

@@ -8,11 +8,11 @@ const TABS = [
   { path: '/', label: 'الرئيسية', icon: 'home' },
   { path: '/map', label: 'الخريطة', icon: 'map' },
   { path: '/cities', label: 'المدن', icon: 'pin' },
-  { path: '/farming', label: 'الزراعة', icon: 'leaf' },
+  { path: '/roads', label: 'الطرق', icon: 'road' },
   { path: '/more', label: 'المزيد', icon: 'more' },
 ];
 const MORE = [
-  { path: '/roads', label: 'أحوال الطرق', icon: 'road' },
+  { path: '/farming', label: 'الزراعة والتنبيهات', icon: 'leaf' },
   { path: '/hourly', label: 'تفاصيل اليوم', icon: 'clock' },
   { path: '/prayer', label: 'أوقات الصلاة', icon: 'moon' },
   { path: '/alerts', label: 'التنبيهات السابقة', icon: 'bell' },

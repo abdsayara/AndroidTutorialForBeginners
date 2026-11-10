@@ -71,7 +71,7 @@ fun <T> rememberLoad(vararg keys: Any?, block: suspend () -> Fetched<T>): Pair<L
 fun <T> LoadBox(load: Load<T>, retry: () -> Unit, content: @Composable (T) -> Unit) {
     when (load) {
         is Load.Loading -> Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Pw.Green)
+            CircularProgressIndicator(color = Pw.Brand)
         }
         is Load.Error -> Column(
             Modifier.fillMaxWidth().padding(24.dp),
@@ -166,7 +166,7 @@ fun <T> PillRow(options: List<T>, selected: T, label: (T) -> String, onSelect: (
 fun Toggle(on: Boolean, label: String, onChange: (Boolean) -> Unit) {
     Box(
         Modifier.size(52.dp, 32.dp).clip(RoundedCornerShape(16.dp))
-            .background(if (on) Pw.Green else Color(0xFFB9C3BC))
+            .background(if (on) Pw.Brand else Color(0xFFB9C3BC))
             .clickable(role = Role.Switch, onClickLabel = label) { onChange(!on) }
             .padding(3.dp),
         contentAlignment = if (on) Alignment.CenterStart else Alignment.CenterEnd,

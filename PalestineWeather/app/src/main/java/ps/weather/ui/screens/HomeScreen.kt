@@ -1,5 +1,6 @@
 package ps.weather.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,10 +30,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ps.weather.R
 import ps.weather.data.City
 import ps.weather.data.Forecast
 import ps.weather.data.PlaceKind
@@ -71,9 +74,14 @@ fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onEleva
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painterResource(R.drawable.logo), contentDescription = null,
+                    modifier = Modifier.width(54.dp).height(41.dp),
+                )
+                Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(PwIcons.Pin, null, tint = Pw.Green, modifier = Modifier.size(20.dp))
+                        Icon(PwIcons.Pin, null, tint = Pw.Brand, modifier = Modifier.size(20.dp))
                         Text(city.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     }
                     Text(
@@ -105,7 +113,7 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
 
     // Hero
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Pw.Green).padding(22.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Pw.Brand).padding(22.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -129,7 +137,7 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("الساعات القادمة", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
         Text(
-            "التفاصيل", color = Pw.Green, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
+            "التفاصيل", color = Pw.Brand, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
             modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(role = Role.Button, onClick = onHourly).padding(8.dp),
         )
     }

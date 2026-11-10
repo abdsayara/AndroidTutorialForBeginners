@@ -350,7 +350,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                         val tl = Offset(c.x - w / 2, c.y - h / 2)
                         drawRoundRect(bg, tl, Size(w, h), CornerRadius(h / 2))
                         drawRoundRect(
-                            if (city.id == selected.id) Pw.Green else Color(0x2612241B), tl, Size(w, h), CornerRadius(h / 2),
+                            if (city.id == selected.id) Pw.Brand else Color(0x2612241B), tl, Size(w, h), CornerRadius(h / 2),
                             style = Stroke(2.dp.toPx()),
                         )
                         drawText(label, topLeft = Offset(c.x - label.size.width / 2f, c.y - label.size.height / 2f))
@@ -376,8 +376,8 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                 }
                 if (!selected.isListed && selected.kind != PlaceKind.GPS) {
                     val pt = toScreen(MapProjection.point(selected.lat, selected.lon))
-                    drawCircle(Pw.Green, 8.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
-                    drawLine(Pw.Green, pt - Offset(0f, 8.dp.toPx()), pt, 3.dp.toPx())
+                    drawCircle(Pw.Brand, 8.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
+                    drawLine(Pw.Brand, pt - Offset(0f, 8.dp.toPx()), pt, 3.dp.toPx())
                     drawCircle(Color.White, 3.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
                     val lbl = tm.measure(selected.name, TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Pw.Ink))
                     val tl = Offset(pt.x - lbl.size.width / 2f, pt.y + 4.dp.toPx())
@@ -400,7 +400,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
                     if (granted) locate()
                     else permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                }, background = Pw.Green, tint = Color.White)
+                }, background = Pw.Brand, tint = Color.White)
             }
             Legend(layer, Modifier.align(Alignment.TopStart).padding(10.dp))
             ScaleBar(scale, Modifier.align(Alignment.BottomStart).padding(10.dp))
@@ -409,7 +409,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                 MapLayer.QUAKES -> quakeLoad is Load.Loading
                 else -> gridLoad is Load.Loading
             }
-            if (loading) CircularProgressIndicator(Modifier.align(Alignment.Center), color = Pw.Green)
+            if (loading) CircularProgressIndicator(Modifier.align(Alignment.Center), color = Pw.Brand)
         }
 
         mapMessage?.let {
@@ -522,7 +522,7 @@ private fun CityPanel(city: City, now: CityNow?, onOpen: () -> Unit) {
             )
         }
         Text(now?.let { deg(it.temp) } ?: "—", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-        RoundIconButton(PwIcons.Forward, "تفاصيل ${city.name}", onOpen, background = Pw.Green, tint = Color.White)
+        RoundIconButton(PwIcons.Forward, "تفاصيل ${city.name}", onOpen, background = Pw.Brand, tint = Color.White)
     }
 }
 
@@ -547,7 +547,7 @@ private fun TimePanel(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RoundIconButton(if (playing) PwIcons.Pause else PwIcons.Play, if (playing) "إيقاف" else "تشغيل", onPlay, background = Pw.Green, tint = Color.White)
+            RoundIconButton(if (playing) PwIcons.Pause else PwIcons.Play, if (playing) "إيقاف" else "تشغيل", onPlay, background = Pw.Brand, tint = Color.White)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 itemsIndexed(grid.times) { i, t ->
                     val diff = Duration.between(grid.times[grid.nowIndex], t).toHours()

@@ -122,14 +122,14 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Pw.Card, unfocusedContainerColor = Pw.Card,
-                    focusedBorderColor = Pw.Green, unfocusedBorderColor = Pw.Border,
+                    focusedBorderColor = Pw.Brand, unfocusedBorderColor = Pw.Border,
                 ),
             )
         }
         item {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(16.dp))
-                    .border(BorderStroke(1.dp, Pw.Green), RoundedCornerShape(16.dp))
+                    .border(BorderStroke(1.dp, Pw.Brand), RoundedCornerShape(16.dp))
                     .clickable(role = Role.Button, enabled = !locating) {
                         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -140,8 +140,8 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(PwIcons.Locate, null, tint = Pw.Green, modifier = Modifier.size(20.dp))
-                Text("استخدم موقعي الدقيق", color = Pw.Green, fontWeight = FontWeight.SemiBold)
+                Icon(PwIcons.Locate, null, tint = Pw.Brand, modifier = Modifier.size(20.dp))
+                Text("استخدم موقعي الدقيق", color = Pw.Brand, fontWeight = FontWeight.SemiBold)
             }
             message?.let {
                 Text(it, color = if (locating) Pw.Muted else Pw.Red, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
@@ -172,7 +172,7 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
             val fav = city.id in favorites
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 60.dp).clip(RoundedCornerShape(18.dp))
-                    .background(if (city.id == current.id) Pw.GreenTint else Pw.Card)
+                    .background(if (city.id == current.id) Pw.BrandTint else Pw.Card)
                     .clickable(role = Role.Button) { onSelect(city) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -207,13 +207,13 @@ fun CitiesScreen(prefs: Prefs, current: City, onSelect: (City) -> Unit) {
 private fun PlaceRow(place: City, selected: Boolean, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = 60.dp).clip(RoundedCornerShape(18.dp))
-            .background(if (selected) Pw.GreenTint else Pw.Card)
+            .background(if (selected) Pw.BrandTint else Pw.Card)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (place.kind == PlaceKind.GPS) Icon(PwIcons.Locate, null, tint = Pw.Green, modifier = Modifier.size(18.dp))
+        if (place.kind == PlaceKind.GPS) Icon(PwIcons.Locate, null, tint = Pw.Brand, modifier = Modifier.size(18.dp))
         Column(Modifier.weight(1f)) {
             Text(place.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             Text(

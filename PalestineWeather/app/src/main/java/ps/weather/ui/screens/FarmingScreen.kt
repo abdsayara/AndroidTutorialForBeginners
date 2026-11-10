@@ -43,8 +43,8 @@ import ps.weather.ui.theme.Pw
 import kotlin.math.roundToInt
 
 private enum class Suitability(val label: String, val bg: Color, val fg: Color) {
-    GREAT("ممتاز", Color(0xFF146B45), Color.White),
-    OK("جيد", Color(0xFFE3F0E8), Color(0xFF0E4F33)),
+    GREAT("ممتاز", Color(0xFF0F7A4A), Color.White),
+    OK("جيد", Color(0xFFE3F1E9), Color(0xFF0B5E39)),
     RAINY("ماطر", Color(0xFFE7ECF5), Color(0xFF1F3F6E)),
     HARSH("غير مناسب", Color(0xFFFBE2DD), Color(0xFF8C1D0E)),
 }
