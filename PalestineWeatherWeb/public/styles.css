@@ -706,3 +706,60 @@ html:root .map-wrap { border: 1px solid var(--line); box-shadow: 0 10px 30px rgb
 html:root :is(.map-legend, .scale) { background: rgba(10, 25, 40, 0.55); color: #fff; -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); }
 html:root .tl-ticks span.now { color: var(--link); }
 html:root .timeline input[type="range"] { accent-color: var(--link); }
+
+/* ================================================================ the app's colours, element by element
+   Each rule below gives a web element the colour its Android twin has (Pw in ui/theme/Theme.kt,
+   roadColor in RoadsScreen.kt, Suitability in FarmingScreen.kt). Links and accents are the
+   app's Pw.Link yellow; the brand blue stays for filled buttons and the dot's ring. */
+html:root {
+  --road-open: #3FCF8A; --road-busy: #FFC14D; --road-crisis: #FF7A59; --road-closed: #FF5A4E; --road-unknown: #B3BEC6;
+}
+/* Links and accents → Pw.Link */
+html:root :is(a, .link-btn, .bulletin summary, .locate, .menu .badge, .mini-h .icon, .nowcast .icon, .tl-ticks span.now) { color: var(--link); }
+html:root .locate { border-color: rgba(255, 210, 122, 0.7); }
+html:root .menu .badge { background: rgba(255, 255, 255, 0.18); }
+html:root .prow.next .dot { background: var(--link); }
+html:root .spinner { border-top-color: var(--link); }
+html:root .tabbar a[aria-current="page"], html:root .tabbar a[aria-current="page"] svg { color: var(--link); }
+/* Cards keep white text even when they are links */
+html:root :is(a.card, a.mini, .menu a, .tabbar a, .sidebar a, a.tile) { color: var(--ink); }
+html:root .tabbar a:not([aria-current="page"]) { color: var(--muted); }
+html:root .bulletin .b-label { color: #fff; }
+/* Hours: the current hour is a Pw.Panel (white 20%) */
+html:root .hour.now { background: rgba(255, 255, 255, 0.20); }
+/* The week bar: solid Pw.Amber, today's dot white with a brand-blue ring */
+html:root .range span { background: var(--amber); }
+html:root .range .now-dot { background: #fff; border-color: #1F74B0; }
+/* Nowcast and dust as in the app */
+html:root .nowcast { background: rgba(174, 215, 255, 0.16); border-color: rgba(174, 215, 255, 0.32); }
+html:root .alert-card { background: rgba(255, 200, 112, 0.18); border-color: rgba(255, 200, 112, 0.40); }
+html:root .alert-card.heavy { background: rgba(255, 159, 144, 0.18); border-color: rgba(255, 159, 144, 0.45); }
+/* The map timeline: brand blue like the app's slider */
+html:root .timeline input[type="range"] { accent-color: #1F74B0; }
+/* Roads: the app's status colours, numbers coloured on plain glass tiles */
+html:root .roads-sum .tile { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+html:root .roads-sum .open .value { color: var(--road-open); }
+html:root .roads-sum .busy .value { color: var(--road-busy); }
+html:root .roads-sum .closed .value { color: var(--road-closed); }
+html:root .rh { background: var(--card); }
+html:root .rh.open b { color: var(--road-open); }
+html:root .rh.busy b { color: var(--road-busy); }
+html:root .rh.closed b { color: var(--road-closed); }
+html:root .cp-dotmark, html:root .roads-legend i { background: var(--road-unknown); }
+html:root :is(.cp-row.open .cp-dotmark, .roads-legend i.open) { background: var(--road-open); }
+html:root :is(.cp-row.busy .cp-dotmark, .roads-legend i.busy) { background: var(--road-busy); }
+html:root :is(.cp-row.crisis .cp-dotmark, .roads-legend i.crisis) { background: var(--road-crisis); }
+html:root :is(.cp-row.closed .cp-dotmark, .roads-legend i.closed) { background: var(--road-closed); }
+html:root .cp-dot circle { fill: var(--road-unknown); }
+html:root .cp-dot.open circle { fill: var(--road-open); }
+html:root .cp-dot.busy circle { fill: var(--road-busy); }
+html:root .cp-dot.crisis circle { fill: var(--road-crisis); }
+html:root .cp-dot.closed circle { fill: var(--road-closed); }
+html:root .dir { background: rgba(179, 190, 198, 0.16); color: var(--road-unknown); }
+html:root .dir.open { background: rgba(63, 207, 138, 0.16); color: var(--road-open); }
+html:root .dir.busy { background: rgba(255, 193, 77, 0.16); color: var(--road-busy); }
+html:root .dir.crisis { background: rgba(255, 122, 89, 0.16); color: var(--road-crisis); }
+html:root .dir.closed { background: rgba(255, 90, 78, 0.16); color: var(--road-closed); }
+html:root .cp.open { border-inline-start-color: var(--road-open); }
+html:root .cp.busy { border-inline-start-color: var(--road-busy); }
+html:root .cp.closed { border-inline-start-color: var(--road-closed); }

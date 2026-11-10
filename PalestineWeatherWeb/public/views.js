@@ -505,11 +505,12 @@ async function cities(el, ctx, cancelled) {
 
 // ---------------------------------------------------------------- farming
 
+// The same colours as the app's FarmingScreen (Suitability).
 const SUIT = {
-  great: ['ممتاز', 'var(--green)', '#fff'],
-  ok: ['جيد', 'var(--green-tint)', 'var(--green-dark)'],
-  rainy: ['ماطر', 'var(--blue-tint)', 'var(--blue-ink)'],
-  harsh: ['غير مناسب', 'var(--red-tint)', '#8C1D0E'],
+  great: ['ممتاز', '#3FCF8A', '#0B3B24'],
+  ok: ['جيد', 'rgba(63, 207, 138, 0.22)', '#fff'],
+  rainy: ['ماطر', 'rgba(174, 215, 255, 0.24)', '#fff'],
+  harsh: ['غير مناسب', 'rgba(255, 159, 144, 0.26)', '#fff'],
 };
 function suitability(d) {
   if (d.precipProbMax >= 50) return 'rainy';
