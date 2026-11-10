@@ -44,7 +44,8 @@ fun hourLabel(t: LocalDateTime): String {
     return "${if (h == 0) 12 else h} ${if (t.hour < 12) "ص" else "م"}"
 }
 
-fun deg(v: Double): String = "${v.roundToInt()}°"
+/** Isolated left-to-right (U+2066…U+2069) so Arabic text never moves the ° before the number. */
+fun deg(v: Double): String = "\u2066${v.roundToInt()}°\u2069"
 
 /** Height above / below sea level: "754 م فوق سطح البحر", "258 م تحت سطح البحر". */
 fun elevationText(m: Double?): String? {

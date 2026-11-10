@@ -213,7 +213,7 @@ export function mountMap(el, ctx, cancelled) {
       if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
       if (values) {
         const n = st.now?.[c.id];
-        const text = !n ? '…' : st.layer === 'wind' ? String(Math.round(n.wind ?? 0)) : F.deg(n.temp);
+        const text = !n ? '…' : st.layer === 'wind' ? String(Math.round(n.wind ?? 0)) : (n.temp == null ? '—' : `${Math.round(n.temp)}°`); // canvas: no bidi isolates
         const [bg, fg] = pinColors(st.layer, n);
         g.font = '700 12px "IBM Plex Sans Arabic", sans-serif';
         const w = Math.max(g.measureText(text).width + 14, 34);

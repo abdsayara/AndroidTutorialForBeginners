@@ -88,7 +88,7 @@ function homeBody(fc, aqi) {
         <div class="grow">
           <div class="temp">${F.deg(c.temp)}</div>
           <div class="cond">${F.weatherText(c.code)}</div>
-          <div class="meta">العظمى ${F.deg(today.max)} · الصغرى ${F.deg(today.min)} · الإحساس ${F.deg(c.apparent)}</div>
+          <div class="meta"><span>العظمى ${F.deg(today.max)}</span> · <span>الصغرى ${F.deg(today.min)}</span> · <span>الإحساس ${F.deg(c.apparent)}</span></div>
         </div>
         ${weatherIcon(c.code, { isDay: c.isDay, size: 104, cloudColor: '#fff', sunColor: 'var(--sun)' })}
       </div>
@@ -512,7 +512,7 @@ async function reports(el, ctx, cancelled) {
   const run = () => load(slot, '/api/reports', (items) => `<div class="page" style="max-width:none;gap:10px">
       <div class="reports">${items.map((r) => `
         <a class="report" href="/report?id=${r.id}" data-link>
-          ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+          ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
           <div class="report-body">
             <div class="title">${esc(r.title)}</div>
             ${r.excerpt ? `<div class="muted small">${esc(r.excerpt)}</div>` : ''}
@@ -541,7 +541,7 @@ async function report(el, ctx, cancelled) {
   return actions(el, { retry: run });
 }
 
-const fmt1 = (v) => (v == null ? '—' : (Math.round(v * 10) / 10).toString());
+const fmt1 = (v) => (v == null ? '—' : F.ltr((Math.round(v * 10) / 10).toString()));
 const clockOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' }) : '');
 
 async function stations(el, ctx, cancelled) {
@@ -561,8 +561,12 @@ async function stations(el, ctx, cancelled) {
     return `<article class="card station${old ? ' old' : ''}">
       <div class="row"><h2 class="grow">${esc(s.name)}</h2><span class="muted tiny">${n.updated ? esc(F.ago(Date.parse(n.updated))) : ''}</span></div>
       <div class="row st-now">
-        <div class="st-temp num">${fmt1(n.temp)}${esc(u.temp)}</div>
-        <div class="muted small">الإحساس ${fmt1(n.feelsLike)}°<br>العظمى ${fmt1(n.high)}° <span class="tiny">${clockOf(n.highAt)}</span> · الصغرى ${fmt1(n.low)}° <span class="tiny">${clockOf(n.lowAt)}</span></div>
+        <div class="st-temp">${n.temp == null ? '—' : F.ltr(esc(`${Math.round(n.temp * 10) / 10}${u.temp}`))}</div>
+        <div class="st-extremes small">
+          <div><span class="muted">الإحساس</span> ${F.deg(n.feelsLike)}</div>
+          <div><span class="muted">العظمى</span> ${F.deg(n.high)} ${n.highAt ? `<span class="muted tiny">${F.ltr(clockOf(n.highAt))}</span>` : ''}</div>
+          <div><span class="muted">الصغرى</span> ${F.deg(n.low)} ${n.lowAt ? `<span class="muted tiny">${F.ltr(clockOf(n.lowAt))}</span>` : ''}</div>
+        </div>
       </div>
       <div class="grid2 st-grid">
         <div class="tile"><div class="label">الرطوبة</div><div class="value num">${fmt1(n.humidity)}%</div></div>

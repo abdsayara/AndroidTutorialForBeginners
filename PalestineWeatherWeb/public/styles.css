@@ -412,3 +412,8 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
 .article-body img { display: block; max-width: 100%; height: auto; margin: 8px auto; border-radius: var(--r-sm); }
 .article-body table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
 .article-body td, .article-body th { border: 1px solid var(--line); padding: 4px 8px; }
+
+/* keep "العظمى 29°" together; the separators may wrap, the values not */
+.hero .meta span { white-space: nowrap; }
+.st-extremes { display: flex; flex-direction: column; gap: 2px; }
+.st-extremes > div { white-space: nowrap; }

@@ -46,7 +46,9 @@ export function hourLabel(iso) {
   return `${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? 'ص' : 'م'}`;
 }
 
-export const deg = (v) => (v == null ? '—' : `${Math.round(v)}°`);
+// Isolated left-to-right (U+2066…U+2069) so Arabic text never moves the ° before the number.
+export const ltr = (s) => `\u2066${s}\u2069`;
+export const deg = (v) => (v == null ? '—' : ltr(`${Math.round(v)}°`));
 export const round = (v) => (v == null ? '—' : String(Math.round(v)));
 
 /** Height above / below sea level: "754 م فوق سطح البحر", "258 م تحت سطح البحر". */
