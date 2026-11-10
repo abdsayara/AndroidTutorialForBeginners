@@ -61,7 +61,9 @@ import ps.weather.ui.screens.PrayerScreen
 import ps.weather.ui.screens.Sub
 import ps.weather.ui.theme.Pw
 import ps.weather.ui.theme.PalestineWeatherTheme
+import ps.weather.widget.WeatherWidget
 import ps.weather.work.AlertWorker
+import ps.weather.work.DailyWorkers
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +71,8 @@ class MainActivity : ComponentActivity() {
         Http.init(this)
         AlertWorker.ensureChannel(this)
         AlertWorker.schedule(this)
+        DailyWorkers.ensureChannels(this)
+        DailyWorkers.schedule(this)
         val openAlerts = intent?.getBooleanExtra("openAlerts", false) == true
         setContent {
             PalestineWeatherTheme {
@@ -105,6 +109,7 @@ private fun App(initialSub: Sub?) {
     fun selectCity(c: City) {
         city = c
         prefs.select(c)
+        WeatherWidget.refreshSoon(context)
         sub = null
         tab = Tab.HOME
     }

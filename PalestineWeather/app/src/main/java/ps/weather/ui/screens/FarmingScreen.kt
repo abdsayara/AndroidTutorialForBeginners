@@ -141,6 +141,24 @@ private fun AlertToggles(prefs: Prefs) {
     )
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Pw.Card).padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text("إشعارات أريد استلامها", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 8.dp))
+        var morning by remember { mutableStateOf(prefs.morningEnabled) }
+        var rainSoon by remember { mutableStateOf(prefs.rainSoonEnabled) }
+        HorizontalDivider(color = Pw.Line)
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("الملخص الصباحي", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text("كل يوم نحو الساعة 7 صباحاً", fontSize = 12.sp, color = Pw.Muted)
+            }
+            Toggle(morning, "الملخص الصباحي") { morning = it; prefs.morningEnabled = it }
+        }
+        HorizontalDivider(color = Pw.Line)
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("المطر قادم", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text("قبل نزوله بدقائق، لمكانك المختار", fontSize = 12.sp, color = Pw.Muted)
+            }
+            Toggle(rainSoon, "المطر قادم") { rainSoon = it; prefs.rainSoonEnabled = it }
+        }
         AlertType.entries.forEach { type ->
             var on by remember { mutableStateOf(prefs.alertEnabled(type)) }
             HorizontalDivider(color = Pw.Line)

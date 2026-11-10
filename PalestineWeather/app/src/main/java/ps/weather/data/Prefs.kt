@@ -70,6 +70,22 @@ class Prefs(context: Context) {
         get() = runCatching { PrayerMethod.valueOf(sp.getString("prayerMethod", null)!!) }.getOrDefault(PrayerMethod.EGYPT)
         set(v) = sp.edit().putString("prayerMethod", v.name).apply()
 
+    /** The 7:00 morning notification. */
+    var morningEnabled: Boolean
+        get() = sp.getBoolean("morning", true)
+        set(v) = sp.edit().putBoolean("morning", v).apply()
+    var lastMorningDate: String
+        get() = sp.getString("morning_last", "")!!
+        set(v) = sp.edit().putString("morning_last", v).apply()
+
+    /** "Rain is coming" from the 15-minute nowcast. */
+    var rainSoonEnabled: Boolean
+        get() = sp.getBoolean("rain_soon", true)
+        set(v) = sp.edit().putBoolean("rain_soon", v).apply()
+    var lastRainSoonAt: Long
+        get() = sp.getLong("rain_soon_last", 0L)
+        set(v) = sp.edit().putLong("rain_soon_last", v).apply()
+
     fun alertEnabled(type: AlertType): Boolean = sp.getBoolean("alert_${type.name}", type != AlertType.HEAT)
     fun setAlertEnabled(type: AlertType, on: Boolean) = sp.edit().putBoolean("alert_${type.name}", on).apply()
 
