@@ -103,6 +103,8 @@ function homeBody(fc, aqi) {
       <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
     </section>
 
+    <section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>
+
     <section class="grid2 grid4" aria-label="تفاصيل">
       <div class="tile"><div class="label">الرطوبة</div><div class="value">${c.humidity ?? '—'}%</div></div>
       <div class="tile"><div class="label">الأشعة فوق البنفسجية</div><div class="value">${F.round(today.uvMax)} · ${F.uvText(today.uvMax)}</div></div>
@@ -138,6 +140,7 @@ async function home(el, ctx, cancelled) {
       // Remember it so the selected village / GPS row on the cities page can show it too.
       if (!city.region && fc.data.elevation != null && city.elevation !== fc.data.elevation) ctx.setPlace({ ...city, elevation: fc.data.elevation }, { go: false });
       slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data?.aqi)}</div>`;
+      loadBulletin(slot.querySelector('#bulletin'), cancelled);
     } catch {
       if (!cancelled()) slot.innerHTML = errorBox();
     }
@@ -378,7 +381,8 @@ function more(el) {
     ['/hourly', 'clock', 'تفاصيل اليوم ساعة بساعة'],
     ['/prayer', 'moon', 'أوقات الصلاة والقبلة'],
     ['/alerts', 'bell', 'التنبيهات السابقة'],
-    ['/news', 'news', 'أخبار الطقس والمناخ'],
+    ['/reports', 'news', 'التقارير اليومية'],
+    ['/stations', 'thermo', 'محطات الطقس'],
     ['/currency', 'coins', 'أسعار العملات'],
     ['/about', 'compass', 'مصادر البيانات وحول الموقع'],
   ];
@@ -480,26 +484,95 @@ async function alerts(el, ctx, cancelled) {
   return actions(el, { f: (t) => { filter = t.dataset.k || null; draw(); }, retry: run });
 }
 
-// ---------------------------------------------------------------- news
+// ---------------------------------------------------------------- طقس الوطن (p-weather.ps)
 
-const TOPICS = { weather: 'الطقس', climate: 'المناخ', farming: 'الزراعة' };
+const WATAN_HOME = 'https://www.p-weather.ps/ar/index.php';
+/** Source credit with the site's logo, linking back to it. */
+const watanBadge = (href = WATAN_HOME) =>
+  `<a class="src-badge" href="${esc(href)}" target="_blank" rel="noopener noreferrer"><img src="/brands/watan-weather.svg" alt="" width="28" height="21">طقس الوطن</a>`;
 
-async function news(el, ctx, cancelled) {
-  let topic = 'weather';
-  el.innerHTML = `<div class="page">${header('أخبار الطقس والمناخ', 'عناوين من Google News', { back: true })}<div class="pills even" id="t"></div><div id="slot"></div></div>`;
+/** The detailed bulletin card on the home page; stays hidden if the source can't be read. */
+async function loadBulletin(box, cancelled) {
+  if (!box) return;
+  try {
+    const { data } = await api('/api/bulletin');
+    if (cancelled() || !data.days.length) return;
+    const [first, ...rest] = data.days;
+    const day = (d) => `<div class="b-day">${d.day ? `<div class="b-label">${esc(d.day)}</div>` : ''}<p>${esc(d.text).replace(/\n/g, '<br>')}</p></div>`;
+    box.innerHTML = `
+      <div class="row"><h2 id="h-bulletin" class="grow">النشرة التفصيلية</h2>${watanBadge()}</div>
+      ${day(first)}
+      ${rest.length ? `<details><summary>الأيام القادمة (${rest.length})</summary>${rest.map(day).join('')}</details>` : ''}`;
+    box.hidden = false;
+  } catch { /* the home page works without it */ }
+}
+
+async function reports(el, ctx, cancelled) {
+  el.innerHTML = `<div class="page">${header('التقارير اليومية', 'تقارير الطقس والمناخ من موقع طقس الوطن', { back: true })}<div id="slot"></div></div>`;
   const slot = el.querySelector('#slot');
-  const run = () => {
-    el.querySelector('#t').innerHTML = Object.entries(TOPICS).map(([k, v]) => pill(v, `data-action="topic" data-k="${k}"`, k === topic)).join('');
-    return load(slot, `/api/news?topic=${topic}`, (items) => (items.length
-      ? `<div class="page" style="max-width:none;gap:10px">${items.map((n) => `
-          <a class="news" href="${esc(n.link)}" target="_blank" rel="noopener noreferrer">
-            <div class="title">${esc(n.title)}</div>
-            <div class="muted tiny">${esc([n.source, F.ago(n.published)].filter(Boolean).join(' · '))}</div>
-          </a>`).join('')}</div>`
-      : '<div class="empty">لا توجد أخبار الآن</div>'), cancelled);
-  };
+  const run = () => load(slot, '/api/reports', (items) => `<div class="page" style="max-width:none;gap:10px">
+      <div class="row"><span class="grow muted small">${items.length} تقريراً · تُفتح التقارير كاملة على موقع طقس الوطن</span>${watanBadge('https://www.p-weather.ps/ar/article.php')}</div>
+      <div class="reports">${items.map((r) => `
+        <a class="report" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">
+          ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+          <div class="report-body">
+            <div class="title">${esc(r.title)}</div>
+            ${r.excerpt ? `<div class="muted small">${esc(r.excerpt)}</div>` : ''}
+            <div class="muted tiny">${esc([r.byline, r.tag, r.date ? F.arabicDate(r.date) : null].filter(Boolean).join(' · '))}</div>
+          </div>
+        </a>`).join('')}</div>
+    </div>`, cancelled);
   run();
-  return actions(el, { topic: (t) => { topic = t.dataset.k; run(); }, retry: run });
+  return actions(el, { retry: run });
+}
+
+const fmt1 = (v) => (v == null ? '—' : (Math.round(v * 10) / 10).toString());
+const clockOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' }) : '');
+
+async function stations(el, ctx, cancelled) {
+  el.innerHTML = `<div class="page">${header('محطات الطقس', 'قراءات مباشرة من محطات رصد طقس الوطن', {
+    back: true, actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>`,
+  })}<div id="slot"></div></div>`;
+  const slot = el.querySelector('#slot');
+  const card = (s) => {
+    const n = s.now;
+    if (s.kind === 'weathercloud') {
+      return `<article class="card station">
+        <div class="row"><h2 class="grow">${esc(s.name)}</h2></div>
+        <a class="wc-sticker" href="${esc(s.page)}" target="_blank" rel="noopener noreferrer"><img src="${esc(s.sticker)}" alt="قراءات ${esc(s.name)}" loading="lazy" referrerpolicy="no-referrer"></a>
+        <div class="source">عبر Weathercloud · <a href="${esc(s.page)}" target="_blank" rel="noopener noreferrer">صفحة المحطة</a></div>
+      </article>`;
+    }
+    if (!n) {
+      return `<article class="card station"><h2>${esc(s.name)}</h2><div class="muted small">تعذّر جلب قراءات المحطة الآن.</div>
+        <a class="small" href="${esc(s.page)}" target="_blank" rel="noopener noreferrer">فتح صفحة المحطة</a></article>`;
+    }
+    const u = n.units;
+    const old = n.updated && Date.now() - Date.parse(n.updated) > 3 * 3600000;
+    return `<article class="card station${old ? ' old' : ''}">
+      <div class="row"><h2 class="grow">${esc(s.name)}</h2><span class="muted tiny">${n.updated ? esc(F.ago(Date.parse(n.updated))) : ''}</span></div>
+      <div class="row st-now">
+        <div class="st-temp num">${fmt1(n.temp)}${esc(u.temp)}</div>
+        <div class="muted small">الإحساس ${fmt1(n.feelsLike)}°<br>العظمى ${fmt1(n.high)}° <span class="tiny">${clockOf(n.highAt)}</span> · الصغرى ${fmt1(n.low)}° <span class="tiny">${clockOf(n.lowAt)}</span></div>
+      </div>
+      <div class="grid2 st-grid">
+        <div class="tile"><div class="label">الرطوبة</div><div class="value num">${fmt1(n.humidity)}%</div></div>
+        <div class="tile"><div class="label">الرياح</div><div class="value">${fmt1(n.wind)} <span class="small">${esc(u.wind)}</span> ${n.windDir != null ? esc(F.windDir(n.windDir)) : ''}</div><div class="tiny muted">هبّات حتى ${fmt1(n.gust)}</div></div>
+        <div class="tile"><div class="label">المطر اليوم / الموسم</div><div class="value num">${fmt1(n.rain)} / ${fmt1(n.seasonalRain)} <span class="small">${esc(u.rain)}</span></div></div>
+        <div class="tile"><div class="label">الضغط الجوي</div><div class="value num">${fmt1(n.pressure)} <span class="small">${esc(u.pressure)}</span></div>${n.pressureTrend ? `<div class="tiny muted">${esc(n.pressureTrend)}</div>` : ''}</div>
+      </div>
+      ${old ? '<div class="banner">آخر قراءة قديمة — قد تكون المحطة متوقفة.</div>' : ''}
+      <div class="source">عبر WeatherLink · <a href="${esc(s.page)}" target="_blank" rel="noopener noreferrer">صفحة المحطة الكاملة</a></div>
+    </article>`;
+  };
+  const run = () => load(slot, '/api/stations', (list) => `<div class="page" style="max-width:none;gap:12px">
+      <div class="row"><span class="grow muted small">تتحدّث القراءات كل بضع دقائق</span>${watanBadge('https://www.p-weather.ps/ar/page.php?page_id=9')}</div>
+      <div class="stations">${list.length ? list.map(card).join('') : '<div class="empty">لا توجد محطات الآن</div>'}</div>
+    </div>`, cancelled);
+  run();
+  const timer = setInterval(() => { if (!cancelled()) run(); }, 5 * 60000);
+  const off = actions(el, { retry: run });
+  return () => { clearInterval(timer); off(); };
 }
 
 // ---------------------------------------------------------------- roads
@@ -711,7 +784,7 @@ function about(el) {
     ['الزلازل', 'USGS — earthquake.usgs.gov'],
     ['أوقات الصلاة', 'Aladhan — aladhan.com'],
     ['أسعار العملات', 'ExchangeRate-API — open.er-api.com'],
-    ['الأخبار', 'Google News RSS'],
+    ['النشرة التفصيلية والتقارير اليومية ومحطات الرصد', 'طقس الوطن — p-weather.ps (المحطات عبر WeatherLink وWeathercloud)'],
     ['أحوال الطرق والحواجز', 'مجموعات تلغرام العامة: ahwalaltreq و a7walstreet و road_jehad (أخبار يرسلها الناس)'],
     ['حدود الخريطة', 'Natural Earth (ملكية عامة)'],
   ];
@@ -729,7 +802,8 @@ export const views = {
   '/more': more,
   '/prayer': prayer,
   '/alerts': alerts,
-  '/news': news,
+  '/reports': reports,
+  '/stations': stations,
   '/roads': roads,
   '/currency': currency,
   '/about': about,

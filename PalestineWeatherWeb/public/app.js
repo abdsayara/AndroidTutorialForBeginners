@@ -16,7 +16,8 @@ const MORE = [
   { path: '/hourly', label: 'تفاصيل اليوم', icon: 'clock' },
   { path: '/prayer', label: 'أوقات الصلاة', icon: 'moon' },
   { path: '/alerts', label: 'التنبيهات السابقة', icon: 'bell' },
-  { path: '/news', label: 'أخبار الطقس والمناخ', icon: 'news' },
+  { path: '/reports', label: 'التقارير اليومية', icon: 'news' },
+  { path: '/stations', label: 'محطات الطقس', icon: 'thermo' },
   { path: '/currency', label: 'أسعار العملات', icon: 'coins' },
   { path: '/about', label: 'حول الموقع', icon: 'compass' },
 ];

@@ -9,6 +9,7 @@ import { AlertStore, startAlertJob } from './alerts.js';
 import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
 import * as R from './roads.js';
+import * as W from './watan.js';
 import { telegramConfigured, readChats } from './telegram.js';
 import { demoFetch } from './demo.js';
 
@@ -89,6 +90,33 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     },
 
     '/api/alerts': async () => ({ data: await alerts.list() }),
+
+    // «طقس الوطن» (p-weather.ps): detailed bulletin, daily reports and its weather stations.
+    '/api/bulletin': async () => {
+      const r = await cache.get('watan_bulletin', 1800, async () => W.parseBulletin(await cache.text(W.BULLETIN_URL)));
+      return { ...r, cdnSeconds: 900 };
+    },
+
+    '/api/reports': async () => {
+      const r = await cache.get('watan_reports', 3600, async () => W.parseReports(await cache.text(W.REPORTS_URL)));
+      return { ...r, cdnSeconds: 1800 };
+    },
+
+    '/api/stations': async () => {
+      const r = await cache.get('watan_stations', 300, async () => {
+        // The list of stations changes rarely; their readings every few minutes.
+        const list = (await cache.get('watan_station_list', 86400, async () => W.parseStations(await cache.text(W.STATIONS_URL)))).data;
+        return Promise.all(list.map(async (s) => {
+          if (s.kind !== 'weatherlink') return s;
+          try {
+            return { ...s, now: W.parseWeatherlink(await cache.json(W.weatherlinkUrl(s.id))) };
+          } catch (err) {
+            return { ...s, now: null, error: err.message };
+          }
+        }));
+      });
+      return { ...r, cdnSeconds: 120 };
+    },
 
     // Checkpoints and roads from public Telegram channels; posts arrive every few minutes.
     '/api/roads': async () => {

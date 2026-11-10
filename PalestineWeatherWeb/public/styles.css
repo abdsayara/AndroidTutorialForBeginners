@@ -355,3 +355,32 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
 
 /* Roads page parts hidden while no source is linked. */
 .search[hidden], .card[hidden], h2[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- طقس الوطن */
+
+.src-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; background: var(--ground); border-radius: 14px; padding: 3px 10px 3px 8px; white-space: nowrap; }
+.src-badge:hover { color: var(--ink); }
+.src-badge img { display: block; }
+
+.bulletin { gap: 8px; }
+.bulletin .b-label { font-weight: 700; font-size: 14px; color: var(--green-dark); }
+.bulletin p { margin: 2px 0 0; line-height: 1.9; }
+.bulletin details { border-top: 1px solid var(--line); padding-top: 8px; }
+.bulletin summary { cursor: pointer; font-weight: 600; color: var(--green); min-height: 32px; }
+.bulletin details .b-day + .b-day { margin-top: 10px; }
+
+.reports { display: grid; gap: 10px; }
+@media (min-width: 900px) { .reports { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.report { display: flex; gap: 12px; background: var(--card); border-radius: var(--r-md); padding: 10px; text-decoration: none; color: var(--ink); }
+.report:hover { box-shadow: 0 0 0 1px var(--border); }
+.report img { width: 104px; height: 78px; object-fit: cover; border-radius: 10px; flex-shrink: 0; background: var(--line); }
+.report-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.report .title { font-weight: 600; line-height: 1.6; }
+
+.stations { display: grid; gap: 12px; }
+@media (min-width: 900px) { .stations { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.station.old { opacity: 0.8; }
+.st-now { align-items: center; }
+.st-temp { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1.1; }
+.st-grid .value { font-size: 16px; }
+.wc-sticker img { display: block; max-width: 100%; height: auto; margin-inline: auto; border-radius: var(--r-sm); }

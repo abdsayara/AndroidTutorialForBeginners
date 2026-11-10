@@ -163,6 +163,27 @@ export function demoFetch(now = () => new Date()) {
         .map((t, i) => `<item><title>${t} - مصدر تجريبي</title><link>https://example.com/news/${i}</link><pubDate>${new Date(n.getTime() - (i + 1) * 3600000).toUTCString()}</pubDate><source url="https://example.com">مصدر تجريبي</source></item>`);
       return new Response(`<?xml version="1.0"?><rss><channel>${items.join('')}</channel></rss>`, { headers: { 'Content-Type': 'application/rss+xml' } });
     }
+    if (url.host === 'www.p-weather.ps') {
+      // «طقس الوطن»: same markup as the real pages, made-up text.
+      const html = (body) => new Response(`<html><body>${body}</body></html>`, { headers: { 'Content-Type': 'text/html' } });
+      const day = (i) => { const d = new Date(n.getTime() + i * 86400000); return `${['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][d.getUTCDay()]} ${d.getUTCDate()}\\${d.getUTCMonth() + 1}\\${d.getUTCFullYear()}`; };
+      if (url.pathname.endsWith('index.php')) {
+        const lines = ['نصّ تجريبي: يكون الطقس صافياً ولطيفاً نهاراً وبارداً ليلاً، والرياح شرقية خفيفة.', 'نصّ تجريبي: تظهر سحب متفرقة ولا يطرأ تغير يذكر على درجات الحرارة.', 'نصّ تجريبي: ارتفاع طفيف على درجات الحرارة ويكون الطقس دافئاً في المناطق المنخفضة.'];
+        return html(`<!-- النشرة التفصيلية --><h2 class="section-title">النشرة التفصيلية</h2><div class="news-details"><blockquote><p>${lines.map((t, i) => `<strong>${day(i)}:</strong> ${t}`).join('<br />\n')}</p></blockquote></div><!-- نهاية النشرة التفصيلية -->`);
+      }
+      if (url.pathname.endsWith('article.php')) {
+        const item = (id, title, by, ex, tag, daysAgo) => `<div class="col-md-6"><div class="photo"><div class="photo-preview photo-detail"><amp-img alt="" src="../photo/article/demo${id}.png"></amp-img></div><div class="photo-details"><h3 class="photo-title"><a href="./article.php?article_id=${id}">${title}</a></h3><div class="body-article"><p><strong>${by}:&nbsp;<br />${ex}<a href="./article.php?article_id=${id}"> قراءة المزيد ...</a></div><p><a href="#" class="tags-article-page">#${tag}</a></p><div><span class="date"> ${new Date(n.getTime() - daysAgo * 86400000).toISOString().slice(0, 10)}</span></div></div></div></div>`;
+        return html(`<div class="row article-all">${item(9003, 'تقرير تجريبي: كميات الأمطار في المنخفض الأخير', 'قسم المعلومات المناخية - مثال', 'نصّ تجريبي لملخّص التقرير يذكر كميات الأمطار المسجلة في عدد من المدن', 'تقارير_مناخية', 1)}${item(9002, 'تقرير تجريبي: موسم الصيف بين الأرقام', 'كاتب تجريبي - مثال', 'نصّ تجريبي لملخّص تقرير عن درجات الحرارة خلال الصيف الماضي ومقارنتها بالمعدلات', 'تقارير_مناخية', 30)}</div><div class="row article-all">${item(9001, 'تقرير تجريبي: الإنذار المبكر والعواصف', 'كاتب تجريبي - مثال', 'نصّ تجريبي عن الإنذار المبكر وكيف تُرصد العواصف الرعدية في المنطقة', 'الإنذار_المبكر', 60)}</div>`);
+      }
+      return html(`<p><strong>محطة تجريبية - شمال الخليل</strong></p><p><iframe src="https://www.weatherlink.com/embeddablePage/show/00000000000000000000000000000001/fullscreen"></iframe></p><p><strong>محطة تجريبية - القدس</strong></p><p><iframe src="https://www.weatherlink.com/embeddablePage/show/00000000000000000000000000000002/fullscreen"></iframe></p><p><strong>محطة تجريبية - الخليل</strong></p><p><a href="https://app.weathercloud.net/d1234567890"><img src="https://app.weathercloud.net/device/sticker/1234567890"></a></p>`);
+    }
+    if (url.host === 'www.weatherlink.com') {
+      const k = url.pathname.endsWith('1') ? 0 : 1.5;
+      const t = n.getTime();
+      return json({ temperature: String(17.6 - k), temperatureFeelLike: String(16.3 - k), hiTemp: '18.7', hiTempDate: t - 3 * 3600000, loTemp: String(8.8 - k), loTempDate: t - 10 * 3600000,
+        wind: '6.4', gust: '22.5', windDirection: 291, humidity: '45.0', rain: '0.0', seasonalRain: '38.2', barometer: '1021.9', barometerTrend: 'Falling Slowly',
+        tempUnits: '&deg;C', windUnits: 'km/h', rainUnits: 'mm', barometerUnits: 'mb', lastReceived: t - 4 * 60000 });
+    }
     if (url.host === 't.me') {
       // Mimics the public channel preview at t.me/s/<channel>: newest posts last.
       const channel = url.pathname.split('/').pop();
