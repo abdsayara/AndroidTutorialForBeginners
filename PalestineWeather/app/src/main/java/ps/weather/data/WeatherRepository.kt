@@ -39,12 +39,21 @@ data class DayPoint(
     val sunset: LocalDateTime?,
 )
 
+/** Rain in one 15-minute step (mm). */
+data class MinutePoint(val time: LocalDateTime, val precip: Double)
+
 data class Forecast(
     val current: CurrentWeather,
     val hours: List<HourPoint>,
     val days: List<DayPoint>,
     /** Metres above sea level (negative below it), from Open-Meteo's 90 m terrain model. */
     val elevation: Double? = null,
+    /** The next 3 hours in 15-minute steps, for the rain nowcast. */
+    val minutely: List<MinutePoint> = emptyList(),
+    /** Yesterday's high, to say whether today is warmer or colder. */
+    val yesterdayMax: Double? = null,
+    /** The time of the current reading (local). */
+    val currentTime: LocalDateTime? = null,
 ) {
     /** Index of the current hour in [hours]. */
     val nowIndex: Int
@@ -78,8 +87,10 @@ object WeatherRepository {
             "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m" +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,is_day" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset" +
+            // Rain every 15 minutes for the next 3 hours (the nowcast), and yesterday for comparison.
+            "&minutely_15=precipitation&forecast_minutely_15=12&past_minutely_15=0&past_days=1" +
             "&timezone=auto&forecast_days=7"
-        return Http.get(url, "forecast_${lat}_$lon").map { parseForecast(JSONObject(it)) }
+        return Http.get(url, "forecast2_${lat}_$lon").map { parseForecast(JSONObject(it)) }
     }
 
     /** European AQI, or null when unavailable. */
@@ -201,7 +212,24 @@ object WeatherRepository {
                 sunset = dSet.getOrNull(i)?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() },
             )
         }
-        return Forecast(current, hours, days, o.optDouble("elevation").takeIf { !it.isNaN() })
+        // past_days=1 adds yesterday: keep its high for the summary, not in the lists.
+        val currentTime = runCatching { LocalDateTime.parse(c.optString("time")) }.getOrNull()
+        val today = currentTime?.toLocalDate() ?: LocalDate.now()
+        val m = o.optJSONObject("minutely_15")
+        val minutely = if (m == null) emptyList() else {
+            val mTimes = m.getJSONArray("time").strings()
+            val mPrecip = m.getJSONArray("precipitation").doubles()
+            mTimes.indices.map { i -> MinutePoint(LocalDateTime.parse(mTimes[i]), (mPrecip.getOrNull(i) ?: 0.0).orZero()) }
+        }
+        return Forecast(
+            current,
+            hours.filter { !it.time.toLocalDate().isBefore(today) },
+            days.filter { !it.date.isBefore(today) },
+            o.optDouble("elevation").takeIf { !it.isNaN() },
+            minutely,
+            days.lastOrNull { it.date.isBefore(today) }?.max,
+            currentTime,
+        )
     }
 
     /** Open-Meteo returns an object for one location and an array for several. */

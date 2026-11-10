@@ -4,6 +4,7 @@ import * as F from './format.js';
 import { esc } from './format.js';
 import { icon, starFilled, weatherIcon } from './icons.js';
 import { OUTER, REGION_LINES, LAKES } from './shape.js';
+import { rainNowcast, summarize, skyKind } from './insights.js';
 
 // ---------------------------------------------------------------- helpers
 
@@ -83,8 +84,19 @@ function homeBody(fc, aqi) {
       <span class="bold">${F.deg(d.max)}</span>
     </div>`).join('');
 
+  const nowIso = c.time;
+  const nc = rainNowcast(fc.minutely, nowIso);
+  const peak = nc ? Math.max(1, ...nc.steps.map((s) => s.precip)) : 1;
+  const nowcast = nc ? `
+    <section class="card nowcast ${nc.kind}" aria-label="المطر خلال الساعتين القادمتين">
+      <div class="row">${icon('drop', 20)}<strong class="grow">${esc(nc.text)}</strong></div>
+      <div class="nc-bars" aria-hidden="true">${nc.steps.map((s) => `<span style="height:${Math.max(6, Math.round((s.precip / peak) * 100))}%" class="${s.precip >= 0.1 ? 'wet' : ''}"></span>`).join('')}</div>
+      <div class="row tiny muted"><span class="grow">الآن</span><span>بعد ساعتين</span></div>
+    </section>` : '';
+
   return `
-    <section class="hero" aria-label="الطقس الآن">
+    <section class="hero" data-sky="${skyKind(fc, nowIso)}" aria-label="الطقس الآن">
+      <div class="sky" aria-hidden="true"></div>
       <div class="row">
         <div class="grow">
           <div class="temp">${F.deg(c.temp)}</div>
@@ -97,7 +109,9 @@ function homeBody(fc, aqi) {
         <div class="chip">${icon('drop', 16)} مطر ${fc.hours[nowIdx]?.precipProb ?? 0}%</div>
         <div class="chip">${icon('wind', 16)} ${F.round(c.wind)} كم/س ${F.windDir(c.windDir)}</div>
       </div>
+      <p class="hero-summary">${esc(summarize(fc, nowIso))}</p>
     </section>
+${nowcast}
 
     <section aria-labelledby="h-hours">
       <div class="row"><h2 id="h-hours" class="grow">الساعات القادمة</h2><a class="link-btn" href="/hourly" data-link>التفاصيل</a></div>

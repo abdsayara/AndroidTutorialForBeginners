@@ -12,6 +12,8 @@ export function forecastUrl(lat, lon) {
     '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m' +
     '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,is_day' +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset' +
+    // Rain every 15 minutes for the next 3 hours (the nowcast), and yesterday for comparison.
+    '&minutely_15=precipitation&forecast_minutely_15=12&past_minutely_15=0&past_days=1' +
     '&timezone=auto&forecast_days=7';
 }
 
@@ -21,6 +23,22 @@ export function parseForecast(o) {
   const c = o.current ?? {};
   const h = o.hourly ?? {};
   const d = o.daily ?? {};
+  const m = o.minutely_15 ?? {};
+  // past_days=1 adds yesterday: keep its high and low for comparison, not in the lists.
+  const today = (c.time ?? '').slice(0, 10);
+  const isPast = (t) => today && String(t).slice(0, 10) < today;
+  const out = parseForecastLists(o, c, h, d);
+  const past = out.days.filter((x) => isPast(x.date));
+  return {
+    ...out,
+    days: out.days.filter((x) => !isPast(x.date)),
+    hours: out.hours.filter((x) => !isPast(x.time)),
+    yesterday: past.length ? { max: past.at(-1).max, min: past.at(-1).min } : null,
+    minutely: (m.time ?? []).map((t, i) => ({ time: t, precip: num(m.precipitation?.[i]) ?? 0 })),
+  };
+}
+
+function parseForecastLists(o, c, h, d) {
   return {
     // Metres above sea level (negative below it), from Open-Meteo's 90 m terrain model.
     elevation: num(o.elevation),

@@ -2,6 +2,7 @@ package ps.weather.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +39,11 @@ import androidx.compose.ui.unit.sp
 import ps.weather.R
 import ps.weather.data.City
 import ps.weather.data.Forecast
+import ps.weather.data.Nowcast
+import ps.weather.data.Sky
+import ps.weather.data.rainNowcast
+import ps.weather.data.skyKind
+import ps.weather.data.summarize
 import ps.weather.data.PlaceKind
 import ps.weather.data.WeatherRepository
 import ps.weather.ui.aqiText
@@ -59,6 +65,7 @@ import ps.weather.ui.uvText
 import ps.weather.ui.weatherText
 import ps.weather.ui.windDirectionName
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 @Composable
@@ -110,10 +117,21 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
     val now = fc.nowIndex
     val today = fc.days.firstOrNull()
     val c = fc.current
+    // The hero's colour follows the sky; every one keeps white text readable.
+    val heroColor = when (skyKind(fc)) {
+        Sky.DAY -> Pw.Brand
+        Sky.NIGHT -> Color(0xFF16304F)
+        Sky.DUSK -> Color(0xFFA44F27)
+        Sky.CLOUDY -> Color(0xFF4A6476)
+        Sky.FOG -> Color(0xFF5E707B)
+        Sky.RAIN -> Color(0xFF2E4A60)
+        Sky.STORM -> Color(0xFF213042)
+        Sky.SNOW -> Color(0xFF4B6E8C)
+    }
 
     // Hero
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Pw.Brand).padding(22.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(heroColor).padding(22.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -131,7 +149,11 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
             HeroChip(PwIcons.Drop, "مطر ${fc.hours.getOrNull(now)?.precipProb ?: 0}%", Modifier.weight(1f))
             HeroChip(PwIcons.Wind, "${c.windSpeed.roundToInt()} كم/س ${windDirectionName(c.windDirection)}", Modifier.weight(1f))
         }
+        HorizontalDivider(color = Color.White.copy(alpha = 0.22f))
+        Text(summarize(fc), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Color.White, lineHeight = 24.sp)
     }
+
+    rainNowcast(fc.minutely, fc.currentTime ?: LocalDateTime.now())?.let { NowcastCard(it) }
 
     // Next hours
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -195,6 +217,36 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
                 }
                 Text(deg(d.max), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
+        }
+    }
+}
+
+/** Rain in the next two hours: one sentence and eight 15-minute bars. */
+@Composable
+private fun NowcastCard(nc: Nowcast) {
+    val peak = maxOf(1.0, nc.steps.maxOf { it.precip })
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color(0xFFF3F8FC))
+            .border(1.dp, Color(0xFFCFE2F1), RoundedCornerShape(20.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(PwIcons.Drop, null, tint = Pw.Brand, modifier = Modifier.size(20.dp))
+            Text(nc.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Row(Modifier.fillMaxWidth().height(44.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
+            nc.steps.forEach { s ->
+                val wet = s.precip >= 0.1
+                Box(
+                    Modifier.weight(1f).fillMaxHeight(maxOf(0.06f, (s.precip / peak).toFloat()))
+                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
+                        .background(if (wet) Pw.Brand else Color(0xFFD8E3EA)),
+                )
+            }
+        }
+        Row {
+            Text("الآن", fontSize = 12.sp, color = Pw.Muted, modifier = Modifier.weight(1f))
+            Text("بعد ساعتين", fontSize = 12.sp, color = Pw.Muted)
         }
     }
 }

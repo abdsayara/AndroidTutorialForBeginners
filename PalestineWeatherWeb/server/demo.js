@@ -59,8 +59,17 @@ function forecastFor(lat, lon, now) {
     daily.sunset.push(`${date}T17:31`);
   }
   const ci = local.getUTCHours();
+  // Yesterday (past_days=1): a little warmer, so the summary has a change to report.
+  const yesterday = isoDay(new Date(start.getTime() - 86400000));
+  for (const [k, v] of Object.entries({ time: yesterday, temperature_2m_max: daily.temperature_2m_max[0] + 4, temperature_2m_min: daily.temperature_2m_min[0] + 2 })) daily[k].unshift(v);
+  for (const k of Object.keys(daily)) if (daily[k].length === 7) daily[k].unshift(daily[k][0]);
+  // The next 3 hours in 15-minute steps: a short shower starting in about half an hour.
+  const q = new Date(Math.floor(local.getTime() / 900000) * 900000);
+  const shower = [0, 0, 0.3, 0.9, 0.4, 0, 0, 0, 0, 0, 0, 0];
+  const minutely_15 = { time: shower.map((_, i) => isoHour(new Date(q.getTime() + i * 900000)).slice(0, 14) + String(new Date(q.getTime() + i * 900000).getUTCMinutes()).padStart(2, '0')), precipitation: shower };
   return {
     utc_offset_seconds: OFFSET / 1000,
+    minutely_15,
     elevation: demoElevation(lat, lon),
     current: {
       time: isoHour(local), temperature_2m: hourly.temperature_2m[ci], relative_humidity_2m: 45,
