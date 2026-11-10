@@ -77,6 +77,9 @@ data class GridData(
     val cloud: List<DoubleArray>,
     val cape: List<DoubleArray>,
     val nowIndex: Int,
+    /** Wind speed (km/h) and the direction it comes from (degrees), [point][hour]. */
+    val wind: List<DoubleArray> = emptyList(),
+    val windDir: List<DoubleArray> = emptyList(),
 )
 
 /** Weather from Open-Meteo (https://open-meteo.com) — free, no API key. */
@@ -104,7 +107,7 @@ object WeatherRepository {
         val now = runCatching { LocalDateTime.parse(c.optString("time")) }.getOrNull()
         val h = o.optJSONObject("hourly")
         val times = h?.getJSONArray("time")?.strings().orEmpty()
-        val dust = h?.getJSONArray("dust")?.doubles().orEmpty()
+        val dust = h?.getJSONArray("dust")?.doubles() ?: DoubleArray(0)
         val hourNow = now?.withMinute(0)
         val next = times.indices
             .map { LocalDateTime.parse(times[it]) to dust.getOrNull(it) }
@@ -157,23 +160,28 @@ object WeatherRepository {
             lat += 0.25
         }
         val url = "$FORECAST?latitude=${lats.joinToString(",")}&longitude=${lons.joinToString(",")}" +
-            "&hourly=precipitation,cloud_cover,cape&past_hours=3&forecast_hours=7&timezone=auto"
-        return Http.get(url, "grid").map { body ->
+            // Six hours back and twelve ahead for the timeline; wind for the moving streaks.
+            "&hourly=precipitation,cloud_cover,cape,wind_speed_10m,wind_direction_10m&past_hours=6&forecast_hours=13&timezone=auto"
+        return Http.get(url, "grid2").map { body ->
             val arr = asArray(body)
             var times = emptyList<LocalDateTime>()
             val precip = ArrayList<DoubleArray>()
             val cloud = ArrayList<DoubleArray>()
             val cape = ArrayList<DoubleArray>()
+            val wind = ArrayList<DoubleArray>()
+            val windDir = ArrayList<DoubleArray>()
             for (i in 0 until arr.length()) {
                 val h = arr.getJSONObject(i).getJSONObject("hourly")
                 if (i == 0) times = h.getJSONArray("time").strings().map(LocalDateTime::parse)
                 precip += h.getJSONArray("precipitation").doubles()
                 cloud += h.getJSONArray("cloud_cover").doubles()
                 cape += h.getJSONArray("cape").doubles()
+                wind += h.optJSONArray("wind_speed_10m")?.doubles() ?: DoubleArray(0)
+                windDir += h.optJSONArray("wind_direction_10m")?.doubles() ?: DoubleArray(0)
             }
             val now = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
             val nowIndex = times.indexOfFirst { !it.isBefore(now) }.let { if (it < 0) times.size - 1 else it }
-            GridData(lats.toDoubleArray(), lons.toDoubleArray(), times, precip, cloud, cape, nowIndex)
+            GridData(lats.toDoubleArray(), lons.toDoubleArray(), times, precip, cloud, cape, nowIndex, wind, windDir)
         }
     }
 

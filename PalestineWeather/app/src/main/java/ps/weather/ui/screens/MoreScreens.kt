@@ -94,7 +94,7 @@ fun MoreScreen(onOpen: (Sub) -> Unit) {
         // Credits these data licences require (CC BY 4.0, ODbL, ExchangeRate-API's terms).
         item {
             Text(
-                "بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى والخرائط © OpenStreetMap · العملات ExchangeRate-API",
+                "بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API",
                 fontSize = 11.sp, color = Pw.Muted,
             )
         }

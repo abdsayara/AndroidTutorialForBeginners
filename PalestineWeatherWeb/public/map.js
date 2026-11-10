@@ -105,7 +105,17 @@ export function mountMap(el, ctx, cancelled) {
     }
     return placesCache;
   };
-  const frameIdx = () => (!st.grid ? 0 : st.frame < 0 || st.frame >= st.grid.times.length ? st.grid.nowIndex : st.frame);
+  // The frame can be fractional while the timeline plays: values blend between hours.
+  const frameIdx = () => (!st.grid ? 0 : st.frame < 0 || st.frame > st.grid.times.length - 1 ? st.grid.nowIndex : st.frame);
+  const at = (arr, f) => {
+    if (!arr) return null;
+    const i = Math.floor(f);
+    const a = arr[i];
+    const b = arr[Math.min(i + 1, arr.length - 1)];
+    if (a == null || b == null) return a ?? b ?? null;
+    return a + (b - a) * (f - i);
+  };
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------------------------------------------------------------- drawing
 
@@ -152,9 +162,9 @@ export function mountMap(el, ctx, cancelled) {
       const r = 14 * scale();
       st.grid.points.forEach(([lat, lon], i) => {
         let c;
-        if (st.layer === 'rain') c = rainColor(st.grid.precip[i]?.[f]);
-        else if (st.layer === 'storms') c = capeColor(st.grid.cape[i]?.[f]);
-        else { const v = st.grid.cloud[i]?.[f]; c = v == null || v < 3 ? null : ['255,255,255', (v / 100) * 0.8]; }
+        if (st.layer === 'rain') c = rainColor(at(st.grid.precip[i], f));
+        else if (st.layer === 'storms') c = capeColor(at(st.grid.cape[i], f));
+        else { const v = at(st.grid.cloud[i], f); c = v == null || v < 3 ? null : ['255,255,255', (v / 100) * 0.8]; }
         if (!c) return;
         const [x, y] = toScreen(proj(lat, lon));
         const grad = g.createRadialGradient(x, y, 0, x, y, r);
@@ -218,7 +228,7 @@ export function mountMap(el, ctx, cancelled) {
         g.font = '700 12px "IBM Plex Sans Arabic", sans-serif';
         const w = Math.max(g.measureText(text).width + 14, 34);
         g.fillStyle = bg; g.beginPath(); g.roundRect(x - w / 2, y - 12, w, 24, 12); g.fill();
-        g.lineWidth = 2; g.strokeStyle = c.id === st.sel ? '#146B45' : 'rgba(18,36,27,0.15)'; g.stroke();
+        g.lineWidth = 2; g.strokeStyle = c.id === st.sel ? '#1F74B0' : 'rgba(18,36,27,0.15)'; g.stroke();
         g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, x, y + 1);
         label(c.name, x, y + 22);
       } else {
@@ -240,7 +250,7 @@ export function mountMap(el, ctx, cancelled) {
     }
     if (st.place && st.place.kind !== 'gps') {
       const [x, y] = toScreen(proj(st.place.lat, st.place.lon));
-      g.fillStyle = '#146B45';
+      g.fillStyle = '#1F74B0';
       g.beginPath(); g.arc(x, y - 16, 9, Math.PI * 0.85, Math.PI * 0.15); g.lineTo(x, y); g.closePath(); g.fill();
       g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y - 16, 3.5, 0, Math.PI * 2); g.fill();
       label(st.place.name, x, y + 12, { font: '700 12px "IBM Plex Sans Arabic", sans-serif', h: 18 });
@@ -314,7 +324,8 @@ export function mountMap(el, ctx, cancelled) {
       const gd = st.grid;
       if (!gd) { p.innerHTML = `<section class="card"><div class="muted small">${st.loading.gridError ? 'تعذّر تحميل بيانات الشبكة' : 'جارٍ التحميل…'}</div></section>`; return; }
       const f = frameIdx();
-      const hours = (t) => Math.round((Date.parse(t) - Date.parse(gd.times[gd.nowIndex])) / 3600000);
+      const last = gd.times.length - 1;
+      const pct = (i) => (i / last) * 100;
       const note = {
         rain: 'الأمطار (ملم/ساعة) · ما قبل «الآن» تقدير نموذجي وما بعده توقع',
         clouds: 'نسبة الغيوم من نموذج الطقس',
@@ -322,18 +333,120 @@ export function mountMap(el, ctx, cancelled) {
       }[st.layer];
       p.innerHTML = `<section class="card">
         <div class="row">
-          <button class="icon-btn primary" data-action="play" aria-label="${st.playing ? 'إيقاف' : 'تشغيل'}">${icon(st.playing ? 'pause' : 'play')}</button>
-          <div class="frames">${gd.times.map((t, i) => {
-            const d = hours(t);
-            return `<button data-action="frame" data-i="${i}" class="${d > 0 ? 'future' : ''}" aria-pressed="${i === f}">${d === 0 ? 'الآن' : d > 0 ? `بعد ${d}س` : `قبل ${-d}س`}</button>`;
-          }).join('')}</div>
+          <button class="icon-btn primary" data-action="play" id="play" aria-label="${st.playing ? 'إيقاف' : 'تشغيل'}">${icon(st.playing ? 'pause' : 'play')}</button>
+          <div class="timeline grow">
+            <div class="tl-label" id="tl-label" aria-live="off">${esc(timeLabel(f))}</div>
+            <input type="range" id="tl" min="0" max="${last}" step="0.01" value="${f}" aria-label="الوقت" aria-valuetext="${esc(timeLabel(f))}">
+            <div class="tl-ticks" aria-hidden="true">
+              <span style="inset-inline-start:0">قبل ${gd.nowIndex}س</span>
+              <span class="now" style="inset-inline-start:${pct(gd.nowIndex)}%">الآن</span>
+              <span style="inset-inline-end:0">بعد ${last - gd.nowIndex}س</span>
+            </div>
+          </div>
         </div>
-        <div class="muted tiny">${note} — ${esc(F.clock(gd.times[f]))}</div>
+        <div class="muted tiny">${note}</div>
       </section>`;
     }
   }
 
-  const refresh = () => { chrome(); draw(); };
+  /** "الآن", "بعد 3 س · 5:00", "قبل 2 س · 1:00" for a (fractional) frame. */
+  function timeLabel(f) {
+    const gd = st.grid;
+    const d = Math.round(f - gd.nowIndex);
+    const t = gd.times[Math.round(f)] ?? gd.times[gd.nowIndex];
+    return d === 0 ? `الآن · ${F.clock(t)}` : `${d > 0 ? 'بعد' : 'قبل'} ${Math.abs(d)} س · ${F.clock(t)}`;
+  }
+  function syncTimeline() {
+    const tl = $('#tl');
+    if (!tl || !st.grid) return;
+    const f = frameIdx();
+    tl.value = f;
+    const text = timeLabel(f);
+    tl.setAttribute('aria-valuetext', text);
+    $('#tl-label').textContent = text;
+  }
+
+  // Wind streaks: short lines drifting with the wind at each point (now), redrawn with the map.
+  const wind = { parts: [], last: 0 };
+  function windAt(lat, lon) {
+    const gd = st.grid;
+    if (!gd?.wind) return null;
+    if (wind.grid !== gd) {
+      wind.grid = gd;
+      wind.lats = [...new Set(gd.points.map((p) => p[0]))].sort((a, b) => a - b);
+      wind.lons = [...new Set(gd.points.map((p) => p[1]))].sort((a, b) => a - b);
+      wind.index = new Map(gd.points.map((p, i) => [`${p[0]},${p[1]}`, i]));
+    }
+    const { lats, lons, index } = wind;
+    const cell = (arr, v) => Math.max(0, Math.min(arr.length - 2, arr.findIndex((x) => x > v) - 1));
+    const i = cell(lats, lat); const j = cell(lons, lon);
+    const ty = Math.max(0, Math.min(1, (lat - lats[i]) / (lats[i + 1] - lats[i])));
+    const tx = Math.max(0, Math.min(1, (lon - lons[j]) / (lons[j + 1] - lons[j])));
+    const f = gd.nowIndex;
+    let u = 0; let v = 0; let s = 0;
+    for (const [di, dj, w] of [[0, 0, (1 - ty) * (1 - tx)], [0, 1, (1 - ty) * tx], [1, 0, ty * (1 - tx)], [1, 1, ty * tx]]) {
+      const k = index.get(`${lats[i + di]},${lons[j + dj]}`);
+      const sp = gd.wind[k]?.[f]; const dir = gd.windDir[k]?.[f];
+      if (sp == null || dir == null) continue;
+      // Direction is where the wind comes from: it blows the other way. Screen y points south.
+      const rad = (dir * Math.PI) / 180;
+      u += -Math.sin(rad) * sp * w; v += Math.cos(rad) * sp * w; s += sp * w;
+    }
+    return { u, v, speed: s };
+  }
+  function seed(p) {
+    const s = scale();
+    p.x = st.cx + (Math.random() - 0.5) * (W / s);
+    p.y = st.cy + (Math.random() - 0.5) * (H / s);
+    p.age = 0; p.life = 1.5 + Math.random() * 2.5;
+    return p;
+  }
+  function drawWind(dt) {
+    const want = Math.round(Math.min(420, (W * H) / 1400));
+    while (wind.parts.length < want) wind.parts.push(seed({}));
+    wind.parts.length = want;
+    g.lineCap = 'round'; g.lineWidth = 1.4;
+    const s = scale();
+    for (const p of wind.parts) {
+      const w = windAt(33.4 - p.y / 92, p.x / (92 * K) + 34.1);
+      if (!w || w.speed < 1) { seed(p); continue; }
+      const pxPerSec = 6 + w.speed * 1.4;                   // screen speed grows with the wind
+      const norm = Math.hypot(w.u, w.v) || 1;
+      p.x += ((w.u / norm) * pxPerSec * dt) / s;
+      p.y += ((w.v / norm) * pxPerSec * dt) / s;
+      p.age += dt;
+      const [x, y] = toScreen([p.x, p.y]);
+      if (p.age > p.life || x < 0 || y < 0 || x > W || y > H) { seed(p); continue; }
+      const len = 6 + w.speed * 0.5;
+      const fade = Math.min(1, p.age / 0.4, (p.life - p.age) / 0.4);
+      g.strokeStyle = `rgba(31,116,176,${(0.55 * fade).toFixed(2)})`;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x - (w.u / norm) * len, y - (w.v / norm) * len); g.stroke();
+    }
+  }
+
+  // One animation loop: plays the timeline and moves the wind streaks.
+  let raf = 0;
+  function tick(ts) {
+    raf = 0;
+    if (cancelled()) return;
+    const dt = Math.min(0.1, (ts - (wind.last || ts)) / 1000);
+    wind.last = ts;
+    if (st.playing && st.grid) {
+      const last = st.grid.times.length - 1;
+      st.frame = frameIdx() + dt * 1.25;               // about 0.8 s per hour
+      if (st.frame > last) st.frame = 0;
+      syncTimeline();
+    }
+    const windOn = st.layer === 'wind' && st.grid?.wind && !reducedMotion;
+    if (st.playing || windOn) {
+      draw();
+      if (windOn) drawWind(dt);
+      raf = requestAnimationFrame(tick);
+    }
+  }
+  const animate = () => { if (!raf) { wind.last = 0; raf = requestAnimationFrame(tick); } };
+
+  const refresh = () => { chrome(); draw(); animate(); };
 
   // ---------------------------------------------------------------- data
 
@@ -474,8 +587,7 @@ export function mountMap(el, ctx, cancelled) {
 
   // ---------------------------------------------------------------- controls
 
-  let timer = null;
-  const stop = () => { clearInterval(timer); timer = null; st.playing = false; };
+  const stop = () => { st.playing = false; };
   const ac = new AbortController();
   el.addEventListener('click', (e) => {
     const t = e.target.closest('[data-action]');
@@ -504,17 +616,21 @@ export function mountMap(el, ctx, cancelled) {
         }).catch((e) => { if (!cancelled()) { st.msg = e.message; refresh(); } });
         break;
       case 'days': st.days = Number(t.dataset.d); st.quake = null; loadQuakes(); return;
-      case 'frame': stop(); st.frame = Number(t.dataset.i); break;
       case 'play':
         if (st.playing) stop();
-        else if (st.grid) {
-          st.playing = true;
-          timer = setInterval(() => { st.frame = (frameIdx() + 1) % st.grid.times.length; refresh(); }, 900);
-        }
+        else if (st.grid) st.playing = true;
         break;
       default: return;
     }
     refresh();
+  }, { signal: ac.signal });
+
+  el.addEventListener('input', (e) => {
+    if (e.target.id !== 'tl') return;
+    if (st.playing) { stop(); const b = $('#play'); b.innerHTML = icon('play'); b.setAttribute('aria-label', 'تشغيل'); }
+    st.frame = Number(e.target.value);
+    syncTimeline();
+    draw();
   }, { signal: ac.signal });
 
   // Keyboard: arrows pan, +/- zoom (when the map has focus).
@@ -531,5 +647,5 @@ export function mountMap(el, ctx, cancelled) {
   });
 
   refresh();
-  return () => { stop(); ro.disconnect(); ac.abort(); };
+  return () => { stop(); cancelAnimationFrame(raf); ro.disconnect(); ac.abort(); };
 }

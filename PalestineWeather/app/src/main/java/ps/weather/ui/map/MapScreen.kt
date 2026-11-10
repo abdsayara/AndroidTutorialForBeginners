@@ -28,17 +28,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +54,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -95,6 +100,9 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.random.Random
 
 enum class MapLayer(val label: String) {
     TEMP("الحرارة"), WIND("الرياح"), RAIN("الأمطار"),
@@ -129,19 +137,46 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
     val grid: GridData? = (gridLoad as? Load.Ok)?.value
     val quakes: List<Quake> = (quakeLoad as? Load.Ok)?.value ?: emptyList()
 
-    var frame by remember { mutableIntStateOf(-1) }
-    val frameIdx = when {
-        grid == null -> 0
-        frame < 0 || frame >= grid.times.size -> grid.nowIndex
+    // The frame is fractional while the timeline plays: values blend between hours.
+    var frame by remember { mutableFloatStateOf(-1f) }
+    val frameIdx: Float = when {
+        grid == null -> 0f
+        frame < 0f || frame > grid.times.size - 1 -> grid.nowIndex.toFloat()
         else -> frame
     }
     var playing by remember { mutableStateOf(false) }
     LaunchedEffect(playing, grid) {
         val g = grid ?: return@LaunchedEffect
+        var last = 0L
         while (playing) {
-            delay(900)
-            val cur = if (frame < 0 || frame >= g.times.size) g.nowIndex else frame
-            frame = (cur + 1) % g.times.size
+            withFrameNanos { t ->
+                if (last != 0L) {
+                    val dt = ((t - last) / 1e9f).coerceAtMost(0.1f)
+                    val cur = if (frame < 0f || frame > g.times.size - 1) g.nowIndex.toFloat() else frame
+                    frame = (cur + dt * 1.25f).let { if (it > g.times.size - 1) 0f else it } // about 0.8 s per hour
+                }
+                last = t
+            }
+        }
+    }
+
+    // Wind streaks: short lines drifting with the wind (now), moved on every frame.
+    val context0 = LocalContext.current
+    val animationsOn = remember {
+        android.provider.Settings.Global.getFloat(context0.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+    }
+    val windOn = layer == MapLayer.WIND && grid != null && grid.wind.isNotEmpty() && animationsOn
+    val streaks = remember { ArrayList<Streak>() }
+    var windClock by remember { mutableLongStateOf(0L) }
+    var windDt by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(windOn) {
+        var last = 0L
+        while (windOn) {
+            withFrameNanos { t ->
+                windDt = if (last == 0L) 0f else ((t - last) / 1e9f).coerceAtMost(0.1f)
+                last = t
+                windClock = t
+            }
         }
     }
 
@@ -212,7 +247,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 row.forEach { l ->
                     PillButton(l.label, l == layer, Modifier.weight(1f)) {
-                        layer = l; playing = false; frame = -1
+                        layer = l; playing = false; frame = -1f
                     }
                 }
             }
@@ -273,15 +308,45 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                     val radius = 14f * scale
                     for (i in grid.lats.indices) {
                         val (color, alpha) = when (layer) {
-                            MapLayer.RAIN -> rainColor(grid.precip[i].getOrElse(frameIdx) { 0.0 })
-                            MapLayer.CLOUDS -> Color.White to (grid.cloud[i].getOrElse(frameIdx) { 0.0 } / 100.0 * 0.8).toFloat()
-                            else -> capeColor(grid.cape[i].getOrElse(frameIdx) { 0.0 })
+                            MapLayer.RAIN -> rainColor(grid.precip[i].at(frameIdx))
+                            MapLayer.CLOUDS -> Color.White to (grid.cloud[i].at(frameIdx) / 100.0 * 0.8).toFloat()
+                            else -> capeColor(grid.cape[i].at(frameIdx))
                         }
                         if (alpha.isNaN() || alpha <= 0.02f) continue
                         val c = toScreen(MapProjection.point(grid.lats[i], grid.lons[i]))
                         drawCircle(
                             Brush.radialGradient(listOf(color.copy(alpha = alpha), color.copy(alpha = alpha * 0.6f), Color.Transparent), c, radius),
                             radius, c,
+                        )
+                    }
+                }
+
+                if (windOn && grid != null) {
+                    windClock // read so each frame redraws
+                    val want = (size.width * size.height / 1400f).roundToInt().coerceAtMost(420)
+                    val seed = { s: Streak ->
+                        s.x = cx + (Random.nextFloat() - 0.5f) * size.width / scale
+                        s.y = cy + (Random.nextFloat() - 0.5f) * size.height / scale
+                        s.age = 0f; s.life = 1.5f + Random.nextFloat() * 2.5f
+                    }
+                    while (streaks.size < want) streaks += Streak().also(seed)
+                    while (streaks.size > want) streaks.removeAt(streaks.size - 1)
+                    for (s in streaks) {
+                        val w = windAt(grid, MapProjection.lat(s.y), MapProjection.lon(s.x))
+                        if (w == null || w.third < 1f) { seed(s); continue }
+                        val (u, v, speed) = w
+                        val norm = hypot(u, v).takeIf { it > 0f } ?: 1f
+                        val pxPerSec = (6f + speed * 1.4f) * density
+                        s.x += u / norm * pxPerSec * windDt / scale
+                        s.y += v / norm * pxPerSec * windDt / scale
+                        s.age += windDt
+                        val p = toScreen(Offset(s.x, s.y))
+                        if (s.age > s.life || p.x < 0 || p.y < 0 || p.x > size.width || p.y > size.height) { seed(s); continue }
+                        val len = (6f + speed * 0.5f) * density
+                        val fade = minOf(1f, s.age / 0.4f, (s.life - s.age) / 0.4f)
+                        drawLine(
+                            Pw.Brand.copy(alpha = 0.55f * fade), p, Offset(p.x - u / norm * len, p.y - v / norm * len),
+                            strokeWidth = 1.4.dp.toPx(), cap = StrokeCap.Round,
                         )
                     }
                 }
@@ -530,10 +595,10 @@ private fun CityPanel(city: City, now: CityNow?, onOpen: () -> Unit) {
 private fun TimePanel(
     layer: MapLayer,
     grid: GridData?,
-    frameIdx: Int,
+    frameIdx: Float,
     playing: Boolean,
     onPlay: () -> Unit,
-    onFrame: (Int) -> Unit,
+    onFrame: (Float) -> Unit,
 ) {
     if (grid == null) {
         Text(
@@ -542,34 +607,36 @@ private fun TimePanel(
         )
         return
     }
+    val last = grid.times.size - 1
+    val diff = (frameIdx - grid.nowIndex).roundToInt()
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             RoundIconButton(if (playing) PwIcons.Pause else PwIcons.Play, if (playing) "إيقاف" else "تشغيل", onPlay, background = Pw.Brand, tint = Color.White)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                itemsIndexed(grid.times) { i, t ->
-                    val diff = Duration.between(grid.times[grid.nowIndex], t).toHours()
-                    val label = if (diff == 0L) "الآن" else if (diff > 0) "+${diff}س" else "${diff}س"
-                    Box(
-                        Modifier.heightIn(min = 44.dp).clip(RoundedCornerShape(12.dp))
-                            .background(if (i == frameIdx) Pw.Ink else if (diff > 0) Color(0xFFEEF1EE) else Pw.Ground)
-                            .clickable(role = Role.Button) { onFrame(i) }
-                            .padding(horizontal = 10.dp, vertical = 12.dp),
-                    ) {
-                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = if (i == frameIdx) Color.White else Pw.Ink)
-                    }
+            Column(Modifier.weight(1f)) {
+                val hourAt = grid.times.getOrNull(frameIdx.roundToInt())?.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US)) ?: ""
+                Text(
+                    when { diff == 0 -> "الآن · $hourAt"; diff > 0 -> "بعد $diff س · $hourAt"; else -> "قبل ${-diff} س · $hourAt" },
+                    fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                )
+                Slider(
+                    value = frameIdx, onValueChange = onFrame, valueRange = 0f..last.toFloat(),
+                    colors = SliderDefaults.colors(thumbColor = Pw.Brand, activeTrackColor = Pw.Brand, inactiveTrackColor = Pw.Line),
+                    modifier = Modifier.semantics { contentDescription = "الوقت" },
+                )
+                Row {
+                    Text("قبل ${grid.nowIndex}س", fontSize = 11.sp, color = Pw.Muted, modifier = Modifier.weight(1f))
+                    Text("بعد ${last - grid.nowIndex}س", fontSize = 11.sp, color = Pw.Muted)
                 }
             }
         }
-        val t = grid.times.getOrNull(frameIdx)
-        val stamp = t?.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US)) ?: ""
         Text(
             when (layer) {
-                MapLayer.RAIN -> "الأمطار (ملم/ساعة) — $stamp · ما قبل «الآن» تقدير نموذجي وما بعده توقع"
-                MapLayer.CLOUDS -> "نسبة الغيوم — $stamp"
-                else -> "احتمال العواصف الرعدية (مؤشر CAPE) — $stamp · مؤشر على ملاءمة الجو للعواصف وليس رصداً مباشراً للبرق"
+                MapLayer.RAIN -> "الأمطار (ملم/ساعة) · ما قبل «الآن» تقدير نموذجي وما بعده توقع"
+                MapLayer.CLOUDS -> "نسبة الغيوم"
+                else -> "احتمال العواصف الرعدية (مؤشر CAPE) · مؤشر على ملاءمة الجو للعواصف وليس رصداً مباشراً للبرق"
             },
             fontSize = 12.sp, color = Pw.Muted,
         )
@@ -603,4 +670,44 @@ private fun QuakePanel(days: Int, quakes: List<Quake>, selected: Quake?, onDays:
             }
         }
     }
+}
+
+/** A value between two hourly frames, for a fractional frame. */
+private fun DoubleArray.at(f: Float): Double {
+    if (isEmpty()) return 0.0
+    val i = f.toInt().coerceIn(0, size - 1)
+    val a = this[i]
+    val b = this[(i + 1).coerceAtMost(size - 1)]
+    if (a.isNaN()) return if (b.isNaN()) 0.0 else b
+    if (b.isNaN()) return a
+    return a + (b - a) * (f - i)
+}
+
+/** One wind streak, in map units. */
+private class Streak(var x: Float = 0f, var y: Float = 0f, var age: Float = 0f, var life: Float = 1f)
+
+/**
+ * The wind (now) at a point, interpolated on the 0.25° grid: (east, south, speed km/h).
+ * The direction is where the wind comes from, so it blows the opposite way.
+ */
+private fun windAt(grid: GridData, lat: Double, lon: Double): Triple<Float, Float, Float>? {
+    if (grid.wind.isEmpty()) return null
+    val lat0 = grid.lats.min(); val lon0 = grid.lons.min()
+    val nLon = grid.lons.distinct().size
+    val nLat = grid.lats.size / nLon
+    val fy = ((lat - lat0) / 0.25).coerceIn(0.0, nLat - 1.0001)
+    val fx = ((lon - lon0) / 0.25).coerceIn(0.0, nLon - 1.0001)
+    val i = fy.toInt(); val j = fx.toInt()
+    val ty = fy - i; val tx = fx - j
+    val f = grid.nowIndex
+    var u = 0.0; var v = 0.0; var sp = 0.0
+    for ((di, dj, w) in listOf(Triple(0, 0, (1 - ty) * (1 - tx)), Triple(0, 1, (1 - ty) * tx), Triple(1, 0, ty * (1 - tx)), Triple(1, 1, ty * tx))) {
+        val k = (i + di) * nLon + (j + dj)
+        val speed = grid.wind.getOrNull(k)?.getOrNull(f) ?: continue
+        val dir = grid.windDir.getOrNull(k)?.getOrNull(f) ?: continue
+        if (speed.isNaN() || dir.isNaN()) continue
+        val rad = Math.toRadians(dir)
+        u += -sin(rad) * speed * w; v += cos(rad) * speed * w; sp += speed * w
+    }
+    return Triple(u.toFloat(), v.toFloat(), sp.toFloat())
 }

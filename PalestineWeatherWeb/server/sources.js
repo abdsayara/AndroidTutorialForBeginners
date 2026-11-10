@@ -137,7 +137,8 @@ export function gridPoints() {
 export function gridUrl(points = gridPoints()) {
   return `${FORECAST}?latitude=${points.map((p) => p[0]).join(',')}` +
     `&longitude=${points.map((p) => p[1]).join(',')}` +
-    '&hourly=precipitation,cloud_cover,cape&past_hours=3&forecast_hours=7&timezone=auto';
+    // Six hours back and twelve ahead for the animated timeline; wind for the moving streaks.
+    '&hourly=precipitation,cloud_cover,cape,wind_speed_10m,wind_direction_10m&past_hours=6&forecast_hours=13&timezone=auto';
 }
 
 export function parseGrid(o, points = gridPoints(), now = new Date()) {
@@ -149,7 +150,11 @@ export function parseGrid(o, points = gridPoints(), now = new Date()) {
   const localNow = new Date(now.getTime() + offset).toISOString().slice(0, 13);
   let nowIndex = times.findIndex((t) => t.slice(0, 13) >= localNow);
   if (nowIndex < 0) nowIndex = Math.max(0, times.length - 1);
-  return { points, times, nowIndex, precip: pick('precipitation'), cloud: pick('cloud_cover'), cape: pick('cape') };
+  return {
+    points, times, nowIndex,
+    precip: pick('precipitation'), cloud: pick('cloud_cover'), cape: pick('cape'),
+    wind: pick('wind_speed_10m'), windDir: pick('wind_direction_10m'),
+  };
 }
 
 // ---------------------------------------------------------------- USGS earthquakes
@@ -354,7 +359,7 @@ export function parseReverse(o, lat = Number(o.lat), lon = Number(o.lon)) {
 }
 
 /** Arabic name of the nearest village/town in our places list within `maxKm`, or null. */
-export function nearestPlaceName(places, lat, lon, maxKm = 2) {
+export function nearestPlaceName(places, lat, lon, maxKm = 1) {
   let best = null;
   let bestD = maxKm;
   const k = Math.cos((lat * Math.PI) / 180);

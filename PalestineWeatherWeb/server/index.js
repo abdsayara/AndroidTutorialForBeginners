@@ -49,7 +49,9 @@ function requirePlace(q) {
 
 /** Route table: path → (query, cache) → {data, fetchedAt, stale} | plain object. */
 export function makeRoutes(cache, alerts, { demo = false } = {}) {
-  const fetchPlaces = async () => S.parsePlaces(await cache.json(S.placesUrl()));
+  // Villages, towns and cities ship with the site (scripts/build-places.mjs, from GeoNames):
+  // the live Overpass servers proved too unreliable to depend on.
+  const fetchPlaces = async () => JSON.parse(await readFile(new URL('./data/places.json', import.meta.url), 'utf8'));
   const placesList = async () => (await cache.get('places', 7 * 86400, fetchPlaces)).data;
   return {
     '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo, liveAlerts: !!alerts.live } }),
@@ -66,7 +68,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/now': async () => cache.get('cities_now', 900, async () => S.parseCitiesNow(await cache.json(S.citiesNowUrl()))),
 
-    '/api/grid': async () => cache.get('grid', 1800, async () => S.parseGrid(await cache.json(S.gridUrl()))),
+    '/api/grid': async () => cache.get('grid2', 1800, async () => S.parseGrid(await cache.json(S.gridUrl()))),
 
     '/api/quakes': async (q) => {
       const days = Number(q.get('days') ?? 7);

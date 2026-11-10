@@ -83,7 +83,8 @@ function forecastFor(lat, lon, now) {
 function gridFor(lat, lon, now) {
   const local = new Date(now.getTime() + OFFSET);
   const time = []; const precipitation = []; const cloud_cover = []; const cape = [];
-  for (let i = -3; i < 7; i++) {
+  const wind_speed_10m = []; const wind_direction_10m = [];
+  for (let i = -6; i < 13; i++) {
     const t = new Date(Math.floor(local.getTime() / 3600000) * 3600000 + i * 3600000);
     time.push(isoHour(t));
     // A rain band drifting east from the sea over the north and centre.
@@ -91,8 +92,11 @@ function gridFor(lat, lon, now) {
     precipitation.push(+(band * 5 * (0.6 + 0.4 * rnd(lat, lon, i))).toFixed(2));
     cloud_cover.push(Math.min(100, Math.round(band * 100 + 30 * rnd(lon, lat, i))));
     cape.push(Math.round(band * 1800 * rnd(lat, i, lon)));
+    // A westerly sea breeze, stronger on the coast, veering north-west inland.
+    wind_speed_10m.push(Math.round(10 + 14 * Math.max(0, 35.2 - lon) + 6 * rnd(lon, i)));
+    wind_direction_10m.push(Math.round(270 + (lon - 34.4) * 30 + 10 * Math.sin(i / 3)));
   }
-  return { utc_offset_seconds: OFFSET / 1000, hourly: { time, precipitation, cloud_cover, cape } };
+  return { utc_offset_seconds: OFFSET / 1000, hourly: { time, precipitation, cloud_cover, cape, wind_speed_10m, wind_direction_10m } };
 }
 
 const json = (body) => new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });

@@ -14,6 +14,8 @@ object MapProjection {
 
     fun x(lon: Double): Float = ((lon - 34.1) * 92 * K).toFloat()
     fun y(lat: Double): Float = ((33.4 - lat) * 92).toFloat()
+    fun lon(x: Float): Double = x / (92 * K) + 34.1
+    fun lat(y: Float): Double = 33.4 - y / 92.0
     fun point(lat: Double, lon: Double) = Offset(x(lon), y(lat))
 
     /** Parses an SVG path made only of M, L and Z commands. */
