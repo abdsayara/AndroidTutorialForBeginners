@@ -12,14 +12,14 @@ const DISPLAY = "'Noto Kufi Arabic', 'IBM Plex Sans Arabic', sans-serif";
 
 /** Background stops per kind of sky; the same moods as the hero. */
 const SKIES = {
-  day: ['#2C6FA6', '#1D5585', '#10365A'],
-  night: ['#263F5E', '#182D46', '#0C1A2C'],
-  dusk: ['#A9573A', '#783829', '#3A2236'],
-  cloudy: ['#566C7E', '#3D5263', '#26353F'],
-  fog: ['#5F6F7B', '#46545E', '#2F3A41'],
-  rain: ['#3E5A70', '#273F52', '#142231'],
-  storm: ['#2F4459', '#1C2938', '#0D141D'],
-  snow: ['#56789A', '#3C5C7A', '#263F56'],
+  day: ['#2A86C6', '#1F74B0', '#165A8A'],
+  night: ['#1C3A5E', '#16304F', '#0E2038'],
+  dusk: ['#D2733E', '#A44F27', '#5E3550'],
+  cloudy: ['#6A8597', '#4A6476', '#34495A'],
+  fog: ['#8293A0', '#5E707B', '#46545E'],
+  rain: ['#3F5F78', '#2E4A60', '#1F3346'],
+  storm: ['#2E4157', '#213042', '#141E2B'],
+  snow: ['#7194B3', '#4B6E8C', '#355069'],
 };
 
 const plainDeg = (v) => (v == null ? '—' : `${Math.round(v)}°`);
