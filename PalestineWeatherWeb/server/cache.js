@@ -52,9 +52,9 @@ export class Cache {
     return p;
   }
 
-  async json(url) {
+  async json(url, headers = {}) {
     // Nominatim's usage policy asks for an identifying User-Agent.
-    const res = await this.fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(60000) });
+    const res = await this.fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(60000) });
     if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`);
     return res.json();
   }

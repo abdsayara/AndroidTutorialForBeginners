@@ -8,6 +8,9 @@ export const BULLETIN_URL = `${WATAN}index.php`;
 export const REPORTS_URL = `${WATAN}article.php`;
 export const STATIONS_URL = `${WATAN}page.php?page_id=9`;
 export const weatherlinkUrl = (id) => `https://www.weatherlink.com/embeddablePage/getData/${id}`;
+// Weathercloud answers these only to its page's own AJAX calls.
+export const WEATHERCLOUD_HEADERS = { 'X-Requested-With': 'XMLHttpRequest' };
+export const weathercloudUrls = (id) => [`https://app.weathercloud.net/device/values?code=${id}`, `https://app.weathercloud.net/device/stats?code=${id}`];
 
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', deg: '°' };
 const decode = (s) => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) =>
@@ -107,5 +110,81 @@ export function parseWeatherlink(o) {
       pressure: UNITS[o.barometerUnits] ?? o.barometerUnits ?? 'ملّيبار',
     },
     updated: iso(o.lastReceived),
+  };
+}
+
+/** A Weathercloud station's current values (+ the day's extremes from its stats). Wind comes in m/s. */
+export function parseWeathercloud(values, stats = {}) {
+  const kmh = (v) => (num(v) == null ? null : Math.round(num(v) * 36) / 10);
+  const at = (pair) => (Array.isArray(pair) ? iso(pair[0] * 1000) : null);
+  const val = (pair) => (Array.isArray(pair) ? num(pair[1]) : null);
+  return {
+    temp: num(values.temp),
+    feelsLike: num(values.thw ?? values.chill),
+    high: val(stats.temp_day_max), highAt: at(stats.temp_day_max),
+    low: val(stats.temp_day_min), lowAt: at(stats.temp_day_min),
+    humidity: num(values.hum),
+    wind: kmh(values.wspdavg ?? values.wspd), gust: kmh(Math.max(num(values.wspdhi) ?? 0, num(values.wspd) ?? 0, num(values.wspdavg) ?? 0)), windDir: num(values.wdiravg ?? values.wdir),
+    rain: num(values.rain), seasonalRain: null,
+    pressure: num(values.bar), pressureTrend: null,
+    units: { temp: '°C', wind: 'كم/س', rain: 'ملم', pressure: 'ملّيبار' },
+    updated: iso(num(values.epoch) * 1000),
+  };
+}
+
+/** "محطة طقس الوطن - شمال الخليل" → "محطة شمال الخليل": the place is what matters to readers. */
+export const stationName = (name) => {
+  const place = String(name ?? '').split(/\s+-\s+/).slice(1).join(' - ').trim();
+  return place ? `محطة ${place}` : name;
+};
+
+export const articleUrl = (id) => `${WATAN}article.php?article_id=${id}`;
+
+// Article bodies come from a rich-text editor (inline styles, spans, fonts). Keep only
+// plain structure, and images by absolute http(s) URL; drop everything else.
+// The editor bolds whole articles, so bold is dropped too.
+const KEEP = new Set(['p', 'br', 'em', 'i', 'u', 'ul', 'ol', 'li', 'h2', 'h3', 'h4', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'td', 'th']);
+const RENAME = { div: 'p', h1: 'h2', h5: 'h4', h6: 'h4' };
+export function sanitize(html) {
+  return String(html)
+    .replace(/<(script|style|iframe|object|embed|noscript|form)[\s\S]*?<\/\1>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<\/?([a-z][a-z0-9]*)\b([^>]*)>/gi, (m, tag, attrs) => {
+      const t = RENAME[tag.toLowerCase()] ?? tag.toLowerCase();
+      const closing = m[1] === '/';
+      if (t === 'img') {
+        if (closing) return '';
+        const src = attrs.match(/\ssrc\s*=\s*"([^"]+)"/i)?.[1] ?? attrs.match(/\ssrc\s*=\s*'([^']+)'/i)?.[1];
+        const abs = src ? absolute(decode(src)) : null;
+        // Only real image files: posts also hold links to image-host pages and broken BBCode.
+        const ok = abs && /^https?:\/\/[^\s\[\]"]+\.(png|jpe?g|gif|webp)(\?[^\s\[\]"]*)?$/i.test(abs);
+        return ok ? `<img src="${abs.replace(/"/g, '%22')}" alt="" loading="lazy">` : '';
+      }
+      if (!KEEP.has(t)) return '';
+      return closing ? `</${t}>` : t === 'br' ? '<br>' : `<${t}>`;
+    })
+    .replace(/�/g, '')
+    .replace(/(<br>\s*){3,}/g, '<br><br>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<p>\s*(<br>\s*)*<\/p>/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** One report page: title, date, picture and the cleaned body HTML. */
+export function parseArticle(html, id) {
+  const main = String(html).split(/<div class="photo main-article">/)[1];
+  if (!main) throw new Error('article not found');
+  const title = text(main.match(/<h3 class="photo-title">\s*<a[^>]*>([\s\S]*?)<\/a>/)?.[1] ?? '');
+  const raw = main.match(/<div class="body-article">([\s\S]*?)<\/div>\s*<p>\s*(?:<a[^>]*tags-article-page|<\/p>)/)?.[1]
+    ?? main.match(/<div class="body-article">([\s\S]*?)<!--/)?.[1];
+  if (!title || raw == null) throw new Error('article not found');
+  return {
+    id,
+    title,
+    date: main.match(/<span class="date">\s*(\d{4}-\d{2}-\d{2})/)?.[1] ?? null,
+    image: absolute(main.match(/data-bg-image="([^"]+)"/)?.[1] || null),
+    tag: text(main.match(/class="tags-article-page">([\s\S]*?)<\/a>/)?.[1] ?? '').replace(/^#/, '').replace(/_/g, ' ') || null,
+    html: sanitize(raw),
   };
 }

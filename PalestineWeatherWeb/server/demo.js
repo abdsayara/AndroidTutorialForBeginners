@@ -187,11 +187,20 @@ export function demoFetch(now = () => new Date()) {
         const lines = ['نصّ تجريبي: يكون الطقس صافياً ولطيفاً نهاراً وبارداً ليلاً، والرياح شرقية خفيفة.', 'نصّ تجريبي: تظهر سحب متفرقة ولا يطرأ تغير يذكر على درجات الحرارة.', 'نصّ تجريبي: ارتفاع طفيف على درجات الحرارة ويكون الطقس دافئاً في المناطق المنخفضة.'];
         return html(`<!-- النشرة التفصيلية --><h2 class="section-title">النشرة التفصيلية</h2><div class="news-details"><blockquote><p>${lines.map((t, i) => `<strong>${day(i)}:</strong> ${t}`).join('<br />\n')}</p></blockquote></div><!-- نهاية النشرة التفصيلية -->`);
       }
+      if (url.pathname.endsWith('article.php') && q.get('article_id')) {
+        const id = q.get('article_id');
+        return html(`<div class="photo main-article"><div class="photo-preview photo-detail" data-bg-image="../photo/article/demo${id}.png"></div><div class="photo-details"><h3 class="photo-title"><a href="./article.php?article_id=${id}">تقرير تجريبي رقم ${id}</a></h3><div><span class="date"> ${new Date(n.getTime() - 86400000).toISOString().slice(0, 10)}</span></div><div class="body-article"><p><span style="font-size:16px"><strong>كاتب تجريبي - مثال:&nbsp;<br /><br />هذا نصّ تجريبي لتقرير كامل يُعرض داخل الموقع. يتحدث عن كميات الأمطار ودرجات الحرارة.<br /><br />فقرة ثانية تجريبية: سجّلت المحطات كميات متفاوتة من الأمطار بين المناطق الجبلية والساحلية.</strong></span></p><script>alert(1)</script></div><p><a href="article.php?tags=تقارير_مناخية" class="tags-article-page">#تقارير_مناخية</a></p></div></div>`);
+      }
       if (url.pathname.endsWith('article.php')) {
         const item = (id, title, by, ex, tag, daysAgo) => `<div class="col-md-6"><div class="photo"><div class="photo-preview photo-detail"><amp-img alt="" src="../photo/article/demo${id}.png"></amp-img></div><div class="photo-details"><h3 class="photo-title"><a href="./article.php?article_id=${id}">${title}</a></h3><div class="body-article"><p><strong>${by}:&nbsp;<br />${ex}<a href="./article.php?article_id=${id}"> قراءة المزيد ...</a></div><p><a href="#" class="tags-article-page">#${tag}</a></p><div><span class="date"> ${new Date(n.getTime() - daysAgo * 86400000).toISOString().slice(0, 10)}</span></div></div></div></div>`;
         return html(`<div class="row article-all">${item(9003, 'تقرير تجريبي: كميات الأمطار في المنخفض الأخير', 'قسم المعلومات المناخية - مثال', 'نصّ تجريبي لملخّص التقرير يذكر كميات الأمطار المسجلة في عدد من المدن', 'تقارير_مناخية', 1)}${item(9002, 'تقرير تجريبي: موسم الصيف بين الأرقام', 'كاتب تجريبي - مثال', 'نصّ تجريبي لملخّص تقرير عن درجات الحرارة خلال الصيف الماضي ومقارنتها بالمعدلات', 'تقارير_مناخية', 30)}</div><div class="row article-all">${item(9001, 'تقرير تجريبي: الإنذار المبكر والعواصف', 'كاتب تجريبي - مثال', 'نصّ تجريبي عن الإنذار المبكر وكيف تُرصد العواصف الرعدية في المنطقة', 'الإنذار_المبكر', 60)}</div>`);
       }
       return html(`<p><strong>محطة تجريبية - شمال الخليل</strong></p><p><iframe src="https://www.weatherlink.com/embeddablePage/show/00000000000000000000000000000001/fullscreen"></iframe></p><p><strong>محطة تجريبية - القدس</strong></p><p><iframe src="https://www.weatherlink.com/embeddablePage/show/00000000000000000000000000000002/fullscreen"></iframe></p><p><strong>محطة تجريبية - الخليل</strong></p><p><a href="https://app.weathercloud.net/d1234567890"><img src="https://app.weathercloud.net/device/sticker/1234567890"></a></p>`);
+    }
+    if (url.host === 'app.weathercloud.net') {
+      const e = Math.floor(n.getTime() / 1000);
+      if (url.pathname.endsWith('/values')) return json({ epoch: e - 300, temp: 17.1, hum: 46, thw: 16.9, bar: 1020.7, wspd: 0.7, wspdhi: 1, wdir: 198, wspdavg: 1.1, wdiravg: 183, rain: 0 });
+      return json({ temp_day_max: [e - 7200, 18.3], temp_day_min: [e - 30000, 7.8] });
     }
     if (url.host === 'www.weatherlink.com') {
       const k = url.pathname.endsWith('1') ? 0 : 1.5;

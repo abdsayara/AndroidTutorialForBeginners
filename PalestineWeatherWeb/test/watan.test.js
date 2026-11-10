@@ -73,3 +73,44 @@ test('parseWeatherlink converts readings and the pressure trend', () => {
   assert.equal(n.lowAt, null);
   assert.equal(n.updated, new Date(1794308806000).toISOString());
 });
+
+test('parseWeathercloud converts m/s to km/h and reads the day extremes', () => {
+  const n = W.parseWeathercloud(
+    { epoch: 1794310508, temp: 17.1, hum: 46, thw: 16.9, bar: 1020.7, wspd: 0.7, wspdhi: 1, wdir: 198, wspdavg: 1.1, wdiravg: 183, rain: 0 },
+    { temp_day_max: [1794311047, 18.3], temp_day_min: [1794279848, 7.8] },
+  );
+  assert.equal(n.wind, 4);
+  assert.equal(n.gust, 4, 'never below the average wind');
+  assert.equal(n.windDir, 183);
+  assert.equal(n.high, 18.3);
+  assert.equal(n.lowAt, new Date(1794279848000).toISOString());
+  assert.equal(n.updated, new Date(1794310508000).toISOString());
+  assert.equal(W.parseWeathercloud({ temp: 10 }).high, null);
+});
+
+test('stationName keeps the place', () => {
+  assert.equal(W.stationName('محطة طقس الوطن - شمال الخليل'), 'محطة شمال الخليل');
+  assert.equal(W.stationName('محطة الخليل'), 'محطة الخليل');
+});
+
+test('parseArticle reads the report and cleans its body', () => {
+  const a = W.parseArticle(`<div class="photo main-article">
+    <div class="photo-preview photo-detail" data-bg-image="../photo/article/1788609959575.png"></div>
+    <div class="photo-details"><h3 class="photo-title"><a href="./article.php?article_id=3292">صيف فلسطين 2026</a></h3>
+      <div><span class="date"> 2026-09-05</span></div>
+      <div class="body-article">
+        <p><span style="font-size:16px"><strong>قصي الحلايقة - موقع طقس الوطن:&nbsp;<br />
+<br />
+لا يُقاس فصل الصيف.<img src="../photo/article/x.jpeg" onerror="alert(1)"><img src="https://ibb.co/LH6TJXd"></strong></span></p>
+        <p>&nbsp;</p><script>alert(1)</script><a href="javascript:x()">رابط</a>
+      </div>
+      <p><a href="article.php?tags=تقارير_مناخية" class="tags-article-page">#تقارير_مناخية</a></p></div></div>`, 3292);
+  assert.equal(a.title, 'صيف فلسطين 2026');
+  assert.equal(a.date, '2026-09-05');
+  assert.equal(a.tag, 'تقارير مناخية');
+  assert.equal(a.image, 'https://www.p-weather.ps/photo/article/1788609959575.png');
+  assert.doesNotMatch(a.html, /script|onerror|javascript|style=|ibb\.co|<strong>|&nbsp;/);
+  assert.match(a.html, /<img src="https:\/\/www\.p-weather\.ps\/photo\/article\/x\.jpeg" alt="" loading="lazy">/);
+  assert.match(a.html, /رابط/);
+  assert.throws(() => W.parseArticle('<html></html>', 1), /not found/);
+});

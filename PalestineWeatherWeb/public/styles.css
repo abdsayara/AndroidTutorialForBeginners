@@ -358,9 +358,6 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
 
 /* ---------------------------------------------------------------- طقس الوطن */
 
-.src-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; background: var(--ground); border-radius: 14px; padding: 3px 10px 3px 8px; white-space: nowrap; }
-.src-badge:hover { color: var(--ink); }
-.src-badge img { display: block; }
 
 .bulletin { gap: 8px; }
 .bulletin .b-label { font-weight: 700; font-size: 14px; color: var(--green-dark); }
@@ -383,7 +380,7 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
 .st-now { align-items: center; }
 .st-temp { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1.1; }
 .st-grid .value { font-size: 16px; }
-.wc-sticker img { display: block; max-width: 100%; height: auto; margin-inline: auto; border-radius: var(--r-sm); }
+.wc-sticker, .wc-sticker img { display: block; max-width: 100%; height: auto; margin-inline: auto; border-radius: var(--r-sm); }
 
 /* roads: PalHub list (status per direction) */
 .roads-sum .tile { border: 0; cursor: pointer; font: inherit; }
@@ -405,3 +402,13 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
 .dir.busy { background: var(--amber-tint); color: var(--amber-ink); }
 .dir.crisis { background: #F6D5CF; color: #7A1D12; }
 .dir.closed { background: var(--red-tint); color: var(--red); }
+
+/* report reader */
+.article { gap: 12px; }
+.article-title { font-size: 22px; line-height: 1.5; }
+.article-hero { width: 100%; max-height: 360px; object-fit: cover; border-radius: var(--r-md); background: var(--line); }
+.article-body { font-size: 16px; line-height: 2; overflow-wrap: anywhere; }
+.article-body p { margin: 0 0 12px; }
+.article-body img { display: block; max-width: 100%; height: auto; margin: 8px auto; border-radius: var(--r-sm); }
+.article-body table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+.article-body td, .article-body th { border: 1px solid var(--line); padding: 4px 8px; }

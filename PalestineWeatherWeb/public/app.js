@@ -21,7 +21,7 @@ const MORE = [
   { path: '/currency', label: 'أسعار العملات', icon: 'coins' },
   { path: '/about', label: 'حول الموقع', icon: 'compass' },
 ];
-const TITLES = Object.fromEntries([...TABS, ...MORE].map((t) => [t.path, t.label]));
+const TITLES = { ...Object.fromEntries([...TABS, ...MORE].map((t) => [t.path, t.label])), '/report': 'تقرير' };
 
 const state = { cities: [], regions: {}, city: null, liveAlerts: false };
 let cleanup = null;
@@ -83,7 +83,7 @@ function navigate(path) {
 
 function navHtml(items, withLabels) {
   const here = location.pathname;
-  const tabFor = MORE.some((m) => m.path === here) ? '/more' : here;
+  const tabFor = MORE.some((m) => m.path === here) || here === '/report' ? '/more' : here;
   return items.map((t) => {
     const current = withLabels ? t.path === here : t.path === tabFor;
     return `<a href="${t.path}" data-link ${current ? 'aria-current="page"' : ''}>${icon(t.icon, 22)}<span>${t.label}</span></a>`;

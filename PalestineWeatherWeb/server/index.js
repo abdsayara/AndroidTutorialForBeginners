@@ -103,16 +103,25 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
       return { ...r, cdnSeconds: 1800 };
     },
 
+    '/api/report': async (q) => {
+      const id = Number(q.get('id'));
+      if (!Number.isInteger(id) || id <= 0 || id > 1e7) throw new HttpError(400, 'bad report id');
+      const r = await cache.get(`watan_report_${id}`, 86400, async () => W.parseArticle(await cache.text(W.articleUrl(id)), id));
+      return { ...r, cdnSeconds: 3600 };
+    },
+
     '/api/stations': async () => {
       const r = await cache.get('watan_stations', 300, async () => {
         // The list of stations changes rarely; their readings every few minutes.
         const list = (await cache.get('watan_station_list', 86400, async () => W.parseStations(await cache.text(W.STATIONS_URL)))).data;
         return Promise.all(list.map(async (s) => {
-          if (s.kind !== 'weatherlink') return s;
+          const station = { id: s.id, name: W.stationName(s.name), sticker: s.sticker ?? null };
           try {
-            return { ...s, now: W.parseWeatherlink(await cache.json(W.weatherlinkUrl(s.id))) };
+            if (s.kind === 'weatherlink') return { ...station, now: W.parseWeatherlink(await cache.json(W.weatherlinkUrl(s.id))) };
+            const [values, stats] = await Promise.all(W.weathercloudUrls(s.id).map((u, i) => cache.json(u, W.WEATHERCLOUD_HEADERS).catch((err) => (i ? {} : Promise.reject(err)))));
+            return { ...station, now: W.parseWeathercloud(values, stats) };
           } catch (err) {
-            return { ...s, now: null, error: err.message };
+            return { ...station, now: null, error: err.message };
           }
         }));
       });
