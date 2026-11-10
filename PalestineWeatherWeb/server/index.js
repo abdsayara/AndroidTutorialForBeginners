@@ -213,7 +213,12 @@ async function serveStatic(res, urlPath) {
   const file = path.normalize(path.join(PUBLIC, rel));
   if (!file.startsWith(PUBLIC + path.sep)) throw new HttpError(403, 'forbidden');
   let target = file;
-  const s = await stat(target).catch(() => null);
+  let s = await stat(target).catch(() => null);
+  // A clean URL for a standalone page: /welcome serves welcome.html.
+  if (!s && !path.extname(rel)) {
+    const page = await stat(`${file}.html`).catch(() => null);
+    if (page?.isFile()) { target = `${file}.html`; s = page; }
+  }
   // Unknown non-file paths fall back to the single-page app.
   if (!s?.isFile()) {
     if (path.extname(rel)) throw new HttpError(404, 'not found');
@@ -222,7 +227,7 @@ async function serveStatic(res, urlPath) {
   const body = await readFile(target);
   res.writeHead(200, {
     'Content-Type': MIME[path.extname(target)] ?? 'application/octet-stream',
-    'Cache-Control': target.endsWith('index.html') ? 'no-cache' : 'public, max-age=300',
+    'Cache-Control': target.endsWith('.html') ? 'no-cache' : 'public, max-age=300',
     'X-Content-Type-Options': 'nosniff',
   });
   res.end(body);

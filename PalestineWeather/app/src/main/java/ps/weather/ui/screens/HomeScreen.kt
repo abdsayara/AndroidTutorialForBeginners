@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -69,6 +70,7 @@ import ps.weather.data.skyKind
 import ps.weather.data.summarize
 import ps.weather.data.PlaceKind
 import ps.weather.data.WeatherRepository
+import ps.weather.ui.ShareCard
 import ps.weather.ui.aqiText
 import ps.weather.ui.arabicDate
 import ps.weather.ui.clock
@@ -99,6 +101,7 @@ fun HomeScreen(
     city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onElevation: (Double) -> Unit = {},
     prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
 ) {
+    val context = LocalContext.current
     val (load, refresh) = rememberLoad(city.id) { WeatherRepository.forecast(city.lat, city.lon) }
     val elevation = (load as? Load.Ok)?.value?.elevation ?: city.elevation
     LaunchedEffect(elevation) { elevation?.let(onElevation) }
@@ -132,6 +135,10 @@ fun HomeScreen(
                         ).joinToString(" · "),
                         fontSize = 13.sp, color = Pw.Muted,
                     )
+                }
+                (load as? Load.Ok)?.value?.let { fc ->
+                    RoundIconButton(PwIcons.Share, "مشاركة الطقس كصورة", onClick = { ShareCard.share(context, city.name, fc) })
+                    Spacer(Modifier.width(8.dp))
                 }
                 RoundIconButton(PwIcons.Refresh, "تحديث", refresh)
                 Spacer(Modifier.width(8.dp))

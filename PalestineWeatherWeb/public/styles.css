@@ -524,3 +524,16 @@ a.mini:hover { box-shadow: 0 0 0 1px var(--border); }
 .icon-btn.sm { width: 36px; height: 36px; font-size: 16px; }
 .icon-btn:disabled { opacity: .35; cursor: default; }
 .link-btn svg { vertical-align: -3px; }
+
+/* ---- batch 6: share card ---- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-weight: 600; text-decoration: none; cursor: pointer; transition: transform .12s, background .15s; }
+.btn:hover { background: var(--ground); }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover { background: var(--brand-dark); }
+.btn.ghost { border-color: transparent; background: none; }
+.share-sheet { border: 0; border-radius: var(--r-lg); padding: 16px; width: min(440px, calc(100vw - 32px)); background: var(--card); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.share-sheet::backdrop { background: rgba(10, 20, 30, .55); }
+.share-sheet img { display: block; width: 100%; height: auto; border-radius: 16px; }
+.share-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.share-actions .btn { flex: 1 1 auto; }

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-type="software">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="page-type" content="software">
+  <meta name="site-kind" content="software">
+  <meta name="theme-color" content="#1F74B0">
+  <title>طقس فلسطين — الطقس في كل مدينة وقرية فلسطينية</title>
+  <meta name="description" content="توقعات ساعة بساعة لأكثر من 900 مدينة وقرية فلسطينية، المطر كل ربع ساعة، خريطة حيّة، أحوال الطرق، أوقات الصلاة ونصائح الزراعة. بالعربية وبأسماء بلداتنا.">
+  <meta property="og:title" content="طقس فلسطين">
+  <meta property="og:description" content="الطقس في كل مدينة وقرية فلسطينية، ساعة بساعة.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ar_PS">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700;800&display=swap">
+  <style>
+    :root {
+      --brand: #1F74B0; --brand-dark: #165A8A; --brand-tint: #E8F2FA; --sun: #FAAE3C;
+      --ink: #12241B; --muted: #4F5E55; --line: #E3E6E1; --ground: #F6F7F5; --card: #FFFFFF;
+      --green: #0F7A4A; --amber: #C77700; --red: #B42318; --blue: #1F5FA8;
+      --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+      --display: 'Noto Kufi Arabic', 'IBM Plex Sans Arabic', sans-serif;
+      --gutter: clamp(16px, 5vw, 64px);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: var(--font); color: var(--ink); background: var(--ground); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    img, svg { display: block; }
+    .skip { position: absolute; inset-inline-start: 12px; top: -60px; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 10px; z-index: 50; }
+    .skip:focus { top: 12px; }
+    :focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; border-radius: 6px; }
+    .wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding-inline: var(--gutter); }
+
+    /* nav */
+    .nav { position: sticky; top: 0; z-index: 20; background: rgba(246, 247, 245, .86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .nav .wrap { display: flex; align-items: center; gap: 16px; min-height: 68px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 19px; text-decoration: none; }
+    .nav-links { display: flex; gap: 4px; margin-inline-start: auto; }
+    .nav-links a { text-decoration: none; padding: 10px 12px; border-radius: 10px; font-weight: 500; color: var(--muted); min-height: 44px; display: inline-flex; align-items: center; transition: color .15s, background .15s; }
+    .nav-links a:hover { color: var(--ink); background: #fff; }
+    @media (max-width: 760px) { .nav-links a:not(.btn) { display: none; } }
+
+    /* buttons: one pair */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 24px; border-radius: 14px; font-weight: 600; font-size: 16px; text-decoration: none; border: 1px solid transparent; transition: transform .15s, background .15s, box-shadow .15s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0) scale(.98); }
+    .btn.primary { background: var(--brand); color: #fff; box-shadow: 0 6px 18px rgba(31, 116, 176, .28); }
+    .btn.primary:hover { background: var(--brand-dark); }
+    .btn.second { background: #fff; border-color: var(--line); color: var(--ink); }
+    .nav .btn { min-height: 44px; padding: 0 18px; font-size: 15px; }
+
+    /* sections */
+    /* One section per screen: each fills the screen under the nav. */
+    section { padding-block: clamp(48px, 8vh, 96px); min-height: calc(100svh - 69px); display: flex; align-items: center; }
+    section > .wrap { width: 100%; }
+    h1, h2 { font-family: var(--display); line-height: 1.35; margin: 0; letter-spacing: 0; }
+    h1 { font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; }
+    h2 { font-size: clamp(28px, 3.6vw, 44px); font-weight: 700; }
+    .lead { font-size: clamp(17px, 1.6vw, 20px); color: var(--muted); max-width: 36em; margin: 18px 0 0; }
+    .split { display: grid; gap: clamp(32px, 5vw, 72px); align-items: center; }
+    @media (min-width: 900px) { .split { grid-template-columns: 1.05fr .95fr; } }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    @media (max-width: 520px) { .actions .btn { flex: 1 1 100%; } }
+    .fact { display: inline-flex; align-items: center; gap: 8px; background: var(--brand-tint); color: var(--brand-dark); font-weight: 600; font-size: 14px; padding: 6px 14px; border-radius: 999px; margin-bottom: 18px; }
+
+    /* hero */
+    .hero { background: linear-gradient(180deg, var(--ground) 0%, #EAF2F8 100%); }
+    .device { position: relative; width: min(330px, 78vw); aspect-ratio: 390 / 800; margin-inline: auto; border-radius: 44px; background: #0F1A24; padding: 12px; box-shadow: 0 40px 80px rgba(18, 36, 27, .22), 0 0 0 1px rgba(0,0,0,.06); }
+    .device .screen { position: relative; width: 100%; height: 100%; border-radius: 34px; overflow: hidden; background: var(--ground); }
+    .device iframe { position: absolute; top: 0; inset-inline-start: 0; width: 390px; height: 800px; border: 0; transform-origin: top right; pointer-events: none; }
+    .device .open { position: absolute; inset: 0; z-index: 2; border-radius: 34px; }
+    .device .open:hover ~ .shine { opacity: 1; }
+    .shine { position: absolute; inset: 12px; border-radius: 34px; box-shadow: inset 0 0 0 3px var(--sun); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 3; }
+    @media (max-width: 899px) {
+      .hero { padding-bottom: 0; overflow: hidden; height: calc(100svh - 69px); min-height: 560px; align-items: flex-start; }
+      .hero .split { gap: 28px; }
+      .hero .device { width: min(300px, 72vw); margin-bottom: -40%; }
+    }
+    [data-enter] > * { animation: enter .7s cubic-bezier(.2, .7, .2, 1) both; }
+    [data-enter] > *:nth-child(2) { animation-delay: .12s; }
+    @keyframes enter { from { opacity: 0; transform: translateY(18px); } }
+
+    /* cards: one family */
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px; transition: transform .18s, box-shadow .18s; }
+    a.card { text-decoration: none; display: block; }
+    a.card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(18, 36, 27, .08); }
+    .card h3 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .card p { margin: 0; color: var(--muted); }
+
+    /* rain */
+    .nowcast { background: #F3F8FC; border-color: #CFE2F1; }
+    .bars { display: flex; align-items: flex-end; gap: 8px; height: 130px; margin: 22px 0 10px; }
+    .bars span { flex: 1; border-radius: 8px 8px 4px 4px; background: #D8E3EA; transform-origin: bottom; animation: grow 3.2s ease-in-out infinite; }
+    .bars span.wet { background: var(--brand); }
+    .bars span:nth-child(2) { animation-delay: .1s; } .bars span:nth-child(3) { animation-delay: .2s; } .bars span:nth-child(4) { animation-delay: .3s; }
+    .bars span:nth-child(5) { animation-delay: .4s; } .bars span:nth-child(6) { animation-delay: .5s; } .bars span:nth-child(7) { animation-delay: .6s; } .bars span:nth-child(8) { animation-delay: .7s; }
+    @keyframes grow { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.86); } }
+    .scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+    .note { margin-top: 14px; display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+    .note b { display: block; }
+    .note small { color: var(--muted); font-size: 14px; }
+    .note .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--brand); display: grid; place-items: center; flex-shrink: 0; }
+
+    /* cities */
+    .cities { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 32px; }
+    @media (min-width: 700px) { .cities { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1100px) { .cities { grid-template-columns: repeat(4, 1fr); } }
+    a.card.city { display: flex; align-items: center; gap: 10px; padding: 16px 18px; }
+    .city .n { font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 520px) { a.card.city { padding: 14px 12px; gap: 8px; } .city .t { font-size: 20px; } }
+    .city .t { font-family: var(--display); font-size: 24px; font-weight: 700; direction: ltr; }
+    .city.skeleton { height: 72px; background: linear-gradient(90deg, #fff, #F0F3F1, #fff); }
+
+    /* roads */
+    .roads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .roads .card { text-align: center; padding: 26px 12px; }
+    .roads .v { font-family: var(--display); font-size: clamp(36px, 5vw, 56px); font-weight: 800; line-height: 1.2; }
+    .roads .open .v { color: var(--green); } .roads .busy .v { color: var(--amber); } .roads .closed .v { color: var(--red); }
+    .closed-list { margin-top: 14px; color: var(--muted); }
+
+    /* daily life */
+    .grid4 { display: grid; gap: 14px; margin-top: 32px; }
+    @media (min-width: 700px) { .grid4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1100px) { .grid4 { grid-template-columns: repeat(4, 1fr); } }
+    .grid4 .card { min-height: 210px; display: flex; flex-direction: column; gap: 10px; }
+    .grid4 .ico { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--brand-tint); color: var(--brand); }
+    .grid4 .ex { margin-top: auto; font-size: 14px; color: var(--ink); background: var(--ground); border-radius: 12px; padding: 10px 12px; }
+
+    /* close: the type moment */
+    .close { background: var(--brand); color: #fff; }
+    .close h2 { font-size: clamp(40px, 7vw, 96px); font-weight: 800; line-height: 1.2; }
+    .villages { margin-top: 26px; font-size: clamp(16px, 1.8vw, 22px); line-height: 2; color: rgba(255, 255, 255, .72); max-width: 52em; }
+    .villages b { color: #fff; font-weight: 600; }
+    .close .btn.primary { background: #fff; color: var(--brand-dark); box-shadow: none; }
+    .close .btn.primary:hover { background: var(--brand-tint); }
+    .close .btn.second { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .5); }
+
+    footer { background: #0F1A24; color: rgba(255, 255, 255, .72); font-size: 13px; padding-block: 28px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+    footer .brand { color: #fff; font-size: 16px; }
+    footer .credit { margin-inline-start: auto; }
+    footer a { min-height: 44px; display: inline-flex; align-items: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">تخطَّ إلى المحتوى</a>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/welcome"><img src="/logo.svg" width="46" height="35" alt="">طقس فلسطين</a>
+      <nav class="nav-links" aria-label="أقسام الصفحة">
+        <a href="#rain">المطر</a>
+        <a href="#cities">المدن</a>
+        <a href="#roads">الطرق</a>
+        <a href="#daily">يومك</a>
+        <a class="btn primary" href="/">افتح الطقس</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="h1">
+      <div class="wrap split" data-enter>
+        <div>
+          <span class="fact">أكثر من 900 مدينة وقرية على الخريطة</span>
+          <h1 id="h1">الطقس في كل مدينة وقرية فلسطينية، ساعة بساعة</h1>
+          <p class="lead">من جنين إلى رفح: الحرارة والمطر والرياح لبلدتك باسمها، ومتى يبدأ المطر ومتى يتوقف، وحال الحواجز قبل أن تخرج.</p>
+          <div class="actions">
+            <a class="btn primary" href="/">افتح طقس مدينتك</a>
+            <a class="btn second" href="/map">شاهد خريطة المطر</a>
+          </div>
+        </div>
+        <div class="device">
+          <div class="screen"><iframe src="/" title="طقس فلسطين على الهاتف" loading="eager" tabindex="-1" aria-hidden="true"></iframe></div>
+          <a class="open" href="/" aria-label="افتح الطقس الآن"></a>
+          <span class="shine" aria-hidden="true"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="rain" aria-labelledby="h-rain">
+      <div class="wrap split">
+        <div>
+          <h2 id="h-rain">المطر قبل أن يصل إلى شارعك</h2>
+          <p class="lead">نقرأ المطر كل ربع ساعة للساعتين القادمتين، ونقولها بجملة واحدة: يبدأ بعد نصف ساعة ويستمر ساعة. وعلى أندرويد يصلك تنبيه «المطر قادم» قبل أن تبتلّ.</p>
+        </div>
+        <div>
+          <div class="card nowcast" aria-label="مثال على قراءة المطر">
+            <h3><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--brand)"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>يبدأ مطر متوسط بعد نصف ساعة ويستمر 45 دقيقة</h3>
+            <div class="bars" aria-hidden="true"><span style="height:8%"></span><span style="height:8%"></span><span class="wet" style="height:46%"></span><span class="wet" style="height:88%"></span><span class="wet" style="height:64%"></span><span style="height:12%"></span><span style="height:8%"></span><span style="height:8%"></span></div>
+            <div class="scale"><span>الآن</span><span>بعد ساعة</span><span>بعد ساعتين</span></div>
+          </div>
+          <div class="note">
+            <span class="dot" aria-hidden="true"><img src="/favicon.svg" width="22" height="22" alt=""></span>
+            <div><b>صباح الخير · رام الله</b><small>14° الآن، صافٍ. مطر قريب خلال الساعتين القادمتين، أبرد من أمس بـ4 درجات.</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="cities" aria-labelledby="h-cities" style="background:#fff">
+      <div class="wrap">
+        <h2 id="h-cities">الحرارة الآن في مدننا</h2>
+        <p class="lead">أرقام هذه اللحظة، تتحدّث وحدها. اختر أي مدينة لترى يومها وأسبوعها.</p>
+        <div class="cities" id="city-grid" aria-live="polite">
+          <div class="card city skeleton"></div><div class="card city skeleton"></div><div class="card city skeleton"></div><div class="card city skeleton"></div>
+          <div class="card city skeleton"></div><div class="card city skeleton"></div><div class="card city skeleton"></div><div class="card city skeleton"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="roads" aria-labelledby="h-roads">
+      <div class="wrap split">
+        <div>
+          <h2 id="h-roads">الحواجز والطرق قبل أن تتحرك</h2>
+          <p class="lead">حال كل حاجز في الاتجاهين، مع وقت آخر تحديث، على قائمة وعلى خريطة الضفة. تتحدّث كل دقيقتين.</p>
+          <div class="actions"><a class="btn second" href="/roads">افتح أحوال الطرق</a></div>
+        </div>
+        <div>
+          <div class="roads" id="roads-sum">
+            <div class="card open"><div class="v" data-k="open">—</div>سالك</div>
+            <div class="card busy"><div class="v" data-k="busy">—</div>أزمة</div>
+            <div class="card closed"><div class="v" data-k="closed">—</div>مغلق</div>
+          </div>
+          <p class="closed-list" id="closed-list"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="daily" aria-labelledby="h-daily" style="background:#fff">
+      <div class="wrap">
+        <h2 id="h-daily">يومك كما نعيشه هنا</h2>
+        <p class="lead">ليس رقماً فقط: ماذا تلبس، وكيف الجو وقت الأذان، ومتى تقطف الزيتون، ومتى يأتي الغبار.</p>
+        <div class="grid4">
+          <a class="card" href="/">
+            <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></svg></span>
+            <h3>شو نلبس؟</h3><p>نصيحة لباس من حرارة اليوم ومطره ورياحه.</p>
+            <span class="ex">كنزة وجاكيت، ومظلة للمطر</span>
+          </a>
+          <a class="card" href="/prayer">
+            <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span>
+            <h3>الصلاة والطقس</h3><p>الأذان القادم، والجو في ساعته.</p>
+            <span class="ex">المغرب بعد ساعة، صافٍ 18°</span>
+          </a>
+          <a class="card" href="/farming">
+            <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19C5 10 11 5 20 4c-1 9-6 15-15 15z"/><path d="M5 19l7-7"/></svg></span>
+            <h3>موسم الزيتون والصقيع</h3><p>أنسب أيام القطاف، وتحذير الليالي الباردة على المزروعات.</p>
+            <span class="ex">أنسب أيام القطاف: الخميس، السبت</span>
+          </a>
+          <a class="card" href="/alerts">
+            <span class="ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3"/></svg></span>
+            <h3>الخماسين والغبار</h3><p>تنبيه حين يرتفع الغبار، مع نصيحة لمرضى الربو.</p>
+            <span class="ex">غبار متوسط غداً نحو الساعة 11:00 ص</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="close" aria-labelledby="h-close">
+      <div class="wrap">
+        <h2 id="h-close">بلغتنا،<br>وبأسماء بلداتنا.</h2>
+        <p class="villages" id="villages"><b>عرّابة</b> · <b>بيت أمر</b> · سنجل · عصيرة الشمالية · <b>برقين</b> · يطا · عنبتا · كفر قدوم · بيت لاهيا · <b>ترمسعيا</b> · دورا · قباطية · الظاهرية · بني نعيم · عبسان الكبيرة · <b>بيت ساحور</b> · طمون · سبسطية</p>
+        <div class="actions">
+          <a class="btn primary" href="/cities">ابحث عن بلدتك</a>
+          <a class="btn second" href="/">افتح الطقس الآن</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span class="brand"><img src="/logo.svg" width="36" height="27" alt="">طقس فلسطين</span>
+      <span class="credit">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { weatherIcon } from '/icons.js';
+    import { esc } from '/format.js';
+
+    // Fit the live app into the phone frame.
+    const frame = document.querySelector('.device iframe');
+    const fit = () => { frame.style.transform = `scale(${frame.parentElement.clientWidth / 390})`; };
+    new ResizeObserver(fit).observe(frame.parentElement);
+
+    const get = (p) => fetch(p).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+
+    // The temperature now in the main cities.
+    const MAIN = ['jerusalem', 'gaza', 'ramallah', 'nablus', 'hebron', 'jenin', 'bethlehem', 'jericho', 'khanyunis', 'tulkarm', 'haifa', 'jaffa'];
+    Promise.all([get('/api/cities'), get('/api/now')]).then(([c, n]) => {
+      const names = Object.fromEntries(c.data.cities.map((x) => [x.id, x.name]));
+      document.getElementById('city-grid').innerHTML = MAIN.filter((id) => n.data[id]).map((id) => {
+        const w = n.data[id];
+        return `<a class="card city" href="/?city=${id}" data-city="${id}">${weatherIcon(w.code, { size: 26, cloudColor: '#4F5E55', sunColor: '#FAAE3C' })}<span class="n">${esc(names[id])}</span><span class="t">${Math.round(w.temp)}°</span></a>`;
+      }).join('');
+    }).catch(() => { document.getElementById('city-grid').closest('section').querySelector('.lead').textContent = 'اختر أي مدينة لترى يومها وأسبوعها.'; document.getElementById('city-grid').innerHTML = '<a class="btn second" href="/cities">كل المدن</a>'; });
+
+    // A city card opens the app on that city.
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-city]');
+      if (!a) return;
+      try { localStorage.setItem('pw.city', JSON.stringify(a.dataset.city)); localStorage.setItem('pw.place', 'null'); } catch { /* private mode */ }
+      e.preventDefault();
+      location.href = '/';
+    });
+
+    // Checkpoints right now.
+    get('/api/roads').then((r) => {
+      if (!r.data.sources.some((s) => s.ok)) return;
+      const all = r.data.checkpoints;
+      const n = { open: 0, busy: 0, closed: 0 };
+      for (const c of all) {
+        if (c.status === 'open') n.open++;
+        else if (c.status === 'busy' || c.status === 'crisis') n.busy++;
+        else if (c.status === 'closed') n.closed++;
+      }
+      document.querySelectorAll('#roads-sum [data-k]').forEach((el) => { el.textContent = n[el.dataset.k]; });
+      const closed = all.filter((c) => c.status === 'closed').slice(0, 5).map((c) => esc(c.name));
+      if (closed.length) document.getElementById('closed-list').innerHTML = `مغلق الآن: ${closed.join('، ')}`;
+    }).catch(() => {});
+  </script>
+</body>
+</html>

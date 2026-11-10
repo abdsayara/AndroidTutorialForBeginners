@@ -269,7 +269,8 @@ async function home(el, ctx, cancelled) {
   el.innerHTML = `<div class="page">
     ${header(city.name, subtitle(null), {
       logo: true,
-      actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
+      actions: `<button class="icon-btn" data-action="share" aria-label="مشاركة الطقس كصورة">${icon('share')}</button>
+                <button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
     })}
     <div id="slot"></div>
@@ -312,6 +313,11 @@ async function home(el, ctx, cancelled) {
   run();
   return actions(el, {
     retry: run,
+    share: async () => {
+      if (!last) return;
+      const { openShare } = await import('./share.js');
+      openShare(city.name, last[0].data);
+    },
     customize: () => {
       editing = !editing;
       if (!last) return;
@@ -578,9 +584,10 @@ function more(el) {
     ['/reports', 'news', 'التقارير اليومية'],
     ['/stations', 'thermo', 'محطات الطقس'],
     ['/currency', 'coins', 'أسعار العملات'],
+    ['/welcome', 'star', 'تعرّف على طقس فلسطين', true],
   ];
-  el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label]) =>
-    `<a href="${href}" data-link><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
+  el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label, page]) =>
+    `<a href="${href}" ${page ? '' : 'data-link'}><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
     <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API</div></div>`;
 }
 
