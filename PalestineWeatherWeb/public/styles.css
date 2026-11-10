@@ -542,23 +542,25 @@ a.mini:hover { box-shadow: 0 0 0 1px var(--border); }
    The whole page sits on the sky of the chosen place (data-sky on <html>, set by the
    home page and remembered), and every surface is frosted glass over it, the map too. */
 
-html:root { --sky-a: #3C8FD0; --sky-b: #1F74B0; --sky-c: #134B76; }
-html:root[data-sky="night"] { --sky-a: #23446B; --sky-b: #16304F; --sky-c: #0C1B30; }
-html:root[data-sky="dusk"] { --sky-a: #E3925A; --sky-b: #A44F27; --sky-c: #4A2B4A; }
-html:root[data-sky="cloudy"] { --sky-a: #8299A9; --sky-b: #4A6476; --sky-c: #2F4252; }
-html:root[data-sky="fog"] { --sky-a: #91A1AC; --sky-b: #5E707B; --sky-c: #3E4C55; }
-html:root[data-sky="rain"] { --sky-a: #4D6E86; --sky-b: #2E4A60; --sky-c: #18293A; }
-html:root[data-sky="storm"] { --sky-a: #37506A; --sky-b: #213042; --sky-c: #0F1823; }
-html:root[data-sky="snow"] { --sky-a: #86A6C2; --sky-b: #4B6E8C; --sky-c: #2F4B63; }
+html:root { --sky-a: #2C6FA6; --sky-b: #1D5585; --sky-c: #10365A; }
+html:root[data-sky="night"] { --sky-a: #263F5E; --sky-b: #182D46; --sky-c: #0C1A2C; }
+html:root[data-sky="dusk"] { --sky-a: #A9573A; --sky-b: #783829; --sky-c: #3A2236; }
+html:root[data-sky="cloudy"] { --sky-a: #566C7E; --sky-b: #3D5263; --sky-c: #26353F; }
+html:root[data-sky="fog"] { --sky-a: #5F6F7B; --sky-b: #46545E; --sky-c: #2F3A41; }
+html:root[data-sky="rain"] { --sky-a: #3E5A70; --sky-b: #273F52; --sky-c: #142231; }
+html:root[data-sky="storm"] { --sky-a: #2F4459; --sky-b: #1C2938; --sky-c: #0D141D; }
+html:root[data-sky="snow"] { --sky-a: #56789A; --sky-b: #3C5C7A; --sky-c: #263F56; }
 
 html:root {
-  --ground: rgba(255, 255, 255, 0.08);
-  --card: rgba(255, 255, 255, 0.12);
+  /* Cards are a deep tint over the sky, like the reference: white text keeps at least 7:1,
+     secondary text 5:1, on every sky. Night and storm take a faint light veil instead. */
+  --ground: rgba(6, 16, 30, 0.18);
+  --card: rgba(6, 16, 30, 0.30);
   --ink: #FFFFFF;
   --muted: rgba(255, 255, 255, 0.80);
-  --faint: rgba(255, 255, 255, 0.64);
-  --line: rgba(255, 255, 255, 0.16);
-  --border: rgba(255, 255, 255, 0.26);
+  --faint: rgba(255, 255, 255, 0.70);
+  --line: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.22);
   --brand-tint: rgba(255, 255, 255, 0.18);
   --brand-dark: #FFFFFF;
   --green: #74E2AA; --green-dark: #A9F1CB; --green-tint: rgba(116, 226, 170, 0.16);
@@ -569,6 +571,7 @@ html:root {
   --glass: blur(18px) saturate(140%);
   color-scheme: dark;
 }
+html:root:is([data-sky="night"], [data-sky="storm"]) { --card: rgba(255, 255, 255, 0.07); --ground: rgba(255, 255, 255, 0.05); }
 html:root { background: var(--sky-c); }
 html:root body {
   min-height: 100vh;
@@ -589,7 +592,7 @@ html:root[data-sky="dusk"] body::before { background: radial-gradient(circle at 
 html:root[data-sky="dusk"] body::after { background: radial-gradient(70% 12% at 60% 30%, rgba(255, 210, 160, 0.12), transparent 70%); animation: sky-drift 70s linear infinite alternate; }
 
 html:root:is([data-sky="cloudy"], [data-sky="fog"]) body::before {
-  background: radial-gradient(45% 16% at 18% 18%, rgba(255, 255, 255, 0.16), transparent 70%), radial-gradient(55% 18% at 78% 44%, rgba(255, 255, 255, 0.13), transparent 70%),
+  background: radial-gradient(45% 16% at 18% 18%, rgba(255, 255, 255, 0.10), transparent 70%), radial-gradient(55% 18% at 78% 44%, rgba(255, 255, 255, 0.08), transparent 70%),
     radial-gradient(40% 14% at 30% 76%, rgba(255, 255, 255, 0.12), transparent 70%);
   animation: sky-drift 45s ease-in-out infinite alternate;
 }
@@ -651,7 +654,7 @@ html:root :is(.card, .tile, .mini, .hero, .tabbar, .cp, .next-prayer, .converter
   -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
 }
 html:root :is(.card, .tile, .mini, .cp) { border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(5, 15, 30, 0.12); }
-html:root .hero, html:root .hero[data-sky] { background: rgba(255, 255, 255, 0.13); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 12px 36px rgba(5, 15, 30, 0.16); }
+html:root .hero, html:root .hero[data-sky] { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 12px 36px rgba(5, 15, 30, 0.16); }
 html:root .hero .sky { opacity: 0.6; }
 html:root .tabbar { background: rgba(10, 25, 40, 0.38); border-color: rgba(255, 255, 255, 0.14); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
 html:root .tabbar a[aria-current="page"] { color: #fff; }
@@ -670,7 +673,7 @@ html:root :is(.hour.now, .icon-btn.on) { background: rgba(255, 255, 255, 0.3); c
 html:root :is(.pill[aria-pressed="true"], .pill[aria-selected="true"], .codes button[aria-checked="true"]) { background: #fff; color: #17324A; border-color: #fff; }
 html:root .pill:hover { border-color: rgba(255, 255, 255, 0.7); }
 html:root .icon-btn:hover { background: rgba(255, 255, 255, 0.22); }
-html:root :is(.next-prayer, .converter) { background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.2); }
+html:root :is(.next-prayer, .converter) { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.14); }
 html:root .nowcast { background: rgba(174, 215, 255, 0.14); border-color: rgba(174, 215, 255, 0.32); }
 html:root .nc-bars span { background: rgba(255, 255, 255, 0.22); }
 html:root .nc-bars span.wet { background: #9AD2FF; }

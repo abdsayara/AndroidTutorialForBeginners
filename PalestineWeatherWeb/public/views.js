@@ -284,7 +284,7 @@ async function home(el, ctx, cancelled) {
     const sky = skyKind(fc.data, fc.data.current.time);
     document.documentElement.dataset.sky = sky;
     settings.sky = sky;
-    const SKY_HEX = { day: '#1F74B0', night: '#16304F', dusk: '#A44F27', cloudy: '#4A6476', fog: '#5E707B', rain: '#2E4A60', storm: '#213042', snow: '#4B6E8C' };
+    const SKY_HEX = { day: '#2C6FA6', night: '#263F5E', dusk: '#A9573A', cloudy: '#566C7E', fog: '#5F6F7B', rain: '#3E5A70', storm: '#2F4459', snow: '#56789A' };
     document.getElementById('theme-color')?.setAttribute('content', SKY_HEX[sky] ?? '#1F74B0');
     slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
     loadBulletin(slot.querySelector('#bulletin'), cancelled);
