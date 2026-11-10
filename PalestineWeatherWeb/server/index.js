@@ -10,6 +10,7 @@ import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
 import * as R from './roads.js';
 import * as W from './watan.js';
+import { PALHUB_URL, parsePalhub } from './palhub.js';
 import { telegramConfigured, readChats } from './telegram.js';
 import { demoFetch } from './demo.js';
 
@@ -139,11 +140,22 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
             return { ...ch, ok: false, posts: [], error: err.message };
           }
         }));
+        // PalHub: ~200 checkpoints with a status per direction; the main source when it answers.
+        const palhub = await cache.text(PALHUB_URL).then(parsePalhub).catch((err) => ({ error: err.message }));
         // Only a network failure on every source is an outage (keeps the last good copy);
         // a page with no posts means the source needs another way in (e.g. a group).
-        if (!sources.some((s) => s.ok || s.answered)) throw new Error('no road source reachable');
+        if (!palhub.checkpoints && !sources.some((s) => s.ok || s.answered)) throw new Error('no road source reachable');
         const roads = R.buildRoads(sources.flatMap((s) => s.posts));
-        return { ...roads, sources: sources.map(({ posts, answered, ...s }) => ({ ...s, count: posts.length })) };
+        const fromPosts = roads.checkpoints.map((c) => ({ ...c, city: roads.regions[c.region], into: c.status, out: c.status }));
+        return {
+          checkpoints: palhub.checkpoints ?? fromPosts,
+          cities: palhub.cities ?? Object.values(roads.regions).map((name) => ({ name })),
+          feed: roads.feed,
+          sources: [
+            { id: 'palhub', name: 'PalHub', ok: !!palhub.checkpoints, count: palhub.checkpoints?.length ?? 0, error: palhub.error ?? null },
+            ...sources.map(({ posts, answered, ...s }) => ({ ...s, count: posts.length })),
+          ],
+        };
       });
       return { ...r, cdnSeconds: 60 };
     },

@@ -580,131 +580,140 @@ async function stations(el, ctx, cancelled) {
 const ROAD_STATUS = {
   open: 'سالك',
   busy: 'أزمة',
+  crisis: 'أزمة خانقة',
   closed: 'مغلق',
   unknown: 'لا أخبار',
 };
+const ROAD_ORDER = { unknown: 0, open: 1, busy: 2, crisis: 3, closed: 4 };
 /** Reports older than this are shown faded: the road may have changed since. */
-const ROAD_FRESH_MIN = 120;
+const ROAD_FRESH_MIN = 180;
 const ROAD_REFRESH_MS = 2 * 60000;
 
 const minutesAgo = (iso) => (iso ? (Date.now() - Date.parse(iso)) / 60000 : Infinity);
 const multiline = (s) => esc(s).replace(/\n/g, '<br>');
 
-/** West Bank part of the outline with the checkpoints as coloured dots (same projection as the map). */
+/** West Bank part of the outline with the checkpoints we can place as coloured dots. */
 function roadsMap(cps, cities, focus) {
   const K = Math.cos((31.5 * Math.PI) / 180);
   const X = (lon) => ((lon - 34.1) * 92 * K).toFixed(1);
   const Y = (lat) => ((33.4 - lat) * 92).toFixed(1);
   const towns = cities.filter((c) => ['nablus', 'jenin', 'tulkarm', 'ramallah', 'jerusalem', 'bethlehem', 'hebron', 'jericho', 'qalqilya', 'salfit', 'tubas'].includes(c.id));
-  const order = { unknown: 0, open: 1, busy: 2, closed: 3 }; // worst on top
+  const placed = cps.filter((c) => c.lat != null && c.lon != null).sort((a, b) => ROAD_ORDER[a.status] - ROAD_ORDER[b.status]);
   return `<svg class="roads-map" viewBox="54 76 66 108" role="img" aria-label="خريطة الحواجز في الضفة الغربية">
     <path d="${OUTER}" class="land"/>
     ${LAKES.map((d) => `<path d="${d}" class="lake"/>`).join('')}
     ${REGION_LINES.map((d) => `<path d="${d}" class="border"/>`).join('')}
     ${towns.map((c) => `<g class="town"><circle cx="${X(c.lon)}" cy="${Y(c.lat)}" r="0.7"/><text x="${X(c.lon)}" y="${(+Y(c.lat) - 1.6).toFixed(1)}">${esc(c.name)}</text></g>`).join('')}
-    ${[...cps].sort((a, b) => order[a.status] - order[b.status]).map((c) => `
-      <g class="cp-dot ${c.status}${minutesAgo(c.at) > ROAD_FRESH_MIN ? ' old' : ''}${c.id === focus ? ' focus' : ''}" data-action="focus" data-id="${c.id}" tabindex="0" role="button"
+    ${placed.map((c) => `
+      <g class="cp-dot ${c.status}${minutesAgo(c.at) > ROAD_FRESH_MIN ? ' old' : ''}${c.id === focus ? ' focus' : ''}" data-action="focus" data-id="${esc(c.id)}" tabindex="0" role="button"
         aria-label="${esc(c.name)}: ${ROAD_STATUS[c.status]}">
-        <circle cx="${X(c.lon)}" cy="${Y(c.lat)}" r="${c.status === 'unknown' ? 1 : 1.7}"/>
+        <circle cx="${X(c.lon)}" cy="${Y(c.lat)}" r="${c.status === 'unknown' ? 1 : 1.6}"/>
       </g>`).join('')}
   </svg>`;
 }
 
 async function roads(el, ctx, cancelled) {
-  let region = '';
+  let city = '';
+  let status = '';
   let query = '';
   let focus = null;
   let data = null;
   el.innerHTML = `<div class="page">
-    ${header('أحوال الطرق', 'الحواجز والطرق من أخبار السائقين على تلغرام', {
+    ${header('أحوال الطرق', 'حالة الحواجز في الاتجاهين، تتحدّث كل دقيقتين', {
       back: true,
       actions: `<button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>`,
     })}
-    <div class="banner" role="note">أخبار يرسلها السائقون وقد لا تكون دقيقة أو محدّثة. انظر دائماً إلى وقت الخبر وتحقّق قبل السفر.</div>
+    <div class="banner" role="note">الحالة قد تتغيّر في أي لحظة. انظر دائماً إلى وقت آخر تحديث وتحقّق قبل السفر.</div>
     <div id="slot"></div>
   </div>`;
   const slot = el.querySelector('#slot');
 
-  const card = (c) => {
+  const chip = (label, st) => `<span class="dir ${st}"><span class="dir-l">${label}</span> ${ROAD_STATUS[st]}</span>`;
+  const row = (c) => {
     const old = minutesAgo(c.at) > ROAD_FRESH_MIN;
-    return `<article class="cp ${c.status}${old ? ' old' : ''}${c.id === focus ? ' focus' : ''}" id="cp-${c.id}">
-      <div class="row">
-        <span class="cp-badge">${ROAD_STATUS[c.status]}</span>
-        <h3 class="grow">${esc(c.name)}</h3>
-        <span class="muted tiny">${esc(F.ago(Date.parse(c.at)))}</span>
+    const same = c.into === c.out;
+    return `<div class="cp-row ${c.status}${old ? ' old' : ''}${c.id === focus ? ' focus' : ''}" id="cp-${esc(c.id)}">
+      <span class="cp-dotmark" aria-hidden="true"></span>
+      <div class="grow">
+        <div class="bold">${esc(c.name)}</div>
+        <div class="muted tiny">${c.at ? esc(F.ago(Date.parse(c.at))) : 'لا تحديث'}${old ? ' · قد يكون الوضع تغيّر' : ''}</div>
       </div>
-      <p class="cp-snip">«${esc(c.snippet)}»</p>
-      <div class="row tiny muted"><span class="grow">${esc(data.regions[c.region])}${old ? ' · خبر قديم، قد يكون الوضع تغيّر' : ''}</span>
-        <a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">الرسالة ${icon('external', 14, 'style="display:inline;vertical-align:-2px"')}</a></div>
-    </article>`;
+      <div class="dirs">${same ? chip('الاتجاهان', c.into) : chip('دخول', c.into) + chip('خروج', c.out)}</div>
+    </div>`;
   };
 
   const draw = () => {
     if (!data) return;
-    if (!data.sources.some((s) => s.ok)) {
-      // Nothing readable yet (e.g. the source is a group, which has no public web page).
-      slot.querySelector('#overview').innerHTML = `
-        <h2>مصدر أحوال الطرق قيد الربط</h2>
-        <p class="muted small" style="margin:0">نعمل على ربط الموقع بالمصدر لعرض حالة الحواجز هنا تلقائياً. إلى ذلك الحين تابع الأخبار مباشرة على تلغرام:</p>
-        <div class="pills">${data.sources.map((s) => `<a class="pill" style="text-decoration:none" href="https://t.me/${esc(s.id)}" target="_blank" rel="noopener noreferrer">${esc(s.name)} ${icon('external', 14, 'style="display:inline;vertical-align:-2px"')}</a>`).join('')}</div>`;
-      for (const id of ['filters', 'cards', 'quiet', 'feed', 'sources']) slot.querySelector(`#${id}`).innerHTML = '';
+    const anyOk = data.sources.some((s) => s.ok);
+    if (!anyOk) {
+      slot.querySelector('#overview').innerHTML = `<h2>مصدر أحوال الطرق غير متاح الآن</h2>
+        <p class="muted small" style="margin:0">سنعرض حالة الحواجز هنا تلقائياً فور عودة المصدر.</p>`;
+      for (const id of ['filters', 'status', 'list', 'feed', 'sources']) slot.querySelector(`#${id}`).innerHTML = '';
       slot.querySelectorAll('.search, #h-feed, #sources').forEach((e) => { e.hidden = true; });
       return;
     }
-    slot.querySelectorAll('.search, #h-feed, #sources').forEach((e) => { e.hidden = false; });
-    const match = (c) => (!region || c.region === region) && (!query || c.name.includes(query));
-    const cps = data.checkpoints.filter(match);
-    const known = cps.filter((c) => c.status !== 'unknown').sort((a, b) => b.at.localeCompare(a.at));
-    const quiet = cps.filter((c) => c.status === 'unknown');
-    const count = (s) => data.checkpoints.filter((c) => c.status === s).length;
-    const newest = data.feed[0]?.time;
-    const byId = Object.fromEntries(data.checkpoints.map((c) => [c.id, c]));
+    slot.querySelectorAll('.search, #sources').forEach((e) => { e.hidden = false; });
+    const all = data.checkpoints;
+    const count = (s) => all.filter((c) => c.status === s).length;
+    const newest = all.map((c) => c.at).filter(Boolean).sort().at(-1);
+    const shown = all
+      .filter((c) => !city || c.city === city)
+      .filter((c) => !status || c.status === status || (status === 'busy' && c.status === 'crisis'))
+      .filter((c) => !query || c.name.includes(query) || (c.city ?? '').includes(query));
 
     slot.querySelector('#overview').innerHTML = `
       <div class="roads-sum">
-        <div class="tile open"><div class="value num">${count('open')}</div><div class="label">سالك</div></div>
-        <div class="tile busy"><div class="value num">${count('busy')}</div><div class="label">أزمة / تفتيش</div></div>
-        <div class="tile closed"><div class="value num">${count('closed')}</div><div class="label">مغلق</div></div>
+        <button class="tile open" data-action="status" data-s="open"><div class="value num">${count('open')}</div><div class="label">سالك</div></button>
+        <button class="tile busy" data-action="status" data-s="busy"><div class="value num">${count('busy') + count('crisis')}</div><div class="label">أزمة</div></button>
+        <button class="tile closed" data-action="status" data-s="closed"><div class="value num">${count('closed')}</div><div class="label">مغلق</div></button>
       </div>
-      ${roadsMap(data.checkpoints.filter((c) => !region || c.region === region), ctx.cities, focus)}
+      ${roadsMap(all.filter((c) => !city || c.city === city), ctx.cities, focus)}
       <div class="roads-legend tiny muted">
-        <span><i class="open"></i>سالك</span><span><i class="busy"></i>أزمة</span><span><i class="closed"></i>مغلق</span><span><i class="unknown"></i>لا أخبار</span>
+        <span><i class="open"></i>سالك</span><span><i class="busy"></i>أزمة</span><span><i class="crisis"></i>أزمة خانقة</span><span><i class="closed"></i>مغلق</span>
       </div>
-      <div class="source">آخر رسالة ${newest ? esc(F.ago(Date.parse(newest))) : '—'} · يتحدّث تلقائياً كل دقيقتين · المواقع على الخريطة تقريبية</div>`;
+      <div class="source">${all.length} حاجزاً · آخر تحديث ${newest ? esc(F.ago(Date.parse(newest))) : '—'} · على الخريطة الحواجز المعروف موقعها فقط</div>`;
 
     slot.querySelector('#filters').innerHTML =
-      pill('الكل', 'data-action="region" data-r=""', !region) +
-      Object.entries(data.regions).map(([k, v]) => pill(v, `data-action="region" data-r="${k}"`, region === k)).join('');
+      pill('كل المدن', 'data-action="city" data-c=""', !city) +
+      data.cities.map((c) => pill(c.name, `data-action="city" data-c="${esc(c.name)}"`, city === c.name)).join('');
+    slot.querySelector('#status').innerHTML =
+      [['', 'كل الحالات'], ['closed', 'المغلق'], ['busy', 'الأزمات'], ['open', 'السالك']]
+        .map(([k, v]) => pill(v, `data-action="status" data-s="${k}"`, status === k)).join('');
 
-    slot.querySelector('#cards').innerHTML = known.length
-      ? known.map(card).join('')
-      : '<div class="empty">لا أخبار عن حواجز في هذه المنطقة خلال آخر 12 ساعة</div>';
-    slot.querySelector('#quiet').innerHTML = quiet.length
-      ? `<h2>بلا أخبار في آخر 12 ساعة</h2><div class="quiet-list">${quiet.map((c) => `<span>${esc(c.name)}</span>`).join('')}</div>` : '';
+    // Grouped by city, worst first inside each city.
+    const groups = new Map();
+    for (const c of shown) {
+      const k = c.city ?? 'أخرى';
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(c);
+    }
+    slot.querySelector('#list').innerHTML = shown.length ? [...groups].map(([name, list]) => `
+      <section class="cp-group">
+        <h2>${esc(name)} <span class="muted tiny">(${list.length})</span></h2>
+        <div class="card flush list">${list.sort((a, b) => ROAD_ORDER[b.status] - ROAD_ORDER[a.status] || a.name.localeCompare(b.name, 'ar')).map(row).join('')}</div>
+      </section>`).join('') : '<div class="empty">لا توجد حواجز مطابقة</div>';
 
-    slot.querySelector('#feed').innerHTML = data.feed.length ? data.feed.map((p) => `
+    const posts = data.feed ?? [];
+    slot.querySelector('#h-feed').hidden = !posts.length;
+    slot.querySelector('#feed').innerHTML = posts.map((p) => `
       <article class="post">
         <div class="post-text">${multiline(p.text)}</div>
-        ${p.mentions.length ? `<div class="post-tags">${p.mentions.map((m) => `<span class="tag ${m.status ?? 'unknown'}">${esc(byId[m.id]?.name ?? m.id)}${m.status ? ` · ${ROAD_STATUS[m.status]}` : ''}</span>`).join('')}</div>` : ''}
-        <div class="row tiny muted"><span class="grow">${esc(F.ago(Date.parse(p.time)))} · ${esc(data.sources.find((s) => s.id === p.channel)?.name ?? p.channel)}</span>
-          <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">فتح في تلغرام</a></div>
-      </article>`).join('') : '<div class="empty">لا رسائل الآن</div>';
+        <div class="row tiny muted"><span class="grow">${esc(F.ago(Date.parse(p.time)))}</span></div>
+      </article>`).join('');
 
-    slot.querySelector('#sources').innerHTML = `<h2>المصادر</h2>${data.sources.map((s) => `
-      <div class="row small"><span class="grow"><a href="https://t.me/${esc(s.id)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a> <span class="muted tiny">t.me/${esc(s.id)}</span></span>
-        <span class="tiny ${s.ok ? 'muted' : ''}" style="${s.ok ? '' : 'color:var(--red)'}">${s.ok ? `${s.count} رسالة` : 'تعذّرت القراءة'}</span></div>`).join('')}
-      <p class="muted tiny" style="margin:0">نقرأ الرسائل العامة للقناة ونستخرج منها أسماء الحواجز وكلمات مثل «سالك» و«أزمة» و«مسكّر». القراءة آلية وقد تخطئ، فاقرأ نص الرسالة دائماً.</p>`;
+    slot.querySelector('#sources').innerHTML = `<h2>المصادر</h2>${data.sources.filter((s) => s.ok).map((s) => `
+      <div class="row small"><span class="grow">${esc(s.name)}</span><span class="tiny muted">${s.count} ${s.id === 'palhub' ? 'حاجزاً' : 'رسالة'}</span></div>`).join('')}`;
   };
 
   const run = async () => {
     const r = await load(slot, '/api/roads', () => `<div class="page" style="max-width:none">
       <section class="card roads-top" id="overview"></section>
-      <div class="pills" id="filters"></div>
       <label class="search">${icon('search', 20)}<span class="sr-only">ابحث عن حاجز</span>
-        <input id="q" type="search" placeholder="ابحث عن حاجز" autocomplete="off" value="${esc(query)}"></label>
-      <section class="cp-grid" id="cards" aria-label="حالة الحواجز"></section>
-      <section id="quiet"></section>
-      <section aria-labelledby="h-feed"><h2 id="h-feed" style="margin-bottom:8px">آخر الرسائل</h2><div class="feed" id="feed"></div></section>
+        <input id="q" type="search" placeholder="ابحث عن حاجز أو مدينة" autocomplete="off" value="${esc(query)}"></label>
+      <div class="pills" id="filters"></div>
+      <div class="pills" id="status"></div>
+      <div id="list" aria-label="حالة الحواجز"></div>
+      <section aria-labelledby="h-feed"><h2 id="h-feed" style="margin-bottom:8px" hidden>رسائل السائقين</h2><div class="feed" id="feed"></div></section>
       <section class="card" id="sources"></section>
     </div>`, cancelled);
     if (!r) return;
@@ -723,6 +732,9 @@ async function roads(el, ctx, cancelled) {
   const timer = setInterval(refresh, ROAD_REFRESH_MS);
   const focusOn = (id) => {
     focus = id;
+    const cp = data?.checkpoints.find((c) => c.id === id);
+    if (cp && city && cp.city !== city) city = '';
+    if (cp && status) status = '';
     draw();
     el.querySelector(`#cp-${CSS.escape(id)}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
@@ -731,7 +743,8 @@ async function roads(el, ctx, cancelled) {
     if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); focusOn(t.dataset.id); }
   });
   const off = actions(el, {
-    region: (t) => { region = t.dataset.r; draw(); },
+    city: (t) => { city = t.dataset.c; draw(); },
+    status: (t) => { status = status === t.dataset.s ? '' : t.dataset.s; draw(); },
     focus: (t) => focusOn(t.dataset.id),
     retry: () => (data ? refresh() : run()),
   });

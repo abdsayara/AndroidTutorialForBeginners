@@ -384,3 +384,24 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(var(--tabbar-h) + 24px); o
 .st-temp { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1.1; }
 .st-grid .value { font-size: 16px; }
 .wc-sticker img { display: block; max-width: 100%; height: auto; margin-inline: auto; border-radius: var(--r-sm); }
+
+/* roads: PalHub list (status per direction) */
+.roads-sum .tile { border: 0; cursor: pointer; font: inherit; }
+.cp-dot.crisis circle { fill: #7A1D12; }
+.roads-legend i.crisis { background: #7A1D12; }
+.cp-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.cp-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; scroll-margin: 90px; }
+.cp-row.old { opacity: 0.6; }
+.cp-row.focus { box-shadow: inset 0 0 0 2px var(--ink); border-radius: var(--r-sm); }
+.cp-dotmark { width: 10px; height: 10px; border-radius: 50%; background: #9AA59E; flex-shrink: 0; }
+.cp-row.open .cp-dotmark { background: #1E8E57; }
+.cp-row.busy .cp-dotmark { background: var(--amber); }
+.cp-row.crisis .cp-dotmark { background: #7A1D12; }
+.cp-row.closed .cp-dotmark { background: var(--red); }
+.dirs { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
+.dir { font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 10px; background: var(--line); white-space: nowrap; }
+.dir-l { font-weight: 500; opacity: 0.8; }
+.dir.open { background: var(--green-tint); color: var(--green-dark); }
+.dir.busy { background: var(--amber-tint); color: var(--amber-ink); }
+.dir.crisis { background: #F6D5CF; color: #7A1D12; }
+.dir.closed { background: var(--red-tint); color: var(--red); }

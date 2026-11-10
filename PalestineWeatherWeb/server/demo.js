@@ -163,6 +163,22 @@ export function demoFetch(now = () => new Date()) {
         .map((t, i) => `<item><title>${t} - مصدر تجريبي</title><link>https://example.com/news/${i}</link><pubDate>${new Date(n.getTime() - (i + 1) * 3600000).toUTCString()}</pubDate><source url="https://example.com">مصدر تجريبي</source></item>`);
       return new Response(`<?xml version="1.0"?><rss><channel>${items.join('')}</channel></rss>`, { headers: { 'Content-Type': 'application/rss+xml' } });
     }
+    if (url.host === 'palhub.app') {
+      // Next.js page with its data inside self.__next_f.push(...) like the real one.
+      const city = (id, name, lat, lon) => ({ id, name_ar: name, display_order: id.length, latitude: lat, longitude: lon });
+      const cp = (id, name, cityId, into, out, minAgo) => ({ id, name, city_id: cityId, status_into: into, status_out: out, wait_into_minutes: 1, wait_out_minutes: 1, tags_into: [], tags_out: [], last_status_update_at: new Date(n.getTime() - minAgo * 60000).toISOString() });
+      const data = {
+        cities: [city('a', 'ضواحي القدس', 31.77, 35.21), city('bb', 'رام الله و البيرة', 31.9, 35.2), city('ccc', 'نابلس', 32.22, 35.25), city('dddd', 'الخليل', 31.53, 35.1)],
+        checkpoints: [
+          cp('1', 'جبع', 'a', 'open', 'busy', 5), cp('2', 'قلنديا', 'a', 'crisis', 'crisis', 8), cp('3', 'الكونتينر', 'a', 'open', 'open', 3),
+          cp('4', 'عطارة البلد - فوق الجسر', 'bb', 'closed', 'closed', 20), cp('5', 'عين سينيا', 'bb', 'open', 'open', 12), cp('6', 'بيت ايل DCO', 'bb', 'busy', 'open', 40),
+          cp('7', 'زعترة', 'ccc', 'busy', 'busy', 6), cp('8', 'بوابة حوارة', 'ccc', 'open', 'open', 9), cp('9', 'عورتا', 'ccc', 'closed', 'closed', 300), cp('10', 'المربعة', 'ccc', 'open', 'open', 50),
+          cp('11', 'راس الجورة', 'dddd', 'open', 'busy', 15), cp('12', 'الفحص', 'dddd', 'open', 'open', 30), cp('13', 'العروب – الجسر', 'dddd', 'closed', 'open', 25),
+        ],
+      };
+      const payload = `14:["$","$L29",null,{"initial":${JSON.stringify(data)}}]`;
+      return new Response(`<html><body><script>self.__next_f.push([1,${JSON.stringify(payload)}])</script></body></html>`, { headers: { 'Content-Type': 'text/html' } });
+    }
     if (url.host === 'www.p-weather.ps') {
       // «طقس الوطن»: same markup as the real pages, made-up text.
       const html = (body) => new Response(`<html><body>${body}</body></html>`, { headers: { 'Content-Type': 'text/html' } });
