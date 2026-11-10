@@ -27,6 +27,7 @@ import ps.weather.data.Http
 import ps.weather.data.Prefs
 import ps.weather.data.QuakeRepository
 import ps.weather.data.WeatherRepository
+import ps.weather.data.dustAlert
 import ps.weather.ui.arabicDayName
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -75,6 +76,15 @@ class AlertWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
                     )
                 }
             }
+
+        // Khamaseen: dust over 100 µg/m³ in the next 24 hours, once a day.
+        dustAlert(WeatherRepository.air(city.lat, city.lon))?.let { d ->
+            found += AlertRecord(
+                "dust_${city.id}_${LocalDate.now()}", AlertType.WIND,
+                if (d.heavy) AlertLevel.HIGH else AlertLevel.WARN,
+                d.title, d.text, city.name, now,
+            )
+        }
 
         runCatching { QuakeRepository.recent(1) }.getOrNull()
             ?.takeIf { !it.fromCache }?.value

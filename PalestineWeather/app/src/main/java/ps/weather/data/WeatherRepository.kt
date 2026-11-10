@@ -39,6 +39,8 @@ data class DayPoint(
     val sunset: LocalDateTime?,
 )
 
+data class AirInfo(val aqi: Int?, val dust: Double?, val dustMax: Double?, val dustMaxAt: LocalDateTime?, val time: LocalDateTime?)
+
 /** Rain in one 15-minute step (mm). */
 data class MinutePoint(val time: LocalDateTime, val precip: Double)
 
@@ -94,11 +96,31 @@ object WeatherRepository {
     }
 
     /** European AQI, or null when unavailable. */
-    suspend fun airQuality(lat: Double, lon: Double): Int? = runCatching {
-        val body = Http.get("$AIR?latitude=$lat&longitude=$lon&current=european_aqi", "aqi_${lat}_$lon").value
-        JSONObject(body).getJSONObject("current").optDouble("european_aqi", Double.NaN)
-            .takeIf { !it.isNaN() }?.toInt()
+    /** Air quality now, and dust (µg/m³) now and at its worst over the next 24 hours. */
+    suspend fun air(lat: Double, lon: Double): AirInfo? = runCatching {
+        val url = "$AIR?latitude=$lat&longitude=$lon&current=european_aqi,dust&hourly=dust&forecast_days=2&timezone=auto"
+        val o = JSONObject(Http.get(url, "air2_${lat}_$lon").value)
+        val c = o.getJSONObject("current")
+        val now = runCatching { LocalDateTime.parse(c.optString("time")) }.getOrNull()
+        val h = o.optJSONObject("hourly")
+        val times = h?.getJSONArray("time")?.strings().orEmpty()
+        val dust = h?.getJSONArray("dust")?.doubles().orEmpty()
+        val hourNow = now?.withMinute(0)
+        val next = times.indices
+            .map { LocalDateTime.parse(times[it]) to dust.getOrNull(it) }
+            .filter { (t, v) -> v != null && !v.isNaN() && (hourNow == null || !t.isBefore(hourNow)) }
+            .take(24)
+        val peak = next.maxByOrNull { it.second!! }
+        AirInfo(
+            aqi = c.optDouble("european_aqi", Double.NaN).takeIf { !it.isNaN() }?.toInt(),
+            dust = c.optDouble("dust", Double.NaN).takeIf { !it.isNaN() },
+            dustMax = peak?.second,
+            dustMaxAt = peak?.first,
+            time = now,
+        )
     }.getOrNull()
+
+    suspend fun airQuality(lat: Double, lon: Double): Int? = air(lat, lon)?.aqi
 
     suspend fun citiesNow(cities: List<City>): Fetched<Map<String, CityNow>> {
         val url = "$FORECAST?latitude=${cities.joinToString(",") { it.lat.toString() }}" +

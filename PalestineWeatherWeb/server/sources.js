@@ -77,10 +77,26 @@ function parseForecastLists(o, c, h, d) {
 }
 
 export function airUrl(lat, lon) {
-  return `${AIR}?latitude=${lat}&longitude=${lon}&current=european_aqi`;
+  return `${AIR}?latitude=${lat}&longitude=${lon}&current=european_aqi,pm10,dust&hourly=dust&forecast_days=2&timezone=auto`;
 }
 
-export const parseAir = (o) => ({ aqi: num(o?.current?.european_aqi) });
+/** Air quality now, plus the dust (µg/m³) now and at its worst in the next 24 hours. */
+export function parseAir(o) {
+  const c = o?.current ?? {};
+  const now = String(c.time ?? '').slice(0, 13);
+  const times = o?.hourly?.time ?? [];
+  const dust = o?.hourly?.dust ?? [];
+  const next = times.map((t, i) => [t, num(dust[i])]).filter(([t, v]) => v != null && t.slice(0, 13) >= now).slice(0, 24);
+  const peak = next.reduce((best, cur) => (cur[1] > (best?.[1] ?? -1) ? cur : best), null);
+  return {
+    time: c.time ?? null,
+    aqi: num(c.european_aqi),
+    pm10: num(c.pm10),
+    dust: num(c.dust),
+    dustMax: peak ? peak[1] : null,
+    dustMaxAt: peak ? peak[0] : null,
+  };
+}
 
 /** Open-Meteo returns an object for one location and an array for several. */
 const asArray = (o) => (Array.isArray(o) ? o : [o]);

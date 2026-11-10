@@ -102,3 +102,102 @@ export function skyKind(fc, nowIso) {
   }
   return c.isDay === false ? 'night' : 'day';
 }
+
+// ---------------------------------------------------------------- Palestinian touches
+
+/** "7:00 ص", "3:30 م". */
+const clock12 = (hhmm) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`;
+};
+
+/** Khamaseen and dust: a warning when dust (µg/m³) passes 100 in the next 24 hours. */
+export function dustAlert(air) {
+  const peak = air?.dustMax;
+  if (peak == null || peak < 100) return null;
+  const heavy = peak >= 300;
+  const nowBad = (air.dust ?? 0) >= 100;
+  const at = String(air.dustMaxAt ?? '');
+  const tomorrow = air.time && at.slice(0, 10) > String(air.time).slice(0, 10);
+  const when = nowBad ? 'الآن' : at
+    ? `${tomorrow ? 'غداً ' : ''}نحو الساعة ${clock12(at.slice(11, 16))}`
+    : 'خلال الساعات القادمة';
+  return {
+    heavy,
+    title: heavy ? 'موجة غبار كثيف' : 'غبار في الأجواء',
+    text: `${heavy ? 'غبار كثيف' : 'غبار متوسط'} ${when}. ${heavy
+      ? 'أغلق النوافذ وقلّل الخروج، خاصة لمرضى الربو والحساسية وكبار السن.'
+      : 'يُفضّل لمرضى الربو والحساسية تجنّب المجهود في الخارج.'}`,
+  };
+}
+
+/** "شو نلبس؟" for a day: what to wear from its high, low, rain and wind. */
+export function clothingAdvice(day) {
+  if (!day || day.max == null) return null;
+  const { max, min } = day;
+  let text;
+  if (max >= 30) text = 'ملابس صيفية خفيفة وفاتحة، وقبعة للشمس';
+  else if (max >= 24) text = min != null && min < 17 ? 'ملابس خفيفة نهاراً، وطبقة رقيقة للمساء' : 'ملابس خفيفة';
+  else if (max >= 17) text = 'قميص بأكمام طويلة أو كنزة خفيفة';
+  else if (max >= 10) text = 'كنزة وجاكيت';
+  else text = 'معطف شتوي وطبقات دافئة';
+  const extra = [];
+  if ((day.precipProbMax ?? 0) >= 50) extra.push('مظلة أو جاكيت للمطر');
+  if ((day.windMax ?? 0) >= 35) extra.push('شيء يقي من الرياح');
+  return extra.length ? `${text}، و${extra.join(' و')}` : text;
+}
+
+const hm = (s) => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
+
+/**
+ * The next prayer and the weather at its hour: {name, time, minutes, tomorrow, hour},
+ * hour being the forecast hour (or null). After the last prayer: tomorrow's Fajr.
+ */
+export function prayerWeather(times, hours, nowIso) {
+  const prayers = (times ?? []).filter((t) => t.name !== 'الشروق');
+  if (!prayers.length) return null;
+  const now = String(nowIso);
+  const nowMin = hm(now.slice(11, 16));
+  const today = prayers.find((t) => hm(t.time) > nowMin);
+  const next = today ?? prayers[0];
+  let date = now.slice(0, 10);
+  if (!today) {
+    const [y, m, d] = date.split('-').map(Number);
+    date = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+  }
+  const hourKey = `${date}T${String(Math.floor(hm(next.time) / 60)).padStart(2, '0')}`;
+  return {
+    name: next.name,
+    time: next.time,
+    minutes: hm(next.time) - nowMin + (today ? 0 : 1440),
+    tomorrow: !today,
+    hour: (hours ?? []).find((h) => h.time.slice(0, 13) === hourKey) ?? null,
+  };
+}
+
+/** Days good for field work: dry, calm and mild (the farming page's "ممتاز"). */
+const fieldDay = (d) => d.precipProbMax < 25 && d.windMax < 25 && d.max >= 12 && d.max <= 32;
+
+/**
+ * A card for the farming season, or null outside one:
+ * the olive harvest (October to mid-December) and the frost months (December to February).
+ */
+export function seasonCard(days, dateIso, dayName) {
+  const [, m, d] = String(dateIso).slice(0, 10).split('-').map(Number);
+  const week = (days ?? []).slice(0, 7);
+  if (m === 10 || m === 11 || (m === 12 && d <= 15)) {
+    const good = week.filter(fieldDay).slice(0, 4).map((x) => dayName(x.date));
+    return {
+      title: 'موسم قطاف الزيتون',
+      text: good.length
+        ? `أنسب أيام القطاف هذا الأسبوع: ${good.join('، ')}.`
+        : 'لا أيام مناسبة للقطاف هذا الأسبوع بسبب المطر أو الرياح.',
+    };
+  }
+  if (m === 12 || m === 1 || m === 2) {
+    const frost = week.slice(0, 3).filter((x) => x.min != null && x.min <= 3).map((x) => dayName(x.date));
+    if (!frost.length) return null;
+    return { title: 'تحذير صقيع', text: `ليالٍ باردة قد يتكوّن فيها الصقيع: ${frost.join('، ')}. غطِّ المزروعات الحساسة ليلاً.` };
+  }
+  return null;
+}

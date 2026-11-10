@@ -146,7 +146,14 @@ export function demoFetch(now = () => new Date()) {
         { id: 2, name: `${name} الشرقية (تجريبي)`, latitude: 32.25, longitude: 35.28, elevation: 540, admin1: 'نابلس', population: 1200 },
       ] });
     }
-    if (url.host === 'air-quality-api.open-meteo.com') return json({ current: { european_aqi: 34 } });
+    if (url.host === 'air-quality-api.open-meteo.com') {
+      // A khamaseen afternoon: dust building up over the next hours.
+      const local = new Date(n.getTime() + OFFSET);
+      const h0 = new Date(Math.floor(local.getTime() / 3600000) * 3600000);
+      const time = Array.from({ length: 30 }, (_, i) => isoHour(new Date(h0.getTime() + i * 3600000)));
+      const dust = time.map((_, i) => Math.round(60 + 180 * Math.sin(Math.min(i, 12) / 12 * Math.PI / 2)));
+      return json({ current: { time: time[0], european_aqi: 58, pm10: 95, dust: dust[0] }, hourly: { time, dust } });
+    }
     if (url.host === 'earthquake.usgs.gov') {
       const t = n.getTime();
       const f = (id, mag, lat, lon, depth, hoursAgo, felt) => ({

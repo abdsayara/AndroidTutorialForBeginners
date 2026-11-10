@@ -107,3 +107,90 @@ fun skyKind(fc: Forecast, now: LocalDateTime = fc.currentTime ?: LocalDateTime.n
         else -> Sky.NIGHT
     }
 }
+
+// ---------------------------------------------------------------- Palestinian touches
+
+private fun clock12(t: java.time.LocalTime): String {
+    val h = t.hour % 12
+    return "${if (h == 0) 12 else h}:${t.minute.toString().padStart(2, '0')} ${if (t.hour < 12) "ص" else "م"}"
+}
+
+data class DustAlert(val heavy: Boolean, val title: String, val text: String)
+
+/** Khamaseen and dust: a warning when dust passes 100 µg/m³ in the next 24 hours. */
+fun dustAlert(air: AirInfo?): DustAlert? {
+    val peak = air?.dustMax ?: return null
+    if (peak < 100) return null
+    val heavy = peak >= 300
+    val at = air.dustMaxAt
+    val tomorrow = at != null && air.time != null && at.toLocalDate().isAfter(air.time.toLocalDate())
+    val whenText = when {
+        (air.dust ?: 0.0) >= 100 -> "الآن"
+        at != null -> "${if (tomorrow) "غداً " else ""}نحو الساعة ${clock12(at.toLocalTime())}"
+        else -> "خلال الساعات القادمة"
+    }
+    val advice = if (heavy) "أغلق النوافذ وقلّل الخروج، خاصة لمرضى الربو والحساسية وكبار السن."
+    else "يُفضّل لمرضى الربو والحساسية تجنّب المجهود في الخارج."
+    return DustAlert(
+        heavy,
+        if (heavy) "موجة غبار كثيف" else "غبار في الأجواء",
+        "${if (heavy) "غبار كثيف" else "غبار متوسط"} $whenText. $advice",
+    )
+}
+
+/** "شو نلبس؟" for a day: what to wear from its high, low, rain and wind. */
+fun clothingAdvice(day: DayPoint?): String? {
+    day ?: return null
+    val text = when {
+        day.max >= 30 -> "ملابس صيفية خفيفة وفاتحة، وقبعة للشمس"
+        day.max >= 24 -> if (day.min < 17) "ملابس خفيفة نهاراً، وطبقة رقيقة للمساء" else "ملابس خفيفة"
+        day.max >= 17 -> "قميص بأكمام طويلة أو كنزة خفيفة"
+        day.max >= 10 -> "كنزة وجاكيت"
+        else -> "معطف شتوي وطبقات دافئة"
+    }
+    val extra = listOfNotNull(
+        "مظلة أو جاكيت للمطر".takeIf { day.precipProbMax >= 50 },
+        "شيء يقي من الرياح".takeIf { day.windMax >= 35 },
+    )
+    return if (extra.isEmpty()) text else "$text، و${extra.joinToString(" و")}"
+}
+
+data class PrayerWeather(val name: String, val time: java.time.LocalTime, val minutes: Int, val tomorrow: Boolean, val hour: HourPoint?)
+
+/** The next prayer and the weather at its hour; after the last prayer, tomorrow's Fajr. */
+fun prayerWeather(times: List<Pair<String, java.time.LocalTime>>, hours: List<HourPoint>, now: LocalDateTime): PrayerWeather? {
+    val prayers = times.filter { it.first != "الشروق" }
+    if (prayers.isEmpty()) return null
+    val today = prayers.firstOrNull { it.second.isAfter(now.toLocalTime()) }
+    val next = today ?: prayers.first()
+    val date = if (today != null) now.toLocalDate() else now.toLocalDate().plusDays(1)
+    val at = date.atTime(next.second)
+    return PrayerWeather(
+        next.first, next.second,
+        Duration.between(now, at).toMinutes().toInt(),
+        today == null,
+        hours.firstOrNull { it.time == at.withMinute(0) },
+    )
+}
+
+data class SeasonCard(val title: String, val text: String)
+
+/** The olive harvest (October to mid-December) and the frost months (December to February). */
+fun seasonCard(days: List<DayPoint>, date: java.time.LocalDate, dayName: (java.time.LocalDate) -> String): SeasonCard? {
+    val week = days.take(7)
+    val m = date.monthValue
+    if (m == 10 || m == 11 || (m == 12 && date.dayOfMonth <= 15)) {
+        val good = week.filter { it.precipProbMax < 25 && it.windMax < 25 && it.max in 12.0..32.0 }.take(4).map { dayName(it.date) }
+        return SeasonCard(
+            "موسم قطاف الزيتون",
+            if (good.isNotEmpty()) "أنسب أيام القطاف هذا الأسبوع: ${good.joinToString("، ")}."
+            else "لا أيام مناسبة للقطاف هذا الأسبوع بسبب المطر أو الرياح.",
+        )
+    }
+    if (m == 12 || m == 1 || m == 2) {
+        val frost = week.take(3).filter { it.min <= 3 }.map { dayName(it.date) }
+        if (frost.isEmpty()) return null
+        return SeasonCard("تحذير صقيع", "ليالٍ باردة قد يتكوّن فيها الصقيع: ${frost.joinToString("، ")}. غطِّ المزروعات الحساسة ليلاً.")
+    }
+    return null
+}

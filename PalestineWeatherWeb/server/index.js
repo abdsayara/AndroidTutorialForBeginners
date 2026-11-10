@@ -61,7 +61,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/air': async (q) => {
       const c = requirePlace(q);
-      return cache.get(`air_${c.id}`, 1800, async () => S.parseAir(await cache.json(S.airUrl(c.lat, c.lon))));
+      return cache.get(`air2_${c.id}`, 1800, async () => S.parseAir(await cache.json(S.airUrl(c.lat, c.lon))));
     },
 
     '/api/now': async () => cache.get('cities_now', 900, async () => S.parseCitiesNow(await cache.json(S.citiesNowUrl()))),

@@ -4,7 +4,7 @@ import * as F from './format.js';
 import { esc } from './format.js';
 import { icon, starFilled, weatherIcon } from './icons.js';
 import { OUTER, REGION_LINES, LAKES } from './shape.js';
-import { rainNowcast, summarize, skyKind } from './insights.js';
+import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard } from './insights.js';
 
 // ---------------------------------------------------------------- helpers
 
@@ -56,7 +56,34 @@ const pill = (label, attrs, on) => `<button class="pill" ${attrs} aria-pressed="
 
 // ---------------------------------------------------------------- home
 
-function homeBody(fc, aqi) {
+function dustCard(air) {
+  const d = dustAlert(air);
+  return d ? `<section class="card alert-card ${d.heavy ? 'heavy' : ''}" role="status">
+      <div class="row">${icon('wind', 20)}<strong class="grow">${esc(d.title)}</strong></div>
+      <p>${esc(d.text)}</p>
+    </section>` : '';
+}
+
+/** "شو نلبس؟", the next prayer's weather and the farming season, as small cards. */
+function todayCards(fc, prayer, nowIso) {
+  const late = Number(String(nowIso).slice(11, 13)) >= 15;
+  const wearDay = late ? fc.days[1] : fc.days[0];
+  const wear = clothingAdvice(wearDay);
+  const pw = prayerWeather(prayer?.times, fc.hours, nowIso);
+  const season = seasonCard(fc.days, nowIso, F.dayName);
+  const cards = [];
+  if (wear) cards.push(`<div class="mini"><div class="mini-h">${icon('thermo', 18)} ${late ? 'شو نلبس بكرا؟' : 'شو نلبس اليوم؟'}</div><p>${esc(wear)}</p></div>`);
+  if (pw) {
+    const when = pw.tomorrow ? 'غداً' : pw.minutes < 15 ? `بعد ${pw.minutes} دقائق` : pw.minutes < 180 ? `بعد ${minutesText(Math.round(pw.minutes / 15) * 15)}` : `الساعة ${F.clock(pw.time)}`;
+    const wx = pw.hour ? `، والطقس وقتها ${F.weatherText(pw.hour.code)} ${F.deg(pw.hour.temp)}` : '';
+    cards.push(`<a class="mini" href="/prayer" data-link><div class="mini-h">${icon('moon', 18)} ${esc(pw.name)} ${esc(when)}</div><p>${esc(`أذان ${pw.name} الساعة ${F.clock(pw.time)}${wx}`)}</p></a>`);
+  }
+  if (season) cards.push(`<a class="mini" href="/farming" data-link><div class="mini-h">${icon('leaf', 18)} ${esc(season.title)}</div><p>${esc(season.text)}</p></a>`);
+  return cards.length ? `<section class="minis" aria-label="لليوم">${cards.join('')}</section>` : '';
+}
+
+function homeBody(fc, air, prayer) {
+  const aqi = air?.aqi;
   const c = fc.current;
   const nowKey = (c.time ?? '').slice(0, 13);
   let nowIdx = fc.hours.findIndex((h) => h.time.slice(0, 13) >= nowKey);
@@ -111,12 +138,14 @@ function homeBody(fc, aqi) {
       </div>
       <p class="hero-summary">${esc(summarize(fc, nowIso))}</p>
     </section>
+${dustCard(air)}
 ${nowcast}
 
     <section aria-labelledby="h-hours">
       <div class="row"><h2 id="h-hours" class="grow">الساعات القادمة</h2><a class="link-btn" href="/hourly" data-link>التفاصيل</a></div>
       <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
     </section>
+${todayCards(fc, prayer, nowIso)}
 
     <section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>
 
@@ -146,16 +175,17 @@ async function home(el, ctx, cancelled) {
   const run = async () => {
     slot.innerHTML = spinner;
     try {
-      const [fc, air] = await Promise.all([
+      const [fc, air, prayer] = await Promise.all([
         api(`/api/forecast?${ctx.placeQuery()}`),
         api(`/api/air?${ctx.placeQuery()}`).catch(() => null),
+        api(`/api/prayer?${ctx.placeQuery()}&method=${settings.prayerMethod}`).catch(() => null),
       ]);
       if (cancelled()) return;
       const sub = el.querySelector('.subtitle');
       if (sub) sub.textContent = subtitle(F.elevation(fc.data.elevation));
       // Remember it so the selected village / GPS row on the cities page can show it too.
       if (!city.region && fc.data.elevation != null && city.elevation !== fc.data.elevation) ctx.setPlace({ ...city, elevation: fc.data.elevation }, { go: false });
-      slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data?.aqi)}</div>`;
+      slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
       loadBulletin(slot.querySelector('#bulletin'), cancelled);
     } catch {
       if (!cancelled()) slot.innerHTML = errorBox();

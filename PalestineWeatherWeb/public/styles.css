@@ -476,3 +476,18 @@ main { flex: 1; min-width: 0; padding: 20px 16px calc(64px + 36px + env(safe-are
 .nc-bars { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; align-items: end; height: 44px; }
 .nc-bars span { display: block; border-radius: 4px 4px 2px 2px; background: #D8E3EA; }
 .nc-bars span.wet { background: var(--brand); }
+
+/* ---------------------------------------------------------------- Palestinian touches */
+
+.alert-card { border-color: #F0D9A8; background: #FFF8EA; gap: 6px; }
+.alert-card .icon { color: var(--amber); }
+.alert-card.heavy { border-color: #F1C2B5; background: #FDEDE8; }
+.alert-card.heavy .icon { color: var(--red); }
+.alert-card p { margin: 0; font-size: 14px; line-height: 1.8; }
+.minis { display: grid; gap: 10px; }
+@media (min-width: 640px) { .minis { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }
+.mini { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; color: var(--ink); text-decoration: none; display: flex; flex-direction: column; gap: 4px; }
+a.mini:hover { box-shadow: 0 0 0 1px var(--border); }
+.mini-h { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14px; }
+.mini-h .icon { color: var(--brand); }
+.mini p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.7; }

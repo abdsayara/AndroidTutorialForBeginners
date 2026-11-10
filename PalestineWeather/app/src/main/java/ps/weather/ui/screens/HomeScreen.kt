@@ -38,7 +38,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ps.weather.R
 import ps.weather.data.City
+import ps.weather.data.AirInfo
+import ps.weather.data.DustAlert
 import ps.weather.data.Forecast
+import ps.weather.data.PrayerDay
+import ps.weather.data.PrayerMethod
+import ps.weather.data.PrayerRepository
+import ps.weather.data.clothingAdvice
+import ps.weather.data.dustAlert
+import ps.weather.data.minutesText
+import ps.weather.data.prayerWeather
+import ps.weather.data.seasonCard
 import ps.weather.data.Nowcast
 import ps.weather.data.Sky
 import ps.weather.data.rainNowcast
@@ -69,11 +79,17 @@ import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 @Composable
-fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onElevation: (Double) -> Unit = {}) {
+fun HomeScreen(
+    city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onElevation: (Double) -> Unit = {},
+    prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
+) {
     val (load, refresh) = rememberLoad(city.id) { WeatherRepository.forecast(city.lat, city.lon) }
     val elevation = (load as? Load.Ok)?.value?.elevation ?: city.elevation
     LaunchedEffect(elevation) { elevation?.let(onElevation) }
-    val aqi by produceState<Int?>(null, city.id) { value = WeatherRepository.airQuality(city.lat, city.lon) }
+    val air by produceState<AirInfo?>(null, city.id) { value = WeatherRepository.air(city.lat, city.lon) }
+    val prayer by produceState<PrayerDay?>(null, city.id, prayerMethod) {
+        value = runCatching { PrayerRepository.today(city.lat, city.lon, prayerMethod).value }.getOrNull()
+    }
 
     LazyColumn(
         contentPadding = PaddingValues(20.dp),
@@ -107,13 +123,14 @@ fun HomeScreen(city: City, onPickCity: () -> Unit, onHourly: () -> Unit, onEleva
             }
         }
         item {
-            LoadBox(load, refresh) { fc -> HomeContent(fc, aqi, onHourly) }
+            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly) }
         }
     }
 }
 
 @Composable
-private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
+private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourly: () -> Unit) {
+    val aqi = air?.aqi
     val now = fc.nowIndex
     val today = fc.days.firstOrNull()
     val c = fc.current
@@ -153,6 +170,7 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
         Text(summarize(fc), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Color.White, lineHeight = 24.sp)
     }
 
+    dustAlert(air)?.let { DustCard(it) }
     rainNowcast(fc.minutely, fc.currentTime ?: LocalDateTime.now())?.let { NowcastCard(it) }
 
     // Next hours
@@ -179,6 +197,24 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
             }
         }
     }
+
+    // "شو نلبس؟", the next prayer's weather and the farming season
+    val nowTime = fc.currentTime ?: LocalDateTime.now()
+    val late = nowTime.hour >= 15
+    clothingAdvice(if (late) fc.days.getOrNull(1) else fc.days.firstOrNull())?.let {
+        MiniCard(PwIcons.Thermometer, if (late) "شو نلبس بكرا؟" else "شو نلبس اليوم؟", it)
+    }
+    prayer?.let { prayerWeather(it.times, fc.hours, nowTime) }?.let { pw ->
+        val whenText = when {
+            pw.tomorrow -> "غداً"
+            pw.minutes < 15 -> "بعد ${pw.minutes} دقائق"
+            pw.minutes < 180 -> "بعد ${minutesText((pw.minutes + 7) / 15 * 15)}"
+            else -> "الساعة ${clock(pw.time)}"
+        }
+        val wx = pw.hour?.let { "، والطقس وقتها ${weatherText(it.code)} ${deg(it.temp)}" } ?: ""
+        MiniCard(PwIcons.Moon, "${pw.name} $whenText", "أذان ${pw.name} الساعة ${clock(pw.time)}$wx")
+    }
+    seasonCard(fc.days, nowTime.toLocalDate()) { relativeDayName(it) }?.let { MiniCard(PwIcons.Leaf, it.title, it.text) }
 
     // Details
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -218,6 +254,38 @@ private fun HomeContent(fc: Forecast, aqi: Int?, onHourly: () -> Unit) {
                 Text(deg(d.max), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
         }
+    }
+}
+
+@Composable
+private fun DustCard(d: DustAlert) {
+    val (bg, line, tint) = if (d.heavy) Triple(Color(0xFFFDEDE8), Color(0xFFF1C2B5), Pw.Red)
+    else Triple(Color(0xFFFFF8EA), Color(0xFFF0D9A8), Pw.Amber)
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(bg)
+            .border(1.dp, line, RoundedCornerShape(20.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(PwIcons.Wind, null, tint = tint, modifier = Modifier.size(20.dp))
+            Text(d.title, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        }
+        Text(d.text, fontSize = 14.sp, lineHeight = 24.sp)
+    }
+}
+
+@Composable
+private fun MiniCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, text: String) {
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Pw.Card)
+            .border(1.dp, Pw.Line, RoundedCornerShape(18.dp)).padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(icon, null, tint = Pw.Brand, modifier = Modifier.size(18.dp))
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
+        Text(text, fontSize = 14.sp, color = Pw.Muted, lineHeight = 23.sp)
     }
 }
 
