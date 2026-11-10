@@ -1,11 +1,13 @@
 package ps.weather.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,7 +33,14 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +50,7 @@ import ps.weather.R
 import ps.weather.data.City
 import ps.weather.data.AirInfo
 import ps.weather.data.DustAlert
+import ps.weather.data.DayPoint
 import ps.weather.data.Forecast
 import ps.weather.data.PrayerDay
 import ps.weather.data.PrayerMethod
@@ -48,7 +59,9 @@ import ps.weather.data.clothingAdvice
 import ps.weather.data.dustAlert
 import ps.weather.data.minutesText
 import ps.weather.data.prayerWeather
+import ps.weather.data.moonPhase
 import ps.weather.data.seasonCard
+import ps.weather.data.sunDay
 import ps.weather.data.Nowcast
 import ps.weather.data.Sky
 import ps.weather.data.rainNowcast
@@ -76,7 +89,10 @@ import ps.weather.ui.weatherText
 import ps.weather.ui.windDirectionName
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 @Composable
 fun HomeScreen(
@@ -222,15 +238,11 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
             StatTile("الرطوبة", "${c.humidity}%", Modifier.weight(1f))
             StatTile("الأشعة فوق البنفسجية", today?.let { "${it.uvMax.roundToInt()} · ${uvText(it.uvMax)}" } ?: "—", Modifier.weight(1f))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile(
-                "الشروق / الغروب",
-                today?.let { d -> "${d.sunrise?.let { clock(it.toLocalTime()) } ?: "—"} · ${d.sunset?.let { clock(it.toLocalTime()) } ?: "—"}" } ?: "—",
-                Modifier.weight(1f),
-            )
-            StatTile("جودة الهواء", aqi?.let { "$it · ${aqiText(it)}" } ?: "—", Modifier.weight(1f))
-        }
+        StatTile("جودة الهواء", aqi?.let { "$it · ${aqiText(it)}" } ?: "—", Modifier.fillMaxWidth())
     }
+
+    // The sun's path today and tonight's moon
+    if (today != null) SkyCard(today, nowTime)
 
     // 7 days
     val lo = fc.days.minOfOrNull { it.min } ?: 0.0
@@ -244,14 +256,90 @@ private fun HomeContent(fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourl
                 WeatherIcon(d.code, size = 22.dp)
                 Text(if (d.precipProbMax >= 10) "${d.precipProbMax}%" else "", fontSize = 12.sp, color = Pw.Blue, modifier = Modifier.width(36.dp))
                 Text(deg(d.min), fontSize = 14.sp, color = Pw.Muted)
-                Row(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Pw.Line)) {
-                    val start = ((d.min - lo) / span).toFloat()
-                    val len = ((d.max - d.min) / span).toFloat()
-                    Spacer(Modifier.weight(start.coerceAtLeast(0.001f)))
-                    Box(Modifier.weight(len.coerceAtLeast(0.02f)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(Pw.Amber))
-                    Spacer(Modifier.weight((1f - start - len).coerceAtLeast(0.001f)))
+                BoxWithConstraints(Modifier.weight(1f).height(14.dp), contentAlignment = Alignment.CenterStart) {
+                    Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(Pw.Line)) {
+                        val start = ((d.min - lo) / span).toFloat()
+                        val len = ((d.max - d.min) / span).toFloat()
+                        Spacer(Modifier.weight(start.coerceAtLeast(0.001f)))
+                        Box(Modifier.weight(len.coerceAtLeast(0.02f)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(Pw.Amber))
+                        Spacer(Modifier.weight((1f - start - len).coerceAtLeast(0.001f)))
+                    }
+                    // Today's bar carries a dot at the temperature right now.
+                    if (i == 0) {
+                        val f = ((c.temp.coerceIn(d.min, d.max) - lo) / span).toFloat().coerceIn(0f, 1f)
+                        Box(
+                            Modifier.padding(start = (maxWidth - 12.dp) * f).size(12.dp).clip(CircleShape)
+                                .background(Pw.Brand).padding(3.dp).clip(CircleShape).background(Color.White),
+                        )
+                    }
                 }
                 Text(deg(d.max), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+/** The sun's arc across today's sky (sunrise on the right, where an Arabic line starts) and the moon's phase. */
+@Composable
+private fun SkyCard(today: DayPoint, now: LocalDateTime) {
+    val sun = sunDay(today.sunrise, today.sunset, now)
+    val moon = moonPhase()
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (sun != null) {
+            val p = sun.progress.coerceIn(0.0, 1.0).toFloat()
+            Canvas(Modifier.fillMaxWidth().height(110.dp)) {
+                val r = minOf(size.width / 2f - 12f, size.height - 14f)
+                val cx = size.width / 2f
+                val cy = size.height - 4f
+                val box = Size(r * 2, r * 2)
+                val tl = Offset(cx - r, cy - r)
+                drawLine(Pw.Line, Offset(0f, cy), Offset(size.width, cy), strokeWidth = 3f)
+                drawArc(Pw.Line, 180f, 180f, false, tl, box, style = Stroke(5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 12f))))
+                // Canvas angles run clockwise from 3 o'clock: sunrise sits at 0°, going back over the top to 180°.
+                if (p > 0f) drawArc(Pw.Sun, 0f, -180f * p, false, tl, box, style = Stroke(6f, cap = StrokeCap.Round))
+                if (sun.up) {
+                    val a = Math.PI * p
+                    val o = Offset(cx + r * cos(a).toFloat(), cy - r * sin(a).toFloat())
+                    drawCircle(Color.White, 20f, o)
+                    drawCircle(Pw.Sun, 15f, o)
+                }
+            }
+            Row {
+                Text("الشروق ${today.sunrise?.let { clock(it.toLocalTime()) } ?: "—"}", fontSize = 13.sp, color = Pw.Muted, modifier = Modifier.weight(1f))
+                Text("الغروب ${today.sunset?.let { clock(it.toLocalTime()) } ?: "—"}", fontSize = 13.sp, color = Pw.Muted)
+            }
+            Text("طول النهار ${sun.length}", fontSize = 12.sp, color = Pw.Muted, modifier = Modifier.align(Alignment.CenterHorizontally))
+            HorizontalDivider(color = Pw.Line)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Canvas(Modifier.size(52.dp)) {
+                val r = size.minDimension / 2f - 2f
+                val cx = size.width / 2f
+                val cy = size.height / 2f
+                drawCircle(Color(0xFF2B3A4A), r)
+                drawCircle(Color(0xFF8796A6), r, style = Stroke(2f))
+                if (moon.lit > 0.98) drawCircle(Color(0xFFF3EED8), r)
+                else if (moon.lit >= 0.02) {
+                    // The lit limb is half the disc; the terminator is half an ellipse whose width follows the phase.
+                    val right = moon.fraction < 0.5
+                    val rx = r * abs(cos(2 * Math.PI * moon.fraction)).toFloat()
+                    val gibbous = moon.lit > 0.5
+                    val bulgeRight = if (right) !gibbous else gibbous
+                    val path = Path().apply {
+                        moveTo(cx, cy - r)
+                        arcTo(Rect(cx - r, cy - r, cx + r, cy + r), -90f, if (right) 180f else -180f, false)
+                        arcTo(Rect(cx - rx, cy - r, cx + rx, cy + r), 90f, if (bulgeRight) -180f else 180f, false)
+                        close()
+                    }
+                    drawPath(path, Color(0xFFF3EED8))
+                }
+            }
+            Column {
+                Text(moon.name, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text("مضاء ${(moon.lit * 100).roundToInt()}% · عمر القمر ${moon.age.roundToInt()} يوماً", fontSize = 13.sp, color = Pw.Muted)
             }
         }
     }

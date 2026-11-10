@@ -33,6 +33,11 @@ export const settings = {
   setAlertOn(type, on) { write(`alert.${type}`, on); },
   get notify() { return read('notify', false); },
   set notify(v) { write('notify', v); },
+  /** Home sections in the order the person chose, and the ones they hid. */
+  get homeOrder() { return read('homeOrder', null); },
+  set homeOrder(v) { write('homeOrder', v); },
+  get homeHidden() { return read('homeHidden', []); },
+  set homeHidden(v) { write('homeHidden', v); },
   get seenAlerts() { return read('seenAlerts', []); },
   set seenAlerts(v) { write('seenAlerts', v.slice(0, 300)); },
 };

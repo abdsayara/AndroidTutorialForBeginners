@@ -4,7 +4,7 @@ import * as F from './format.js';
 import { esc } from './format.js';
 import { icon, starFilled, weatherIcon } from './icons.js';
 import { OUTER, REGION_LINES, LAKES } from './shape.js';
-import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard } from './insights.js';
+import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard, sunDay, moonPhase } from './insights.js';
 
 // ---------------------------------------------------------------- helpers
 
@@ -82,6 +82,66 @@ function todayCards(fc, prayer, nowIso) {
   return cards.length ? `<section class="minis" aria-label="لليوم">${cards.join('')}</section>` : '';
 }
 
+/** The sun's path across today's sky, and tonight's moon. */
+function skyCard(today, nowIso) {
+  const sun = sunDay(today.sunrise, today.sunset, nowIso);
+  const moon = moonPhase(new Date());
+  let sunSvg = '';
+  if (sun) {
+    // Sunrise on the right (where an Arabic line starts), sunset on the left.
+    const p = Math.min(1, Math.max(0, sun.progress));
+    const a = Math.PI * p;
+    const x = (100 + 90 * Math.cos(a)).toFixed(1);
+    const y = (100 - 90 * Math.sin(a)).toFixed(1);
+    sunSvg = `<svg class="sun-arc" viewBox="0 0 200 112" aria-hidden="true">
+        <path d="M190 100 A90 90 0 0 0 10 100" class="arc"/>
+        ${p > 0 ? `<path d="M190 100 A90 90 0 0 0 ${x} ${y}" class="arc done"/>` : ''}
+        <line x1="2" y1="100" x2="198" y2="100" class="horizon"/>
+        ${sun.up ? `<circle cx="${x}" cy="${y}" r="9" class="sun-dot"/>` : ''}
+      </svg>`;
+  }
+  // Lit side on the right while waxing, on the left while waning.
+  const r = 22;
+  const right = moon.fraction < 0.5;
+  const gibbous = moon.lit > 0.5;
+  const rx = (r * Math.abs(Math.cos(2 * Math.PI * moon.fraction))).toFixed(2);
+  const lit = moon.lit < 0.02 ? '' : moon.lit > 0.98 ? `<circle cx="30" cy="30" r="${r}" class="moon-lit"/>`
+    : `<path class="moon-lit" d="M30 ${30 - r} A${r} ${r} 0 0 ${right ? 1 : 0} 30 ${30 + r} A${rx} ${r} 0 0 ${right ? (gibbous ? 1 : 0) : (gibbous ? 0 : 1)} 30 ${30 - r}Z"/>`;
+  return `<section class="card sky-card" aria-label="الشمس والقمر">
+      <div class="sun-part">
+        ${sunSvg}
+        <div class="row small"><span>${icon('sun', 16)} الشروق ${today.sunrise ? F.clock(today.sunrise) : '—'}</span><span class="grow"></span><span>الغروب ${today.sunset ? F.clock(today.sunset) : '—'}</span></div>
+        ${sun ? `<div class="tiny muted center">طول النهار ${esc(sun.length)}</div>` : ''}
+      </div>
+      <div class="moon-part">
+        <svg viewBox="0 0 60 60" width="64" height="64" aria-hidden="true"><circle cx="30" cy="30" r="${r}" class="moon-dark"/>${lit}</svg>
+        <div><div class="bold">${esc(moon.name)}</div><div class="tiny muted">مضاء ${F.ltr(`${Math.round(moon.lit * 100)}%`)} · عمر القمر ${Math.round(moon.age)} يوماً</div></div>
+      </div>
+    </section>`;
+}
+
+/** The home sections the person can move or hide, in their default order. */
+const HOME_SECTIONS = [
+  ['hours', 'الساعات القادمة'],
+  ['today', 'شو نلبس والصلاة والموسم'],
+  ['bulletin', 'النشرة الجوية'],
+  ['roads', 'أحوال الطرق'],
+  ['sky', 'الشمس والقمر'],
+  ['details', 'الرطوبة والأشعة والهواء'],
+  ['week', 'توقعات 7 أيام'],
+];
+const HOME_NAMES = Object.fromEntries(HOME_SECTIONS);
+
+/** The saved order, with any section added since appended at its default place. */
+function homeOrder() {
+  const saved = (settings.homeOrder ?? []).filter((id) => HOME_NAMES[id]);
+  const out = [...saved];
+  HOME_SECTIONS.forEach(([id], i) => {
+    if (!out.includes(id)) out.splice(Math.min(i, out.length), 0, id);
+  });
+  return out;
+}
+
 function homeBody(fc, air, prayer) {
   const aqi = air?.aqi;
   const c = fc.current;
@@ -101,13 +161,18 @@ function homeBody(fc, air, prayer) {
       ${h.precipProb >= 20 ? `<span class="p">${h.precipProb}%</span>` : ''}
     </div>`).join('');
 
-  const days = fc.days.map((d) => `
+  // Today's bar carries a dot at the temperature right now.
+  const nowDot = (d) => {
+    const t = Math.min(d.max, Math.max(d.min, c.temp));
+    return `<i class="now-dot" style="inset-inline-start:${((t - lo) / span) * 100}%"></i>`;
+  };
+  const days = fc.days.map((d, i) => `
     <div class="day">
       <span class="name">${F.relativeDay(d.date)}</span>
       ${weatherIcon(d.code, { size: 22 })}
       <span class="prob">${d.precipProbMax >= 10 ? `${d.precipProbMax}%` : ''}</span>
       <span class="muted">${F.deg(d.min)}</span>
-      <div class="range" aria-hidden="true"><span style="inset-inline-start:${((d.min - lo) / span) * 100}%;inset-inline-end:${((hi - d.max) / span) * 100}%"></span></div>
+      <div class="range" aria-hidden="true"><span style="inset-inline-start:${((d.min - lo) / span) * 100}%;inset-inline-end:${((hi - d.max) / span) * 100}%"></span>${i === 0 && c.temp != null ? nowDot(d) : ''}</div>
       <span class="bold">${F.deg(d.max)}</span>
     </div>`).join('');
 
@@ -120,6 +185,24 @@ function homeBody(fc, air, prayer) {
       <div class="nc-bars" aria-hidden="true">${nc.steps.map((s) => `<span style="height:${Math.max(6, Math.round((s.precip / peak) * 100))}%" class="${s.precip >= 0.1 ? 'wet' : ''}"></span>`).join('')}</div>
       <div class="row tiny muted"><span class="grow">الآن</span><span>بعد ساعتين</span></div>
     </section>` : '';
+
+  const sections = {
+    hours: `<section aria-labelledby="h-hours">
+      <div class="row"><h2 id="h-hours" class="grow">الساعات القادمة</h2><a class="link-btn" href="/hourly" data-link>التفاصيل</a></div>
+      <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
+    </section>`,
+    today: todayCards(fc, prayer, nowIso),
+    bulletin: '<section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>',
+    roads: '<section class="card roads-home" id="roads-home" aria-label="أحوال الطرق" hidden></section>',
+    sky: skyCard(today, nowIso),
+    details: `<section class="grid2 grid4 grid3" aria-label="تفاصيل">
+      <div class="tile"><div class="label">الرطوبة</div><div class="value">${c.humidity ?? '—'}%</div></div>
+      <div class="tile"><div class="label">الأشعة فوق البنفسجية</div><div class="value">${F.round(today.uvMax)} · ${F.uvText(today.uvMax)}</div></div>
+      <div class="tile"><div class="label">جودة الهواء</div><div class="value">${aqi != null ? `${aqi} · ${F.aqiText(aqi)}` : '—'}</div></div>
+    </section>`,
+    week: `<section class="card flush list" aria-label="توقعات 7 أيام">${days}</section>`,
+  };
+  const hidden = new Set(settings.homeHidden);
 
   return `
     <section class="hero" data-sky="${skyKind(fc, nowIso)}" aria-label="الطقس الآن">
@@ -140,24 +223,44 @@ function homeBody(fc, air, prayer) {
     </section>
 ${dustCard(air)}
 ${nowcast}
-
-    <section aria-labelledby="h-hours">
-      <div class="row"><h2 id="h-hours" class="grow">الساعات القادمة</h2><a class="link-btn" href="/hourly" data-link>التفاصيل</a></div>
-      <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
-    </section>
-${todayCards(fc, prayer, nowIso)}
-
-    <section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>
-
-    <section class="grid2 grid4" aria-label="تفاصيل">
-      <div class="tile"><div class="label">الرطوبة</div><div class="value">${c.humidity ?? '—'}%</div></div>
-      <div class="tile"><div class="label">الأشعة فوق البنفسجية</div><div class="value">${F.round(today.uvMax)} · ${F.uvText(today.uvMax)}</div></div>
-      <div class="tile"><div class="label">الشروق / الغروب</div><div class="value">${today.sunrise ? F.clock(today.sunrise) : '—'} · ${today.sunset ? F.clock(today.sunset) : '—'}</div></div>
-      <div class="tile"><div class="label">جودة الهواء</div><div class="value">${aqi != null ? `${aqi} · ${F.aqiText(aqi)}` : '—'}</div></div>
-    </section>
-
-    <section class="card flush list" aria-label="توقعات 7 أيام">${days}</section>
+${homeOrder().filter((id) => !hidden.has(id)).map((id) => sections[id]).join('\n')}
+    <div class="center"><button class="link-btn" data-action="customize">${icon('edit', 16)} تخصيص الرئيسية</button></div>
+    <section class="card customize" id="customize" hidden aria-label="تخصيص الرئيسية"></section>
 `;
+}
+
+/** The ordering editor: ↑ / ↓ to move a section, a switch to show or hide it. */
+function customizeBody() {
+  const order = homeOrder();
+  const hidden = new Set(settings.homeHidden);
+  return `<div class="row"><h2 class="grow">تخصيص الرئيسية</h2><button class="link-btn" data-action="customize-reset">الترتيب الأصلي</button><button class="link-btn" data-action="customize">تم</button></div>
+    <p class="tiny muted" style="margin:0 0 6px">رتّب أقسام الصفحة الرئيسية كما تحب، وأخفِ ما لا تحتاجه.</p>
+    ${order.map((id, i) => `<div class="cz-row">
+      <span class="grow ${hidden.has(id) ? 'muted' : 'bold'}">${esc(HOME_NAMES[id])}</span>
+      <button class="icon-btn sm" data-action="move" data-id="${id}" data-d="-1" ${i === 0 ? 'disabled' : ''} aria-label="نقل ${esc(HOME_NAMES[id])} للأعلى">↑</button>
+      <button class="icon-btn sm" data-action="move" data-id="${id}" data-d="1" ${i === order.length - 1 ? 'disabled' : ''} aria-label="نقل ${esc(HOME_NAMES[id])} للأسفل">↓</button>
+      <button class="switch" role="switch" aria-checked="${!hidden.has(id)}" data-action="toggle-section" data-id="${id}" aria-label="إظهار ${esc(HOME_NAMES[id])}"></button>
+    </div>`).join('')}`;
+}
+
+/** A short roads summary for the home page: counts and the closed checkpoints. */
+async function loadRoadsHome(box, cancelled) {
+  if (!box) return;
+  try {
+    const r = await api('/api/roads');
+    if (cancelled() || !r.data?.sources?.some((s) => s.ok)) return;
+    const all = r.data.checkpoints ?? [];
+    const count = (...s) => all.filter((c) => s.includes(c.status)).length;
+    const closed = all.filter((c) => c.status === 'closed').slice(0, 4).map((c) => c.name);
+    box.innerHTML = `<div class="row"><h2 class="grow">${icon('road', 20)} أحوال الطرق</h2><a class="link-btn" href="/roads" data-link>كل الحواجز</a></div>
+      <div class="rh-counts">
+        <span class="rh open"><b class="num">${count('open')}</b> سالك</span>
+        <span class="rh busy"><b class="num">${count('busy', 'crisis')}</b> أزمة</span>
+        <span class="rh closed"><b class="num">${count('closed')}</b> مغلق</span>
+      </div>
+      ${closed.length ? `<p class="small muted" style="margin:6px 0 0">مغلق الآن: ${closed.map(esc).join('، ')}</p>` : ''}`;
+    box.hidden = false;
+  } catch { /* the section just stays hidden */ }
 }
 
 async function home(el, ctx, cancelled) {
@@ -172,6 +275,21 @@ async function home(el, ctx, cancelled) {
     <div id="slot"></div>
   </div>`;
   const slot = el.querySelector('#slot');
+  let last = null;
+  let editing = false;
+  const draw = () => {
+    const [fc, air, prayer] = last;
+    const y = window.scrollY;
+    slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
+    loadBulletin(slot.querySelector('#bulletin'), cancelled);
+    loadRoadsHome(slot.querySelector('#roads-home'), cancelled);
+    if (editing) {
+      const box = slot.querySelector('#customize');
+      box.innerHTML = customizeBody();
+      box.hidden = false;
+      window.scrollTo(0, y);
+    }
+  };
   const run = async () => {
     slot.innerHTML = spinner;
     try {
@@ -185,14 +303,44 @@ async function home(el, ctx, cancelled) {
       if (sub) sub.textContent = subtitle(F.elevation(fc.data.elevation));
       // Remember it so the selected village / GPS row on the cities page can show it too.
       if (!city.region && fc.data.elevation != null && city.elevation !== fc.data.elevation) ctx.setPlace({ ...city, elevation: fc.data.elevation }, { go: false });
-      slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
-      loadBulletin(slot.querySelector('#bulletin'), cancelled);
+      last = [fc, air, prayer];
+      draw();
     } catch {
       if (!cancelled()) slot.innerHTML = errorBox();
     }
   };
   run();
-  return actions(el, { retry: run });
+  return actions(el, {
+    retry: run,
+    customize: () => {
+      editing = !editing;
+      if (!last) return;
+      draw();
+      if (editing) slot.querySelector('#customize').scrollIntoView({ block: 'nearest' });
+    },
+    move: (t) => {
+      const order = homeOrder();
+      const i = order.indexOf(t.dataset.id);
+      const j = i + Number(t.dataset.d);
+      if (i < 0 || j < 0 || j >= order.length) return;
+      [order[i], order[j]] = [order[j], order[i]];
+      settings.homeOrder = order;
+      draw();
+      slot.querySelector(`[data-action="move"][data-id="${t.dataset.id}"][data-d="${t.dataset.d}"]:not([disabled])`)?.focus();
+    },
+    'toggle-section': (t) => {
+      const hidden = new Set(settings.homeHidden);
+      if (hidden.has(t.dataset.id)) hidden.delete(t.dataset.id); else hidden.add(t.dataset.id);
+      settings.homeHidden = [...hidden];
+      draw();
+      slot.querySelector(`[data-action="toggle-section"][data-id="${t.dataset.id}"]`)?.focus();
+    },
+    'customize-reset': () => {
+      settings.homeOrder = null;
+      settings.homeHidden = [];
+      draw();
+    },
+  });
 }
 
 // ---------------------------------------------------------------- hourly

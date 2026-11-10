@@ -201,3 +201,44 @@ export function seasonCard(days, dateIso, dayName) {
   }
   return null;
 }
+
+// ---------------------------------------------------------------- sun and moon
+
+const minutesOf = (iso) => { const t = String(iso).slice(11, 16); return hm(t); };
+
+/**
+ * The sun's day: {length: "10 س 52 د", progress: 0..1 between sunrise and sunset, up}.
+ * progress < 0 before sunrise, > 1 after sunset.
+ */
+export function sunDay(sunrise, sunset, nowIso) {
+  if (!sunrise || !sunset) return null;
+  const rise = minutesOf(sunrise);
+  const set = minutesOf(sunset);
+  const now = minutesOf(nowIso);
+  const len = set - rise;
+  return {
+    length: `${Math.floor(len / 60)} س ${len % 60} د`,
+    progress: (now - rise) / len,
+    up: now >= rise && now <= set,
+  };
+}
+
+/** Days since a known new moon (6 Jan 2000, 18:14 UTC), over the synodic month. */
+const SYNODIC = 29.530588853;
+const NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);
+const PHASES = [
+  [0.0339, 'محاق'], [0.2161, 'هلال متزايد'], [0.2839, 'تربيع أول'], [0.4661, 'أحدب متزايد'],
+  [0.5339, 'بدر'], [0.7161, 'أحدب متناقص'], [0.7839, 'تربيع أخير'], [0.9661, 'هلال متناقص'], [1, 'محاق'],
+];
+
+/** The moon tonight: {name, age (days), fraction 0..1 of the cycle, lit 0..1}. */
+export function moonPhase(when = new Date()) {
+  const days = (when.getTime() - NEW_MOON) / 86400000;
+  const fraction = (((days / SYNODIC) % 1) + 1) % 1;
+  return {
+    name: PHASES.find(([f]) => fraction < f)[1],
+    age: Math.round(fraction * SYNODIC),
+    fraction,
+    lit: (1 - Math.cos(2 * Math.PI * fraction)) / 2,
+  };
+}

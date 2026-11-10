@@ -108,3 +108,21 @@ test('seasonCard: olive harvest days, frost nights, nothing in between', () => {
   assert.match(seasonCard([{ date: 'الأربعاء', min: 1 }], '2027-01-10', name).text, /^ليالٍ باردة قد يتكوّن فيها الصقيع: الأربعاء\./);
   assert.equal(seasonCard(days, '2026-06-01', name), null);
 });
+
+test('sunDay measures the day and where the sun is in it', async () => {
+  const { sunDay } = await import('../public/insights.js');
+  const d = sunDay('2026-11-10T06:13', '2026-11-10T16:50', '2026-11-10T11:31');
+  assert.equal(d.length, '10 س 37 د');
+  assert.ok(Math.abs(d.progress - 0.5) < 0.01);
+  assert.equal(d.up, true);
+  assert.equal(sunDay('2026-11-10T06:13', '2026-11-10T16:50', '2026-11-10T20:00').up, false);
+});
+
+test('moonPhase names the moon', async () => {
+  const { moonPhase } = await import('../public/insights.js');
+  assert.equal(moonPhase(new Date(Date.UTC(2000, 0, 6, 18, 14))).name, 'محاق');
+  const full = moonPhase(new Date(Date.UTC(2000, 0, 21, 4, 40)));   // a known full moon
+  assert.equal(full.name, 'بدر');
+  assert.ok(full.lit > 0.98);
+  assert.equal(moonPhase(new Date(Date.UTC(2000, 0, 14, 13, 34))).name, 'تربيع أول');
+});

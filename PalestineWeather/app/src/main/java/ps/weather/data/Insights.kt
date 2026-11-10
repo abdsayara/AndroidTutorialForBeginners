@@ -194,3 +194,35 @@ fun seasonCard(days: List<DayPoint>, date: java.time.LocalDate, dayName: (java.t
     }
     return null
 }
+
+// ---------------------------------------------------------------- sun and moon
+
+data class SunDay(val length: String, val progress: Double, val up: Boolean)
+
+/** Day length, and how far the sun has gone across today's sky (0 at sunrise, 1 at sunset). */
+fun sunDay(sunrise: LocalDateTime?, sunset: LocalDateTime?, now: LocalDateTime): SunDay? {
+    if (sunrise == null || sunset == null) return null
+    val len = Duration.between(sunrise, sunset).toMinutes()
+    if (len <= 0) return null
+    val gone = Duration.between(sunrise, now).toMinutes()
+    return SunDay("${len / 60} س ${len % 60} د", gone.toDouble() / len, !now.isBefore(sunrise) && !now.isAfter(sunset))
+}
+
+data class MoonPhase(val name: String, val age: Double, val fraction: Double, val lit: Double)
+
+private const val SYNODIC = 29.530588853
+/** A known new moon: 6 January 2000, 18:14 UTC. */
+private val NEW_MOON = java.time.Instant.parse("2000-01-06T18:14:00Z")
+private val PHASES = listOf(
+    0.0339 to "محاق", 0.2161 to "هلال متزايد", 0.2839 to "تربيع أول", 0.4661 to "أحدب متزايد", 0.5339 to "بدر",
+    0.7161 to "أحدب متناقص", 0.7839 to "تربيع أخير", 0.9661 to "هلال متناقص", 1.0 to "محاق",
+)
+
+/** The moon's phase: its Arabic name, age in days, place in the cycle (0..1) and lit share. Same as the website. */
+fun moonPhase(at: java.time.Instant = java.time.Instant.now()): MoonPhase {
+    val days = Duration.between(NEW_MOON, at).toMillis() / 86_400_000.0
+    val age = ((days % SYNODIC) + SYNODIC) % SYNODIC
+    val fraction = age / SYNODIC
+    val name = PHASES.first { fraction < it.first || it.first == 1.0 }.second
+    return MoonPhase(name, age, fraction, (1 - kotlin.math.cos(2 * Math.PI * fraction)) / 2)
+}

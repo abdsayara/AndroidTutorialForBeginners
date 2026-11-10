@@ -495,3 +495,32 @@ a.mini:hover { box-shadow: 0 0 0 1px var(--border); }
 .tl-ticks { position: relative; height: 18px; font-size: 11px; color: var(--muted); }
 .tl-ticks span { position: absolute; top: 0; white-space: nowrap; }
 .tl-ticks span.now { transform: translateX(50%); font-weight: 700; color: var(--brand); }
+
+/* ---- batch 5: now dot, sun & moon, customizable home ---- */
+.range .now-dot { position: absolute; top: 50%; width: 12px; height: 12px; margin-inline-start: -6px; transform: translateY(-50%); border-radius: 50%; background: #fff; border: 3px solid var(--brand); box-sizing: border-box; }
+.grid3 > :last-child:nth-child(3) { grid-column: 1 / -1; }
+@media (min-width: 640px) { .grid3 > :last-child:nth-child(3) { grid-column: auto; } .grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.center { text-align: center; }
+.sky-card { display: grid; gap: 14px; align-items: center; }
+@media (min-width: 640px) { .sky-card { grid-template-columns: 1.6fr 1fr; } }
+.sun-arc { width: 100%; max-width: 240px; display: block; margin: 0 auto; }
+.sun-arc .arc { fill: none; stroke: var(--line); stroke-width: 3; stroke-dasharray: 4 6; stroke-linecap: round; }
+.sun-arc .arc.done { stroke: var(--sun); stroke-dasharray: none; }
+.sun-arc .horizon { stroke: var(--line); stroke-width: 1.5; }
+.sun-arc .sun-dot { fill: var(--sun); stroke: #fff; stroke-width: 3; }
+.sun-part .row { color: var(--muted); }
+.sun-part .row span { display: inline-flex; align-items: center; gap: 4px; }
+.moon-part { display: flex; align-items: center; gap: 14px; justify-content: center; }
+.moon-dark { fill: #2B3A4A; stroke: #8796A6; stroke-width: 1; }
+.moon-lit { fill: #F3EED8; }
+.roads-home h2 { display: flex; align-items: center; gap: 6px; }
+.rh-counts { display: flex; gap: 8px; flex-wrap: wrap; }
+.rh { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 14px; background: var(--ground); }
+.rh b { font-size: 18px; }
+.rh.open b { color: var(--green); }
+.rh.busy b { color: var(--amber); }
+.rh.closed b { color: var(--red); }
+.customize .cz-row { display: flex; align-items: center; gap: 8px; min-height: 52px; border-top: 1px solid var(--line); }
+.icon-btn.sm { width: 36px; height: 36px; font-size: 16px; }
+.icon-btn:disabled { opacity: .35; cursor: default; }
+.link-btn svg { vertical-align: -3px; }
