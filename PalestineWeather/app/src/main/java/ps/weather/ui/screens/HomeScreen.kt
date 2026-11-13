@@ -117,6 +117,7 @@ import kotlin.math.sin
 @Composable
 fun HomeScreen(
     city: City, prefs: Prefs, onPickCity: () -> Unit, onHourly: () -> Unit, onOpenRoads: () -> Unit, onAlerts: () -> Unit,
+    onPrayer: () -> Unit = {},
     onElevation: (Double) -> Unit = {},
     prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
 ) {
@@ -183,7 +184,7 @@ fun HomeScreen(
             }
         }
         item {
-            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange) }
+            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange, onPrayer, prefs) }
         }
     }
 }
@@ -192,6 +193,7 @@ fun HomeScreen(
 private fun HomeContent(
     fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourly: () -> Unit, onOpenRoads: () -> Unit,
     order: List<String>, hidden: Set<String>, onChange: (List<String>, Set<String>) -> Unit,
+    onPrayer: () -> Unit, prefs: Prefs,
 ) {
     val aqi = air?.aqi
     val now = fc.nowIndex
@@ -250,9 +252,12 @@ private fun HomeContent(
             "today" -> TodaySection(fc, prayer, nowTime)
             "bulletin" -> BulletinCard()
             "roads" -> RoadsSummaryCard(onOpenRoads)
-            "sky" -> if (today != null) SkyCard(today, nowTime)
+            "sky" -> if (today != null) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                PrayerSunRow(today, prayer, onPrayer)
+                SkyCard(today, nowTime, withSun = false)
+            }
             "details" -> DetailsSection(fc, aqi)
-            "week" -> WeekSection(fc)
+            "week" -> WeekSection(fc, prefs)
         }
     }
     CustomizeHome(order, hidden, onChange)
@@ -264,7 +269,7 @@ val HOME_SECTIONS = listOf(
     "today" to "شو نلبس والصلاة والموسم",
     "bulletin" to "النشرة التفصيلية",
     "roads" to "أحوال الطرق",
-    "sky" to "الشمس والقمر",
+    "sky" to "الصلاة والشروق والغروب والقمر",
     "details" to "الرطوبة والأشعة والهواء",
     "week" to "توقعات 14 يوماً",
 )
@@ -333,16 +338,6 @@ private fun TodaySection(fc: Forecast, prayer: PrayerDay?, nowTime: LocalDateTim
         val wearText = (bulletinLoad as? Load.Ok)?.value?.wear ?: clothingAdvice(tomorrow)
         if (wearText != null) WearCard(tomorrow, wearText)
         // The next prayer's weather and the farming season
-        prayer?.let { prayerWeather(it.times, fc.hours, nowTime) }?.let { pw ->
-            val whenText = when {
-                pw.tomorrow -> "غداً"
-                pw.minutes < 15 -> "بعد ${pw.minutes} دقائق"
-                pw.minutes < 180 -> "بعد ${minutesText((pw.minutes + 7) / 15 * 15)}"
-                else -> "الساعة ${clock(pw.time)}"
-            }
-            val wx = pw.hour?.let { "، والطقس وقتها ${weatherText(it.code)} ${deg(it.temp)}" } ?: ""
-            MiniCard(PwIcons.Moon, "${pw.name} $whenText", "أذان ${pw.name} الساعة ${clock(pw.time)}$wx")
-        }
         seasonCard(fc.days, nowTime.toLocalDate()) { relativeDayName(it) }?.let { MiniCard(PwIcons.Leaf, it.title, it.text) }
 
     }
@@ -372,12 +367,36 @@ private fun DetailsSection(fc: Forecast, aqi: Int?) {
 }
 
 @Composable
-private fun WeekSection(fc: Forecast) {
+private fun WeekSection(fc: Forecast, prefs: Prefs) {
+    var columns by remember { mutableStateOf(prefs.weekColumns) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("توقعات ${fc.days.size} يوماً", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        // List or columns, like the reference design's two little buttons.
+        listOf(false to "قائمة", true to "أعمدة").forEach { (mode, label) ->
+            Box(
+                Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(if (columns == mode) Pw.Card else Color.Transparent)
+                    .clickable(role = Role.Tab, onClickLabel = "عرض $label") { columns = mode; prefs.weekColumns = mode },
+                contentAlignment = Alignment.Center,
+            ) {
+                Canvas(Modifier.size(18.dp)) {
+                    val col = if (columns == mode) Color.White else Color.White.copy(alpha = 0.55f)
+                    val st = androidx.compose.ui.graphics.drawscope.Stroke(1.8.dp.toPx())
+                    if (!mode) {
+                        drawRoundRect(col, androidx.compose.ui.geometry.Offset(1f, 1f), androidx.compose.ui.geometry.Size(size.width - 2, size.height / 2 - 3), androidx.compose.ui.geometry.CornerRadius(4f), style = st)
+                        drawRoundRect(col, androidx.compose.ui.geometry.Offset(1f, size.height / 2 + 2), androidx.compose.ui.geometry.Size(size.width - 2, size.height / 2 - 3), androidx.compose.ui.geometry.CornerRadius(4f), style = st)
+                    } else {
+                        drawRoundRect(col, androidx.compose.ui.geometry.Offset(1f, 1f), androidx.compose.ui.geometry.Size(size.width / 2 - 3, size.height - 2), androidx.compose.ui.geometry.CornerRadius(4f), style = st)
+                        drawRoundRect(col, androidx.compose.ui.geometry.Offset(size.width / 2 + 2, 1f), androidx.compose.ui.geometry.Size(size.width / 2 - 3, size.height - 2), androidx.compose.ui.geometry.CornerRadius(4f), style = st)
+                    }
+                }
+            }
+        }
+    }
+    if (columns) { WeekColumns(fc); return }
     val c = fc.current
     val lo = fc.days.minOfOrNull { it.min } ?: 0.0
     val hi = fc.days.maxOfOrNull { it.max } ?: 1.0
     val span = (hi - lo).coerceAtLeast(1.0)
-    Text("توقعات ${fc.days.size} يوماً", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(horizontal = 16.dp, vertical = 6.dp)) {
         fc.days.forEachIndexed { i, d ->
             if (i > 0) HorizontalDivider(color = Pw.Line)
@@ -469,8 +488,8 @@ private fun MoveButton(label: String, description: String, enabled: Boolean, onC
 
 /** The sun's arc across today's sky (sunrise on the right, where an Arabic line starts) and the moon's phase. */
 @Composable
-private fun SkyCard(today: DayPoint, now: LocalDateTime) {
-    val sun = sunDay(today.sunrise, today.sunset, now)
+private fun SkyCard(today: DayPoint, now: LocalDateTime, withSun: Boolean = true) {
+    val sun = if (withSun) sunDay(today.sunrise, today.sunset, now) else null
     val moon = moonPhase()
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(16.dp),

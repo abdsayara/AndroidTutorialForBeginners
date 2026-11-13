@@ -1,6 +1,14 @@
 package ps.weather.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
+import androidx.compose.ui.text.font.FontWeight
+import ps.weather.R
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -73,9 +81,30 @@ object Pw {
     fun background(): Brush = if (glass) Brush.verticalGradient(skyStops()) else Brush.verticalGradient(listOf(Color(0xFFF6F7F5), Color(0xFFF6F7F5)))
 }
 
+/** Readex Pro (SIL Open Font License, res/font): a rounded modern Arabic face, every weight from one variable file. */
+@OptIn(ExperimentalTextApi::class)
+val Readex = FontFamily(
+    listOf(300, 400, 500, 600, 700, 800).map { w ->
+        Font(R.font.readex_pro, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+    },
+)
+
+/** Material's type scale, all in Readex Pro. */
+private val AppTypography = Typography().let { t ->
+    fun TextStyle.r() = copy(fontFamily = Readex)
+    Typography(
+        displayLarge = t.displayLarge.r(), displayMedium = t.displayMedium.r(), displaySmall = t.displaySmall.r(),
+        headlineLarge = t.headlineLarge.r(), headlineMedium = t.headlineMedium.r(), headlineSmall = t.headlineSmall.r(),
+        titleLarge = t.titleLarge.r(), titleMedium = t.titleMedium.r(), titleSmall = t.titleSmall.r(),
+        bodyLarge = t.bodyLarge.r(), bodyMedium = t.bodyMedium.r(), bodySmall = t.bodySmall.r(),
+        labelLarge = t.labelLarge.r(), labelMedium = t.labelMedium.r(), labelSmall = t.labelSmall.r(),
+    )
+}
+
 @Composable
 fun PalestineWeatherTheme(content: @Composable () -> Unit) {
     MaterialTheme(
+        typography = AppTypography,
         colorScheme = if (Pw.glass) darkColorScheme(
             primary = Color.White,
             onPrimary = Color(0xFF17324A),

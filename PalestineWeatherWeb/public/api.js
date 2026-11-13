@@ -41,6 +41,9 @@ export const settings = {
   /** The sky of the chosen place, last seen on the home page; it colours every page. */
   get sky() { return read('sky', 'day'); },
   set sky(v) { write('sky', v); },
+  /** The coming days as columns with a curve (true) or as a list. */
+  get weekColumns() { return read('weekColumns', false); },
+  set weekColumns(v) { write('weekColumns', v); },
   get seenAlerts() { return read('seenAlerts', []); },
   set seenAlerts(v) { write('seenAlerts', v.slice(0, 300)); },
 };

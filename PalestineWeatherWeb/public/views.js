@@ -110,18 +110,115 @@ function todayCards(fc, prayer, nowIso) {
   const tomorrow = fc.days[1] ?? fc.days[0];
   const tomorrowWear = clothingAdvice(tomorrow) ?? wear;
   if (tomorrowWear) cards.push(wearCard(tomorrow, tomorrowWear, false));
-  if (pw) {
-    const when = pw.tomorrow ? 'غداً' : pw.minutes < 15 ? `بعد ${pw.minutes} دقائق` : pw.minutes < 180 ? `بعد ${minutesText(Math.round(pw.minutes / 15) * 15)}` : `الساعة ${F.clock(pw.time)}`;
-    const wx = pw.hour ? `، والطقس وقتها ${F.weatherText(pw.hour.code)} ${F.deg(pw.hour.temp)}` : '';
-    cards.push(`<a class="mini" href="/prayer" data-link><div class="mini-h">${icon('moon', 18)} ${esc(pw.name)} ${esc(when)}</div><p>${esc(`أذان ${pw.name} الساعة ${F.clock(pw.time)}${wx}`)}</p></a>`);
-  }
   if (season) cards.push(`<a class="mini" href="/farming" data-link><div class="mini-h">${icon('leaf', 18)} ${esc(season.title)}</div><p>${esc(season.text)}</p></a>`);
   return cards.length ? `<section class="minis" aria-label="لليوم">${cards.join('')}</section>` : '';
 }
 
-/** The sun's path across today's sky, and tonight's moon. */
-function skyCard(today, nowIso) {
+// ---------------------------------------------------------------- prayer and sun, side by side
+
+/** Palestine's clock now: its date and the seconds since its midnight, whatever the visitor's zone. */
+function palestineNow() {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Hebron', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date()).map((x) => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, secs: Number(p.hour) * 3600 + Number(p.minute) * 60 + Number(p.second) };
+}
+const hmSecs = (t) => { const [h, m] = String(t).split(':').map(Number); return h * 3600 + m * 60; };
+const clock12 = (t) => { const [h, m] = String(t).split(':').map(Number); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'ص' : 'م'}`; };
+
+/** The next prayer from Palestine's clock: its name and time, and how far we are from the last one. */
+function nextPrayer(times) {
+  const list = (times ?? []).filter((t) => t.name !== 'الشروق');
+  if (!list.length) return null;
+  const now = palestineNow().secs;
+  const i = list.findIndex((t) => hmSecs(t.time) > now);
+  const next = i >= 0 ? list[i] : list[0];
+  const prev = i > 0 ? list[i - 1] : list.at(-1);
+  const nextS = hmSecs(next.time) + (i >= 0 ? 0 : 86400);
+  const prevS = hmSecs(prev.time) - (i > 0 ? 0 : 86400);
+  const left = Math.max(0, nextS - now);
+  return { next, left, progress: Math.min(1, Math.max(0, 1 - left / Math.max(1, nextS - prevS))) };
+}
+const hms = (s) => [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':');
+
+/** «الصلاة القادمة» (a ring filling towards the next prayer, the time left ticking) and «الشروق والغروب». */
+function prayerSunRow(today, prayer, nowIso) {
+  const np = nextPrayer(prayer?.times);
+  const ringLen = 2 * Math.PI * 54 * 0.75;
+  const night = np && ['المغرب', 'العشاء', 'الفجر'].includes(np.next.name);
+  const prayerCard = np ? `<section class="card half prayer-ring" aria-label="الصلاة القادمة">
+      <h2>الصلاة القادمة</h2>
+      <div class="ring">
+        <svg viewBox="0 0 132 132" aria-hidden="true">
+          <circle cx="66" cy="66" r="54" class="track" stroke-dasharray="${ringLen.toFixed(1)} 400" transform="rotate(135 66 66)"/>
+          <circle cx="66" cy="66" r="54" class="fill" data-len="${ringLen.toFixed(1)}" stroke-dasharray="${(ringLen * np.progress).toFixed(1)} 400" transform="rotate(${(135 + 270 * (1 - np.progress)).toFixed(1)} 66 66)"/>
+        </svg>
+        <div class="ring-in">${icon(night ? 'moon' : 'sun', 22)}<span class="muted tiny">الوقت المتبقي</span><b class="countdown num" data-next="${esc(np.next.time)}">${hms(np.left)}</b></div>
+      </div>
+      <div class="muted">${clock12(np.next.time)}</div>
+      <div class="bold">صلاة ${esc(np.next.name)}</div>
+      <a class="pill-link" href="/prayer" data-link>عرض الكل ${icon('back', 14)}</a>
+    </section>` : '';
   const sun = sunDay(today.sunrise, today.sunset, nowIso);
+  const p = Math.min(1, Math.max(0, sun?.progress ?? 0));
+  const a = Math.PI * p;
+  const x = (100 + 84 * Math.cos(a)).toFixed(1);
+  const y = (96 - 84 * Math.sin(a)).toFixed(1);
+  const sunCard = `<section class="card half sun-card" aria-label="الشروق والغروب">
+      <h2>الشروق والغروب</h2>
+      <svg class="gold-arc" viewBox="0 0 200 104" aria-hidden="true">
+        <defs><linearGradient id="g-arc" x1="0" x2="1"><stop offset="0" stop-color="#F1C75B" stop-opacity=".25"/><stop offset="1" stop-color="#F1C75B"/></linearGradient>
+        <radialGradient id="g-sun"><stop offset="0" stop-color="#F1C75B" stop-opacity=".6"/><stop offset="1" stop-color="#F1C75B" stop-opacity="0"/></radialGradient></defs>
+        <path d="M184 96 A84 84 0 0 0 16 96" fill="none" stroke="url(#g-arc)" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="${x}" cy="${y}" r="16" fill="url(#g-sun)"/><circle cx="${x}" cy="${y}" r="6.5" fill="#F1C75B"/>
+      </svg>
+      <div class="row sun-times"><div class="grow"><div class="muted tiny">الشروق</div><b>${today.sunrise ? clock12(today.sunrise.slice(11, 16)) : '—'}</b></div>
+        <div class="end"><div class="muted tiny">الغروب</div><b>${today.sunset ? clock12(today.sunset.slice(11, 16)) : '—'}</b></div></div>
+      <hr class="dash">
+      <div class="muted tiny">طول فترة النهار</div><b class="day-len">${sun ? esc(sun.length.replace(' س ', 'س ').replace(' د', 'د')) : '—'}</b>
+    </section>`;
+  return `<div class="duo">${prayerCard}${sunCard}</div>`;
+}
+
+/**
+ * The coming days as columns (as the app's WeekColumns): each a day half and a night half, the
+ * day's weather and high above a curve that runs from each high down to that night's low.
+ * Positions are absolute, left to right, with the first day on the right.
+ */
+function weekColumns(fc) {
+  const days = fc.days;
+  const cw = 96; const gap = 10; const top = 132; const ch = 150; const H = top + ch + 70;
+  const W = days.length * cw + (days.length - 1) * gap;
+  const hi = Math.max(...days.map((d) => d.max)); const lo = Math.min(...days.map((d) => d.min));
+  const span = Math.max(1, hi - lo);
+  const colX = (i) => W - (i + 1) * cw - i * gap;
+  const y = (t) => top + ch * 0.12 + ch * 0.76 * ((hi - t) / span);
+  const nightCode = days.map((d) => fc.hours.find((h) => h.time.slice(0, 10) === d.date && h.time.slice(11, 13) === '22')?.code ?? d.code);
+  const pts = days.flatMap((d, i) => [[colX(i) + cw * 0.75, y(d.max)], [colX(i) + cw * 0.25, y(d.min)]]);
+  let line = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let k = 1; k < pts.length; k++) {
+    const [ax, ay] = pts[k - 1]; const [bx, by] = pts[k]; const mx = (ax + bx) / 2;
+    line += ` C${mx.toFixed(1)} ${ay.toFixed(1)} ${mx.toFixed(1)} ${by.toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}`;
+  }
+  const fill = `${line} L${pts.at(-1)[0].toFixed(1)} ${H} L${pts[0][0].toFixed(1)} ${H} Z`;
+  const cols = days.map((d, i) => `<div class="wk-col${i === 0 ? ' today' : ''}" style="left:${colX(i)}px;width:${cw}px;height:${H}px">
+      <div class="wk-name">${F.relativeDay(d.date)}</div><div class="wk-date">${F.ltr(`${Number(d.date.slice(8, 10))}/${Number(d.date.slice(5, 7))}`)}</div>
+      <div class="wk-halves"><span>${icon('moon', 16)}</span><span>${icon('sun', 16)}</span></div></div>`).join('');
+  const labels = days.map((d, i) => `<div class="wk-lbl" style="left:${colX(i) + cw * 0.75 - 26}px;top:${y(d.max) - 64}px">${weatherIcon(d.code, { size: 26, cloudColor: '#fff', sunColor: 'var(--sun)' })}<b>${F.deg(d.max)}</b></div>
+      <div class="wk-lbl" style="left:${colX(i) + cw * 0.25 - 26}px;top:${y(d.min) + 12}px"><b>${F.deg(d.min)}</b>${weatherIcon(nightCode[i], { isDay: false, size: 26, cloudColor: '#fff', sunColor: 'var(--sun)' })}</div>`).join('');
+  return `<div class="wk-scroll" tabindex="0" aria-label="توقعات الأيام القادمة"><div class="wk-inner" style="width:${W}px;height:${H}px">
+      ${cols}
+      <svg class="wk-curve" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">
+        <defs><linearGradient id="wk-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3CCFC4" stop-opacity=".22"/><stop offset="1" stop-color="#3CCFC4" stop-opacity="0"/></linearGradient></defs>
+        <path d="${fill}" fill="url(#wk-fill)"/><path d="${line}" fill="none" stroke="#F1C75B" stroke-opacity=".85" stroke-width="2.2" stroke-linecap="round"/>
+        ${pts.map(([px, py]) => `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="9" fill="#fff" fill-opacity=".2"/><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" fill="#fff"/>`).join('')}
+      </svg>
+      ${labels}
+    </div></div>`;
+}
+
+/** The sun's path across today's sky, and tonight's moon. */
+function skyCard(today, nowIso, withSun = true) {
+  const sun = withSun ? sunDay(today.sunrise, today.sunset, nowIso) : null;
   const moon = moonPhase(new Date());
   let sunSvg = '';
   if (sun) {
@@ -147,7 +244,7 @@ function skyCard(today, nowIso) {
   return `<section class="card sky-card" aria-label="الشمس والقمر">
       <div class="sun-part">
         ${sunSvg}
-        <div class="row small"><span>${icon('sun', 16)} الشروق ${today.sunrise ? F.clock(today.sunrise) : '—'}</span><span class="grow"></span><span>الغروب ${today.sunset ? F.clock(today.sunset) : '—'}</span></div>
+        ${withSun ? `<div class="row small"><span>${icon('sun', 16)} الشروق ${today.sunrise ? F.clock(today.sunrise) : '—'}</span><span class="grow"></span><span>الغروب ${today.sunset ? F.clock(today.sunset) : '—'}</span></div>` : ''}
         ${sun ? `<div class="tiny muted center">طول النهار ${esc(sun.length)}</div>` : ''}
       </div>
       <div class="moon-part">
@@ -163,7 +260,7 @@ const HOME_SECTIONS = [
   ['today', 'شو نلبس والصلاة والموسم'],
   ['bulletin', 'النشرة الجوية'],
   ['roads', 'أحوال الطرق'],
-  ['sky', 'الشمس والقمر'],
+  ['sky', 'الصلاة والشروق والغروب والقمر'],
   ['details', 'الرطوبة والأشعة والهواء'],
   ['week', 'توقعات 14 يوماً'],
 ];
@@ -232,13 +329,19 @@ function homeBody(fc, air, prayer) {
     today: todayCards(fc, prayer, nowIso),
     bulletin: '<section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>',
     roads: '<section class="card roads-home" id="roads-home" aria-label="أحوال الطرق" hidden></section>',
-    sky: skyCard(today, nowIso),
+    sky: `${prayerSunRow(today, prayer, nowIso)}${skyCard(today, nowIso, false)}`,
     details: `<section class="grid2 grid3 metrics" aria-label="تفاصيل">
       ${metric('drop', 'الرطوبة', c.humidity != null ? `${c.humidity}%` : '—', humidityText(c.humidity), c.humidity != null ? c.humidity / 100 : null, false)}
       ${metric('sun', 'الأشعة فوق البنفسجية', F.round(today.uvMax), F.uvText(today.uvMax), today.uvMax != null ? today.uvMax / 11 : null, true)}
       ${metric('wind', 'جودة الهواء', aqi != null ? String(aqi) : '—', aqi != null ? F.aqiText(aqi) : '', aqi != null ? aqi / 100 : null, true)}
     </section>`,
-    week: `<section aria-labelledby="h-week"><h2 id="h-week">توقعات 14 يوماً</h2><div class="card flush list" style="margin-top:8px">${days}</div></section>`,
+    week: `<section aria-labelledby="h-week">
+      <div class="row"><h2 id="h-week" class="grow">توقعات ${fc.days.length} يوماً</h2>
+        <div class="wk-toggle" role="group" aria-label="طريقة العرض">
+          <button data-action="week-cols" aria-pressed="${settings.weekColumns}" aria-label="أعمدة"><svg viewBox="0 0 18 18" width="18" height="18"><rect x="1" y="1" width="6.5" height="16" rx="2"/><rect x="10.5" y="1" width="6.5" height="16" rx="2"/></svg></button>
+          <button data-action="week-list" aria-pressed="${!settings.weekColumns}" aria-label="قائمة"><svg viewBox="0 0 18 18" width="18" height="18"><rect x="1" y="1" width="16" height="6.5" rx="2"/><rect x="1" y="10.5" width="16" height="6.5" rx="2"/></svg></button>
+        </div></div>
+      ${settings.weekColumns ? weekColumns(fc) : `<div class="card flush list" style="margin-top:8px">${days}</div>`}</section>`,
   };
   const hidden = new Set(settings.homeHidden);
 
@@ -366,7 +469,22 @@ async function home(el, ctx, cancelled) {
     }
   };
   run();
-  return actions(el, {
+  // The next prayer's time left ticks every second; at zero the page redraws for the next one.
+  const tick = setInterval(() => {
+    const cd = el.querySelector('.countdown');
+    if (!cd || !last) return;
+    const np = nextPrayer(last[2]?.data?.times);
+    if (!np) return;
+    if (np.next.time !== cd.dataset.next) { draw(); return; }
+    cd.textContent = hms(np.left);
+    const fillEl = el.querySelector('.prayer-ring .fill');
+    if (fillEl) {
+      const len = Number(fillEl.dataset.len);
+      fillEl.setAttribute('stroke-dasharray', `${(len * np.progress).toFixed(1)} 400`);
+      fillEl.setAttribute('transform', `rotate(${(135 + 270 * (1 - np.progress)).toFixed(1)} 66 66)`);
+    }
+  }, 1000);
+  const off = actions(el, {
     retry: run,
     // The figure waves back when tapped; the switch dresses it for the day or the night.
     wave: (t) => {
@@ -374,6 +492,8 @@ async function home(el, ctx, cancelled) {
       void t.getBoundingClientRect();
       t.classList.add('hello');
     },
+    'week-cols': () => { settings.weekColumns = true; if (last) draw(); },
+    'week-list': () => { settings.weekColumns = false; if (last) draw(); },
     'wear-day': (t) => swapWear(t, false),
     'wear-night': (t) => swapWear(t, true),
     share: async () => {
@@ -410,6 +530,7 @@ async function home(el, ctx, cancelled) {
       draw();
     },
   });
+  return () => { clearInterval(tick); off(); };
 }
 
 // ---------------------------------------------------------------- hourly

@@ -146,6 +146,11 @@ class Prefs(context: Context) {
         get() = sp.getLong("alerts_checked", 0L)
         set(v) = sp.edit().putLong("alerts_checked", v).apply()
 
+    /** The coming days as a list (false) or as columns with a curve (true). */
+    var weekColumns: Boolean
+        get() = sp.getBoolean("week_columns", false)
+        set(v) = sp.edit().putBoolean("week_columns", v).apply()
+
     /** The first-launch welcome has been seen. */
     var welcomed: Boolean
         get() = sp.getBoolean("welcomed", false)

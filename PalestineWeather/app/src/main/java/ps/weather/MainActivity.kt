@@ -180,6 +180,7 @@ private fun App(initialSub: Sub?) {
                         city, prefs, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },
                         onOpenRoads = { tab = Tab.ROADS },
                         onAlerts = { sub = Sub.ALERTS },
+                        onPrayer = { sub = Sub.PRAYER },
                         // Keep a village / GPS point's height so the cities page can show it too.
                         onElevation = { e -> if (!city.isListed && city.elevation != e) { city = city.copy(elevation = e); prefs.select(city) } },
                         prayerMethod = prefs.prayerMethod,

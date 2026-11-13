@@ -24,8 +24,9 @@
   --red-tint: #FBE2DD;
   --sun: #FAAE3C; /* the logo's sun rays */
 
-  --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
-  --font-display: 'Noto Kufi Arabic', 'IBM Plex Sans Arabic', sans-serif;
+  /* Readex Pro: a rounded modern Arabic face (as in the app, res/font). */
+  --font: 'Readex Pro', system-ui, sans-serif;
+  --font-display: 'Readex Pro', system-ui, sans-serif;
   --r-sm: 12px;
   --r-md: 18px;
   --r-lg: 24px;
@@ -841,3 +842,38 @@ html:root .cp.closed { border-inline-start-color: var(--road-closed); }
 .metric .m-fill { background: var(--line); }
 .metric .m-fill i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 3px; background: #9AD2FF; }
 @media (min-width: 640px) { .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ---- prayer and sun side by side, the days as columns (after the reference design) ---- */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card.half { align-items: center; text-align: center; gap: 6px; padding: 14px 12px; }
+.card.half h2 { align-self: stretch; text-align: start; font-size: 15px; font-weight: 500; }
+.prayer-ring .ring { position: relative; width: 132px; height: 132px; }
+.prayer-ring .ring > svg { width: 100%; height: 100%; }
+.prayer-ring .ring > svg circle { fill: none; stroke-width: 9; stroke-linecap: round; }
+.prayer-ring .track { stroke: rgba(255, 255, 255, .12); }
+.prayer-ring .fill { stroke: #3CCFC4; transition: stroke-dasharray 1s linear; }
+.ring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.ring-in .icon { color: #DCE6F5; }
+.ring-in b { font-size: 20px; }
+.pill-link { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 12px; background: rgba(255, 255, 255, .10); color: var(--ink) !important; text-decoration: none; font-weight: 500; }
+.sun-card .gold-arc { width: 100%; max-width: 180px; margin-top: 8px; }
+.sun-card .sun-times { align-self: stretch; }
+.sun-card .sun-times .end { text-align: end; }
+.sun-card hr.dash { align-self: stretch; border: 0; border-top: 1.5px dashed rgba(255, 255, 255, .25); margin: 4px 0; }
+.sun-card .day-len { font-size: 18px; margin-top: auto; }
+.wk-toggle { display: flex; gap: 4px; }
+.wk-toggle button { width: 36px; height: 36px; border-radius: 10px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; }
+.wk-toggle button[aria-pressed="true"] { background: var(--card); }
+.wk-toggle rect { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 1.8; }
+.wk-toggle button[aria-pressed="true"] rect { stroke: #fff; }
+.wk-scroll { overflow-x: auto; margin-top: 8px; padding-bottom: 6px; scrollbar-width: thin; }
+.wk-inner { position: relative; direction: ltr; }
+.wk-col { position: absolute; top: 0; border-radius: 18px; background: var(--card); display: flex; flex-direction: column; align-items: center; overflow: hidden; direction: rtl; }
+.wk-col.today { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .55); }
+.wk-name { font-weight: 600; font-size: 15px; margin-top: 12px; }
+.wk-date { font-size: 11px; color: var(--muted); }
+.wk-halves { display: flex; width: 100%; margin-top: 8px; direction: ltr; }
+.wk-halves span { flex: 1; height: 30px; display: grid; place-items: center; color: var(--muted); background: rgba(0, 0, 0, .10); }
+.wk-halves span:first-child { background: rgba(0, 0, 0, .22); }
+.wk-curve { position: absolute; inset: 0; pointer-events: none; }
+.wk-lbl { position: absolute; width: 52px; display: flex; flex-direction: column; align-items: center; font-size: 16px; }
