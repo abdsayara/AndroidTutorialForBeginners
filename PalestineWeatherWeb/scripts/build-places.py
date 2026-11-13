@@ -59,10 +59,12 @@ IL_NAME={'Q152385':'ترشيحا','Q2777426':'مقيبلة','Q2890238':'يانو
 KEEP_CUR={'الخالصة','صفد','طبرية','بيسان','أم خالد','كفر سابا','ملبس','يازور','اللد','إسدود','الفالوجة','بئر السبع','أم الرشراش',
           'الريحانية','معليا','الرامة','شعب','المغار','حمام','كفر كما','بسمة'}
 CUR_NAME={'حمام':'وادي الحمام'}
+# Spellings people use, where the official list's differs.
+RESPELL={'بيت أومر':'بيت أمر'}
 out=[]
 def kind(pop, cap=False): return 'c' if pop>=50000 or cap else 't' if pop>=8000 else 'v'
 for o in ocha:
-    out.append([o['name'],round(o['lat'],4),round(o['lon'],4),kind(o['pop'], str(o['cap'])=='1'),o['pop'],'ocha'])
+    out.append([RESPELL.get(o['name'],o['name']),round(o['lat'],4),round(o['lon'],4),kind(o['pop'], str(o['cap'])=='1'),o['pop'],'ocha'])
 n_il=0
 for k,e in il:
     if k in IL_DROP: continue
