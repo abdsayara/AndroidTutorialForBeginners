@@ -119,6 +119,7 @@ test('currentDays drops the days that are over; parseWear reads the clothing adv
   const days = [{ day: 'الثلاثاء 10/11/2026', text: 'a' }, { day: 'الأربعاء 11/11/2026', text: 'b' }, { day: null, text: 'c' }];
   assert.deepEqual(W.currentDays(days, '2026-11-11').map((d) => d.text), ['b', 'c']);
   assert.equal(W.bulletinDate('الخميس 3/12/2026'), '2026-12-03');
+  assert.equal(W.bulletinDate('الجمعة 2026/11/13'), '2026-11-13');
   assert.equal(W.parseWear('<p class="text-wear-tomorrow">\n<br>\n بين 10-15 نوفمبر 2026: ملابس دافئة صباحاً، مساءً وليلاً....  </p>'), 'بين 10-15 نوفمبر 2026: ملابس دافئة صباحاً، مساءً وليلاً');
   assert.equal(W.parseWear('<html></html>'), null);
 });

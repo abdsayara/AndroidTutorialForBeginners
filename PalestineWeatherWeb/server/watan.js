@@ -48,8 +48,12 @@ export function parseWear(html) {
 
 /** The bulletin's day as an ISO date ("الثلاثاء 10/11/2026" → "2026-11-10"), or null. */
 export function bulletinDate(day) {
-  const m = String(day ?? '').match(/(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
-  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
+  const s = String(day ?? '');
+  // The site writes day/month/year, and sometimes year/month/day.
+  const ymd = s.match(/(\d{4})[/.\-](\d{1,2})[/.\-](\d{1,2})/);
+  if (ymd) return `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+  const dmy = s.match(/(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
+  return dmy ? `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}` : null;
 }
 
 /** Drops the days that are over: a day stays until its own date has passed in Palestine. */

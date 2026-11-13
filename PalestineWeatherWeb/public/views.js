@@ -714,10 +714,13 @@ async function loadBulletin(box, cancelled) {
     }
     // Days that are over go away, even from a copy cached before midnight.
     const today = F.todayIso();
-    const days = data.days.filter((d) => {
-      const m = String(d.day ?? '').match(/(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
-      return !m || `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` >= today;
-    });
+    const iso = (s) => {
+      const ymd = String(s ?? '').match(/(\d{4})[/.\-](\d{1,2})[/.\-](\d{1,2})/);
+      if (ymd) return `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+      const m = String(s ?? '').match(/(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
+      return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
+    };
+    const days = data.days.filter((d) => !iso(d.day) || iso(d.day) >= today);
     if (!days.length) return;
     const [first, ...rest] = days;
     const day = (d) => `<div class="b-day">${d.day ? `<div class="b-label">${esc(d.day)}</div>` : ''}<p>${esc(d.text).replace(/\n/g, '<br>')}</p></div>`;

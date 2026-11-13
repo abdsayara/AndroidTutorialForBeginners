@@ -66,10 +66,15 @@ data class BulletinDay(val day: String, val text: String)
 data class Bulletin(val days: List<BulletinDay>, val wear: String?)
 
 /** "الثلاثاء 10/11/2026" → that date, or null when the day has no date. */
-fun bulletinDate(day: String): java.time.LocalDate? =
-    Regex("(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})").find(day)?.destructured?.let { (d, m, y) ->
+fun bulletinDate(day: String): java.time.LocalDate? {
+    // The site writes day/month/year, and sometimes year/month/day.
+    Regex("(\\d{4})[/.\\-](\\d{1,2})[/.\\-](\\d{1,2})").find(day)?.destructured?.let { (y, m, d) ->
+        return runCatching { java.time.LocalDate.of(y.toInt(), m.toInt(), d.toInt()) }.getOrNull()
+    }
+    return Regex("(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})").find(day)?.destructured?.let { (d, m, y) ->
         runCatching { java.time.LocalDate.of(y.toInt(), m.toInt(), d.toInt()) }.getOrNull()
     }
+}
 
 object BulletinRepository {
     suspend fun bulletin(): Fetched<Bulletin> = Http.get("$API/bulletin", "bulletin").map { body ->
