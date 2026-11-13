@@ -99,9 +99,14 @@ class AlertWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
                 )
             }
 
+        // Alerts the website finds across all of Palestine join the history too (not notified:
+        // they are for other places; the chosen place's own are above).
+        runCatching { ps.weather.data.ServerAlerts.fetch() }.getOrNull()?.forEach { prefs.addAlert(it) }
+
         for (alert in found) {
             if (prefs.addAlert(alert) && prefs.alertEnabled(alert.type)) notify(alert)
         }
+        prefs.lastAlertCheck = System.currentTimeMillis()
         return Result.success()
     }
 
@@ -137,6 +142,14 @@ class AlertWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
                     NotificationChannel(CHANNEL, "تنبيهات الطقس", NotificationManager.IMPORTANCE_DEFAULT)
                 )
             }
+        }
+
+        /** Runs the check once, now (the «افحص الآن» button). */
+        fun runNow(ctx: Context) {
+            val req = androidx.work.OneTimeWorkRequestBuilder<AlertWorker>()
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build()
+            WorkManager.getInstance(ctx).enqueueUniqueWork("alerts_now", androidx.work.ExistingWorkPolicy.REPLACE, req)
         }
 
         fun schedule(ctx: Context) {

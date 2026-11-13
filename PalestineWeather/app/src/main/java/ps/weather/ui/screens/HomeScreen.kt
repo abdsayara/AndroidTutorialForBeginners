@@ -39,6 +39,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import ps.weather.ui.components.wearItems
 import ps.weather.ui.components.WearAvatar
+import ps.weather.ui.components.SCALE
+import ps.weather.ui.components.MetricTile
 import ps.weather.data.BulletinRepository
 import ps.weather.ui.components.Toggle
 import androidx.compose.runtime.produceState
@@ -352,12 +354,21 @@ private fun DetailsSection(fc: Forecast, aqi: Int?) {
     val today = fc.days.firstOrNull()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("الرطوبة", "${c.humidity}%", Modifier.weight(1f))
-            StatTile("الأشعة فوق البنفسجية", today?.let { "${it.uvMax.roundToInt()} · ${uvText(it.uvMax)}" } ?: "—", Modifier.weight(1f))
+            MetricTile(
+                PwIcons.Drop, "الرطوبة", "${c.humidity}%",
+                when { c.humidity < 30 -> "جافة"; c.humidity < 60 -> "مريحة"; c.humidity < 80 -> "رطبة"; else -> "رطبة جداً" },
+                c.humidity / 100f, null, Modifier.weight(1f),
+            )
+            MetricTile(
+                PwIcons.Sun, "الأشعة فوق البنفسجية", today?.let { "${it.uvMax.roundToInt()}" } ?: "—",
+                today?.let { uvText(it.uvMax) }, today?.let { (it.uvMax / 11.0).toFloat() }, SCALE, Modifier.weight(1f),
+            )
         }
-        StatTile("جودة الهواء", aqi?.let { "$it · ${aqiText(it)}" } ?: "—", Modifier.fillMaxWidth())
+        MetricTile(
+            PwIcons.Wind, "جودة الهواء", aqi?.toString() ?: "—", aqi?.let { aqiText(it) },
+            aqi?.let { it / 100f }, SCALE, Modifier.fillMaxWidth(),
+        )
     }
-
 }
 
 @Composable

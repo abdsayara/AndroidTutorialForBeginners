@@ -134,11 +134,11 @@ private fun DrawScope.glow(center: Offset, radius: Float, color: Color, alpha: F
     drawCircle(Brush.radialGradient(listOf(color.copy(alpha = alpha), Color.Transparent), center, radius), radius, center)
 }
 
-/** The sun at the top corner: a breathing glow, a bright disc and long rays turning slowly. */
+/** The sun, kept in the background: a faint warm glow off the top corner and barely-there rays. */
 private fun DrawScope.sun(breathe: Float, turn: Float) {
-    val center = Offset(size.width * 0.86f, size.height * 0.07f)
-    glow(center, size.width * 0.9f, Color(0xFFFAAE3C), 0.26f + 0.12f * breathe)
-    val reach = size.height * 0.75f
+    val center = Offset(size.width * 0.92f, -size.height * 0.04f)
+    glow(center, size.width * 0.75f, Color(0xFFFAAE3C), 0.08f + 0.03f * breathe)
+    val reach = size.height * 0.45f
     rotate(turn * 360f, pivot = center) {
         repeat(8) { i ->
             val a = (i / 8f) * 2 * PI.toFloat()
@@ -149,10 +149,10 @@ private fun DrawScope.sun(breathe: Float, turn: Float) {
                 lineTo(center.x + reach * cos(a + spread), center.y + reach * sin(a + spread))
                 close()
             }
-            drawPath(ray, Brush.radialGradient(listOf(Color.White.copy(alpha = 0.10f), Color.Transparent), center, reach))
+            drawPath(ray, Brush.radialGradient(listOf(Color.White.copy(alpha = 0.03f), Color.Transparent), center, reach))
         }
     }
-    glow(center, size.width * 0.16f, Color(0xFFFFF4D6), 0.55f)
+    glow(center, size.width * 0.12f, Color(0xFFFFF4D6), 0.14f)
 }
 
 /** Clouds drifting left to right; each crosses whole laps per loop, so the drift never jumps. */

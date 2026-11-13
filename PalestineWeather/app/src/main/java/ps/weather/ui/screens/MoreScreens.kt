@@ -54,6 +54,7 @@ import ps.weather.data.CurrencyRepository
 import ps.weather.data.PrayerMethod
 import ps.weather.data.PrayerRepository
 import ps.weather.data.Prefs
+import ps.weather.work.AlertWorker
 import ps.weather.ui.ago
 import ps.weather.ui.arabicDate
 import ps.weather.ui.clock
@@ -199,9 +200,27 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
 
 @Composable
 fun AlertsScreen(prefs: Prefs, onBack: () -> Unit) {
+    val context = LocalContext.current
     var all by remember { mutableStateOf(prefs.alerts()) }
-    // Opening the history marks everything in it as seen (the home bell's dot goes out).
-    LaunchedEffect(Unit) { prefs.alertsSeenAt = System.currentTimeMillis() }
+    var checkedAt by remember { mutableStateOf(prefs.lastAlertCheck) }
+    var checking by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        // The website's alerts for all of Palestine join the list at once.
+        runCatching { ps.weather.data.ServerAlerts.fetch() }.getOrNull()?.forEach { prefs.addAlert(it) }
+        all = prefs.alerts()
+        // Opening the history marks everything in it as seen (the home bell's dot goes out).
+        prefs.alertsSeenAt = System.currentTimeMillis()
+    }
+    // «افحص الآن»: run the check, then show what it found once it reports back.
+    LaunchedEffect(checking) {
+        if (!checking) return@LaunchedEffect
+        val before = prefs.lastAlertCheck
+        repeat(40) {
+            delay(1500)
+            if (prefs.lastAlertCheck != before) { all = prefs.alerts(); checkedAt = prefs.lastAlertCheck; checking = false; return@LaunchedEffect }
+        }
+        checking = false
+    }
     var filter by rememberSaveable { mutableStateOf<AlertType?>(null) }
     val list = all.filter { filter == null || it.type == filter }
     val dateFmt = DateTimeFormatter.ofPattern("d/M", Locale.US)
@@ -216,6 +235,27 @@ fun AlertsScreen(prefs: Prefs, onBack: () -> Unit) {
                         contentAlignment = Alignment.Center,
                     ) { Icon(PwIcons.Trash, "مسح السجل", tint = Pw.Ink, modifier = Modifier.size(20.dp)) }
                 }
+            }
+        }
+        item {
+            // The watch, made visible: when it last looked, and a way to look now.
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Pw.Card).padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (checkedAt == 0L) "لم يجرِ فحص بعد" else "آخر فحص ${ago(Instant.ofEpochMilli(checkedAt).atZone(ZoneId.systemDefault()))}",
+                        fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                    )
+                    Text("يفحص التطبيق المطر والصقيع والحر والرياح والغبار والزلازل كل 3 ساعات", fontSize = 12.sp, color = Pw.Muted)
+                }
+                Text(
+                    if (checking) "جارٍ الفحص…" else "افحص الآن", color = Pw.Link, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable(enabled = !checking, role = Role.Button) {
+                        AlertWorker.runNow(context); checking = true
+                    }.padding(8.dp),
+                )
             }
         }
         item {

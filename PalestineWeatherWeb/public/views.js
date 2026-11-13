@@ -65,6 +65,19 @@ function dustCard(air) {
     </section>` : '';
 }
 
+/** A detail tile like the big weather apps' (same as the app's MetricTile): icon and label, the value
+ * large, a note, a scale with a dot (UV, air) or a fill (humidity), and a soft-focus emblem. */
+function metric(ic, label, value, note, fraction, scale) {
+  const f = fraction == null ? null : Math.max(0, Math.min(1, fraction));
+  const bar = f == null ? '' : scale
+    ? `<div class="m-scale" aria-hidden="true"><i style="inset-inline-start:calc(${(f * 100).toFixed(1)}% - ${(f * 10).toFixed(1)}px)"></i></div>`
+    : `<div class="m-fill" aria-hidden="true"><i style="width:${(f * 100).toFixed(1)}%"></i></div>`;
+  return `<div class="tile metric"><span class="m-emblem" aria-hidden="true">${icon(ic, 92)}</span>
+    <div class="label">${icon(ic, 16)} ${esc(label)}</div>
+    <div class="m-value">${esc(value)}</div>${note ? `<div class="m-note">${esc(note)}</div>` : ''}${bar}</div>`;
+}
+const humidityText = (h) => (h == null ? '' : h < 30 ? 'جافة' : h < 60 ? 'مريحة' : h < 80 ? 'رطبة' : 'رطبة جداً');
+
 /** «شو نلبس بكرا؟»: the text, the clothes as chips, the figure (tap it) and a day / night switch. */
 function wearCard(day, text, night) {
   const w = wearKind(day, night);
@@ -220,10 +233,10 @@ function homeBody(fc, air, prayer) {
     bulletin: '<section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>',
     roads: '<section class="card roads-home" id="roads-home" aria-label="أحوال الطرق" hidden></section>',
     sky: skyCard(today, nowIso),
-    details: `<section class="grid2 grid4 grid3" aria-label="تفاصيل">
-      <div class="tile"><div class="label">الرطوبة</div><div class="value">${c.humidity ?? '—'}%</div></div>
-      <div class="tile"><div class="label">الأشعة فوق البنفسجية</div><div class="value">${F.round(today.uvMax)} · ${F.uvText(today.uvMax)}</div></div>
-      <div class="tile"><div class="label">جودة الهواء</div><div class="value">${aqi != null ? `${aqi} · ${F.aqiText(aqi)}` : '—'}</div></div>
+    details: `<section class="grid2 grid3 metrics" aria-label="تفاصيل">
+      ${metric('drop', 'الرطوبة', c.humidity != null ? `${c.humidity}%` : '—', humidityText(c.humidity), c.humidity != null ? c.humidity / 100 : null, false)}
+      ${metric('sun', 'الأشعة فوق البنفسجية', F.round(today.uvMax), F.uvText(today.uvMax), today.uvMax != null ? today.uvMax / 11 : null, true)}
+      ${metric('wind', 'جودة الهواء', aqi != null ? String(aqi) : '—', aqi != null ? F.aqiText(aqi) : '', aqi != null ? aqi / 100 : null, true)}
     </section>`,
     week: `<section aria-labelledby="h-week"><h2 id="h-week">توقعات 14 يوماً</h2><div class="card flush list" style="margin-top:8px">${days}</div></section>`,
   };

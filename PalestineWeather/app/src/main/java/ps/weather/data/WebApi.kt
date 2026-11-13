@@ -142,3 +142,21 @@ object StationsRepository {
         }
     }
 }
+
+// ---------------------------------------------------------------- alerts across Palestine
+
+/** The website's current alerts for all of Palestine (rain, frost, heat, wind, quakes), as history records. */
+object ServerAlerts {
+    suspend fun fetch(): List<AlertRecord> = Http.get("$API/alerts", "alerts_server").value.let { body ->
+        JSONObject(body).getJSONArray("data").list { o ->
+            val type = when (o.optString("type")) {
+                "rain" -> AlertType.RAIN; "frost" -> AlertType.FROST; "heat" -> AlertType.HEAT
+                "wind" -> AlertType.WIND; "quake" -> AlertType.QUAKE; else -> null
+            }
+            val level = when (o.optString("level")) { "high" -> AlertLevel.HIGH; "warn" -> AlertLevel.WARN; else -> AlertLevel.INFO }
+            type?.let {
+                AlertRecord("srv_${o.optString("key")}", it, level, o.optString("title"), o.optString("body"), "فلسطين", o.optLong("time", System.currentTimeMillis()))
+            }
+        }.filterNotNull()
+    }
+}

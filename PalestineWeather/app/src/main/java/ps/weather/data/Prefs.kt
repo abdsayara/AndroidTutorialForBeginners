@@ -141,6 +141,11 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putLong("alerts_seen", v).apply()
     fun hasUnseenAlerts(): Boolean = alerts().any { it.time > alertsSeenAt }
 
+    /** When the alert check last ran (shown on the alerts screen, so the watch is visible). */
+    var lastAlertCheck: Long
+        get() = sp.getLong("alerts_checked", 0L)
+        set(v) = sp.edit().putLong("alerts_checked", v).apply()
+
     /** The first-launch welcome has been seen. */
     var welcomed: Boolean
         get() = sp.getBoolean("welcomed", false)
