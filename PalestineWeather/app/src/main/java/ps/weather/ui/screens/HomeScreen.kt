@@ -134,7 +134,7 @@ fun HomeScreen(
     LaunchedEffect(elevation) { elevation?.let(onElevation) }
     val air by produceState<AirInfo?>(null, city.id) { value = WeatherRepository.air(city.lat, city.lon) }
     val prayer by produceState<PrayerDay?>(null, city.id) {
-        value = runCatching { PrayerRepository.today(city.lat, city.lon).value }.getOrNull()
+        value = runCatching { PrayerRepository.today().value }.getOrNull()
     }
 
     LazyColumn(

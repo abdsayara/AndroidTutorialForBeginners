@@ -118,7 +118,7 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 
 @Composable
 fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
-    val (load, refresh) = rememberLoad(city.id) { PrayerRepository.today(city.lat, city.lon) }
+    val (load, refresh) = rememberLoad("prayer") { PrayerRepository.today() }
     var now by remember { mutableStateOf(LocalTime.now()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = LocalTime.now() } }
 

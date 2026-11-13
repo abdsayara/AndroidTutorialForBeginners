@@ -82,7 +82,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/prayer': async (q) => {
       const c = requirePlace(q);
       // From Dar al-Ifta's perpetual timetable, nothing fetched.
-      const data = { ...P.prayerDay(c.lat, c.lon, S.palestineDate()), qibla: S.qiblaBearing(c.lat, c.lon) };
+      const data = { ...P.prayerDay(S.palestineDate()), qibla: S.qiblaBearing(c.lat, c.lon) };
       return { data, fetchedAt: Date.now(), stale: false };
     },
 
