@@ -224,7 +224,7 @@ private fun HomeContent(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(deg(c.temp), fontSize = 72.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, lineHeight = 76.sp)
+                Text(deg(c.temp), fontSize = 72.sp, fontWeight = FontWeight.Normal, color = Color.White, lineHeight = 76.sp)
                 Text(weatherText(c.code), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                 if (today != null) Text(
                     "العظمى ${deg(today.max)} · الصغرى ${deg(today.min)} · الإحساس ${deg(c.apparent)}",

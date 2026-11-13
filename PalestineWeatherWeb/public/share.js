@@ -7,8 +7,8 @@ import { summarize, skyKind } from './insights.js';
 const W = 1080;
 const H = 1350;
 const SITE = 'palestine-weather.vercel.app';
-const FONT = "'Rubik', system-ui, sans-serif";
-const DISPLAY = "'Rubik', system-ui, sans-serif";
+const FONT = "'Readex Pro', system-ui, sans-serif";
+const DISPLAY = "'Readex Pro', system-ui, sans-serif";
 
 /** Background stops per kind of sky; the same moods as the hero. */
 const SKIES = {
@@ -96,24 +96,24 @@ export async function shareCardBlob(placeName, fc) {
   ctx.fill();
   if (logo) ctx.drawImage(logo, R - 102, 88, 92, 70);
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = `700 40px ${DISPLAY}`;
+  ctx.font = `600 40px ${DISPLAY}`;
   ctx.fillText('طقس فلسطين', R - 136, 136);
 
   // Place and date.
-  ctx.font = `800 84px ${DISPLAY}`;
+  ctx.font = `700 84px ${DISPLAY}`;
   ctx.fillText(placeName, R, 320);
-  ctx.font = `500 36px ${FONT}`;
+  ctx.font = `400 36px ${FONT}`;
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.fillText(arabicDate(), R, 380);
 
   // Temperature, condition and icon.
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = `800 260px ${DISPLAY}`;
+  ctx.font = `700 260px ${DISPLAY}`;
   ctx.direction = 'ltr';
   ctx.textAlign = 'right';
   ctx.fillText(plainDeg(c.temp), R, 660);
   ctx.direction = 'rtl';
-  ctx.font = `600 52px ${FONT}`;
+  ctx.font = `500 52px ${FONT}`;
   ctx.fillText(weatherText(c.code), R, 750);
   const icon = await iconImage(c.code, c.isDay, 300).catch(() => null);
   if (icon) ctx.drawImage(icon, 90, 330, 330, 330);
@@ -133,25 +133,25 @@ export async function shareCardBlob(placeName, fc) {
     roundRect(ctx, x, 820, tw, 150, 28);
     ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.font = `500 30px ${FONT}`;
+    ctx.font = `400 30px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.fillText(label, x + tw / 2, 875);
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `700 42px ${FONT}`;
+    ctx.font = `600 42px ${FONT}`;
     ctx.fillText(value, x + tw / 2, 940);
   });
   ctx.textAlign = 'right';
 
   // The summary sentence.
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = `500 40px ${FONT}`;
+  ctx.font = `400 40px ${FONT}`;
   wrap(ctx, summarize(fc, c.time), R - 84).slice(0, 3).forEach((line, i) => ctx.fillText(line, R, 1060 + i * 62));
 
   // Footer: the address.
   ctx.fillStyle = 'rgba(255,255,255,0.18)';
   ctx.fillRect(84, H - 130, R - 84, 2);
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.font = `500 32px ${FONT}`;
+  ctx.font = `400 32px ${FONT}`;
   ctx.direction = 'ltr';
   ctx.textAlign = 'left';
   ctx.fillText(SITE, 84, H - 70);

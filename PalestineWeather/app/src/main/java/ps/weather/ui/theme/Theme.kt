@@ -81,15 +81,18 @@ object Pw {
     fun background(): Brush = if (glass) Brush.verticalGradient(skyStops()) else Brush.verticalGradient(listOf(Color(0xFFF6F7F5), Color(0xFFF6F7F5)))
 }
 
-/** Rubik (SIL Open Font License, res/font): rounded, with geometric digits and a clean Arabic face; every weight from one variable file. */
+/**
+ * Readex Pro (SIL Open Font License, res/font), drawn light: each weight the app asks for is
+ * rendered one step lighter (normal text is Light, bold is SemiBold), for an airy, thin look.
+ */
 @OptIn(ExperimentalTextApi::class)
 val AppFont = FontFamily(
-    listOf(300, 400, 500, 600, 700, 800).map { w ->
-        Font(R.font.rubik, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+    listOf(300 to 220, 400 to 300, 500 to 400, 600 to 500, 700 to 600, 800 to 700).map { (asked, drawn) ->
+        Font(R.font.readex_pro, FontWeight(asked), variationSettings = FontVariation.Settings(FontVariation.weight(drawn)))
     },
 )
 
-/** Material's type scale, all in Rubik. */
+/** Material's type scale, all in Readex Pro. */
 private val AppTypography = Typography().let { t ->
     fun TextStyle.r() = copy(fontFamily = AppFont)
     Typography(
