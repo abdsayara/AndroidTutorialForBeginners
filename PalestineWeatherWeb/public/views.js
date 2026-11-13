@@ -258,6 +258,8 @@ function skyCard(today, nowIso, withSun = true) {
 const HOME_SECTIONS = [
   ['hours', 'الساعات القادمة'],
   ['today', 'شو نلبس والصلاة والموسم'],
+  ['maps', 'خرائط الطقس وصور الأقمار'],
+  ['news', 'أخبار الطقس'],
   ['bulletin', 'النشرة الجوية'],
   ['roads', 'أحوال الطرق'],
   ['sky', 'الصلاة والشروق والغروب والقمر'],
@@ -327,6 +329,21 @@ function homeBody(fc, air, prayer) {
       <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
     </section>`,
     today: todayCards(fc, prayer, nowIso),
+    maps: `<section class="tiles2" aria-label="خرائط الطقس وصور الأقمار">
+      <a class="tile tile-maps" href="/map" data-link>
+        <span class="tile-art" aria-hidden="true"></span>
+        <strong>خرائط الطقس</strong>
+        <span class="tile-sub">حرارة وأمطار ورياح فلسطين</span>
+        <span class="tile-go">عرض ${icon('back', 14)}</span>
+      </a>
+      <a class="tile tile-sat" id="sat-tile" href="/satellite" data-link>
+        <span class="tile-live">مباشر</span>
+        <strong>صور الأقمار</strong>
+        <span class="tile-sub">سحب · غبار · ضباب</span>
+        <span class="tile-go">${icon('expand', 14)}</span>
+      </a>
+    </section>`,
+    news: '<section class="card news-home" id="news-home" aria-labelledby="h-news" hidden></section>',
     bulletin: '<section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>',
     roads: '<section class="card roads-home" id="roads-home" aria-label="أحوال الطرق" hidden></section>',
     sky: `${prayerSunRow(today, prayer, nowIso)}${skyCard(today, nowIso, false)}`,
@@ -442,6 +459,8 @@ async function home(el, ctx, cancelled) {
     slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
     loadBulletin(slot.querySelector('#bulletin'), cancelled);
     loadRoadsHome(slot.querySelector('#roads-home'), cancelled);
+    loadNewsHome(slot.querySelector('#news-home'), cancelled);
+    loadSatTile(slot.querySelector('#sat-tile'), cancelled);
     if (editing) {
       const box = slot.querySelector('#customize');
       box.innerHTML = customizeBody();
@@ -773,7 +792,7 @@ function more(el) {
   ];
   el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label, page]) =>
     `<a href="${href}" ${page ? '' : 'data-link'}><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
-    <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · الخط MiSans من شاومي</div></div>`;
+    <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · صور الأقمار © EUMETSAT · الخط MiSans من شاومي</div></div>`;
 }
 
 // ---------------------------------------------------------------- prayer
@@ -901,6 +920,79 @@ async function loadBulletin(box, cancelled) {
       ${rest.length ? `<details><summary>الأيام القادمة (${rest.length})</summary>${rest.map(day).join('')}</details>` : ''}`;
     box.hidden = false;
   } catch { /* the home page works without it */ }
+}
+
+/** The two newest reports on the home page, as picture cards. */
+async function loadNewsHome(box, cancelled) {
+  if (!box) return;
+  try {
+    const r = await api('/api/reports');
+    const items = (r.data ?? []).slice(0, 2);
+    if (cancelled() || !items.length) return;
+    box.innerHTML = `<div class="row"><h2 id="h-news" class="grow">أخبار الطقس</h2><a class="link-btn" href="/reports" data-link>كل التقارير</a></div>
+      ${items.map((n) => `<a class="news-card" href="/report?id=${n.id}" data-link>
+        ${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+        <span class="news-text"><strong>${esc(n.title)}</strong>${n.date ? `<span class="tiny">${esc(F.arabicDate(n.date))}</span>` : ''}</span>
+      </a>`).join('')}`;
+    box.hidden = false;
+  } catch { /* the home page works without it */ }
+}
+
+/** The satellite tile on the home page shows the newest picture. */
+async function loadSatTile(tile, cancelled) {
+  if (!tile) return;
+  try {
+    const r = await api('/api/satellite');
+    const l = r.data?.layers?.find((x) => x.id === 'natural');
+    if (cancelled() || !l) return;
+    tile.style.backgroundImage = `linear-gradient(rgba(8,18,30,.15), rgba(8,18,30,.72)), url("${l.thumb}")`;
+  } catch { /* the tile still opens the pictures */ }
+}
+
+/** Live satellite pictures: one layer at a time over the region, with a picker for the others. */
+async function satellite(el, ctx, cancelled) {
+  el.innerHTML = `<div class="sat-view"><div class="sat-stage" id="sat-stage">${spinner}</div></div>`;
+  const stage = el.querySelector('#sat-stage');
+  let data = null;
+  let current = new URLSearchParams(location.search).get('layer') ?? 'clouds';
+  let picking = false;
+  const city = ctx.city;
+  const draw = () => {
+    const l = data.layers.find((x) => x.id === current) ?? data.layers[0];
+    const [w, s, e, n] = data.bbox;
+    // Where the chosen place falls on the picture.
+    const x = city ? ((city.lon - w) / (e - w)) * 100 : null;
+    const y = city ? ((n - city.lat) / (n - s)) * 100 : null;
+    const at = new Date(data.time);
+    const clock = at.toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' });
+    stage.innerHTML = `<div class="sat-frame">
+        <img src="${esc(l.image)}" alt="${esc(l.title)}" referrerpolicy="no-referrer">
+        ${x != null && x > 0 && x < 100 && y > 0 && y < 100 ? `<span class="sat-pin" style="left:${x}%;top:${y}%" title="${esc(city.name)}"></span>` : ''}
+      </div>
+      <div class="sat-top"><a class="icon-btn" href="/" data-link aria-label="إغلاق">✕</a><h1>${esc(l.title)}</h1><span style="width:44px"></span></div>
+      <div class="sat-bottom">
+        <button class="icon-btn sat-layers" data-action="pick" aria-label="اختر الصورة">${icon('layers', 22)}</button>
+        <div class="sat-time"><b>${F.ltr(clock)}</b> ${esc(F.arabicDate(at.toLocaleDateString('en-CA', { timeZone: 'Asia/Hebron' })))}<div class="tiny">${esc(l.hint)}</div></div>
+      </div>
+      ${picking ? `<div class="sat-sheet" role="dialog" aria-label="اختر الصورة">
+        <div class="row"><h2 class="grow">اختر الصورة</h2><button class="icon-btn sm" data-action="pick" aria-label="إغلاق">✕</button></div>
+        <div class="sat-grid">${data.layers.map((x) => `<button class="sat-opt" data-action="layer" data-id="${x.id}" aria-pressed="${x.id === l.id}">
+          <img src="${esc(x.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.title)}</span></button>`).join('')}</div>
+      </div>` : ''}`;
+  };
+  try {
+    const r = await api('/api/satellite');
+    if (cancelled()) return undefined;
+    data = r.data;
+    draw();
+  } catch {
+    if (!cancelled()) stage.innerHTML = errorBox();
+  }
+  return actions(el, {
+    pick: () => { picking = !picking; draw(); },
+    layer: (t) => { current = t.dataset.id; picking = false; history.replaceState(null, '', `/satellite?layer=${current}`); draw(); },
+    retry: () => location.reload(),
+  });
 }
 
 async function reports(el, ctx, cancelled) {
@@ -1201,6 +1293,7 @@ export const views = {
   '/prayer': prayer,
   '/alerts': alerts,
   '/reports': reports,
+  '/satellite': satellite,
   '/report': report,
   '/stations': stations,
   '/roads': roads,

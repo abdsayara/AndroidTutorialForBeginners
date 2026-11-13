@@ -9,6 +9,7 @@ import { AlertStore, startAlertJob } from './alerts.js';
 import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
 import * as R from './roads.js';
+import * as SAT from './satellite.js';
 import * as W from './watan.js';
 import * as WU from './wunderground.js';
 import { PALHUB_URL, parsePalhub } from './palhub.js';
@@ -107,6 +108,12 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/reports': async () => {
       const r = await cache.get('watan_reports', 3600, async () => W.parseReports(await cache.text(W.REPORTS_URL)));
       return { ...r, cdnSeconds: 1800 };
+    },
+
+    // Live satellite pictures (EUMETSAT): the newest picture's time, and each layer's address.
+    '/api/satellite': async () => {
+      const r = await cache.get('satellite_time', 300, async () => (await cache.text(SAT.CAPABILITIES_URL).then(SAT.parseLatestTime).catch(() => null)) ?? SAT.fallbackTime());
+      return { ...r, data: SAT.satellite(r.data), cdnSeconds: 300 };
     },
 
     '/api/report': async (q) => {
