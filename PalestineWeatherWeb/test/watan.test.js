@@ -128,9 +128,13 @@ test('parseWu reads a Weather Underground observation in the stations shape', as
   const WU = await import('../server/wunderground.js');
   const cur = { observations: [{ obsTimeUtc: '2026-11-13T10:00:00Z', humidity: 61, winddir: 270, pressureTrend: 'steady',
     metric: { temp: 18.4, heatIndex: 18.4, windChill: 18.1, windSpeed: 9.7, windGust: 14.5, pressure: 1016.9, precipTotal: 0.3 } }] };
-  const day = { summaries: [{ metric: { tempHigh: 21.2, tempLow: 11.6 } }] };
+  const day = { observations: [
+    { obsTimeUtc: '2026-11-13T03:00:00Z', metric: { tempHigh: 12.4, tempLow: 11.6 } },
+    { obsTimeUtc: '2026-11-13T09:00:00Z', metric: { tempHigh: 21.2, tempLow: 19.8 } },
+  ] };
   const n = WU.parseWu(cur, day);
   assert.equal(n.temp, 18.4); assert.equal(n.feelsLike, 18.1); assert.equal(n.high, 21.2); assert.equal(n.low, 11.6);
+  assert.equal(n.highAt, '2026-11-13T09:00:00Z'); assert.equal(n.lowAt, '2026-11-13T03:00:00Z');
   assert.equal(n.wind, 9.7); assert.equal(n.pressureTrend, 'ثابت'); assert.equal(n.updated, '2026-11-13T10:00:00Z');
   assert.throws(() => WU.parseWu({}), /no observation/);
   assert.match(WU.currentUrl('IDEIRB6', 'k'), /stationId=IDEIRB6&format=json&units=m/);
