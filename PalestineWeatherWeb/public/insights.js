@@ -84,7 +84,7 @@ export function summarize(fc, nowIso) {
 
 /**
  * The kind of sky for the hero background:
- * day | night | dusk | cloudy | rain | storm | fog | snow.
+ * day | night | cloudy | rain | storm | fog | snow.
  */
 export function skyKind(fc, nowIso) {
   const c = fc.current ?? {};
@@ -94,12 +94,6 @@ export function skyKind(fc, nowIso) {
   if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
   if (code === 45 || code === 48) return 'fog';
   if (code === 3) return 'cloudy';
-  // Within 40 minutes of sunrise or sunset the sky is warm.
-  const now = Date.parse(`${String(nowIso ?? c.time).slice(0, 16)}:00Z`);
-  const today = fc.days?.[0];
-  for (const t of [today?.sunrise, today?.sunset]) {
-    if (t && Math.abs(Date.parse(`${t.slice(0, 16)}:00Z`) - now) <= 40 * 60000) return 'dusk';
-  }
   return c.isDay === false ? 'night' : 'day';
 }
 
@@ -226,4 +220,14 @@ export function moonPhase(when = new Date()) {
     fraction,
     lit: (1 - Math.cos(2 * Math.PI * fraction)) / 2,
   };
+}
+
+// ---------------------------------------------------------------- what to wear: the avatar
+
+/** The avatar's outfit for a day: cold / cool / mild / warm, and whether it carries an umbrella. */
+export function wearKind(day) {
+  if (!day) return { kind: 'mild', rain: false };
+  const max = day.max ?? 20;
+  const kind = max < 12 ? 'cold' : max < 18 ? 'cool' : max < 26 ? 'mild' : 'warm';
+  return { kind, rain: (day.precipProbMax ?? 0) >= 50 };
 }

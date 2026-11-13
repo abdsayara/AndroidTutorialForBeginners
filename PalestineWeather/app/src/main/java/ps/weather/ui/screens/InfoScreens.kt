@@ -65,7 +65,7 @@ private fun dateText(iso: String?): String? = iso?.let { runCatching { arabicDat
 @Composable
 fun BulletinCard() {
     val (load, _) = rememberLoad("bulletin") { BulletinRepository.bulletin() }
-    val days: List<BulletinDay> = (load as? Load.Ok)?.value ?: return
+    val days: List<BulletinDay> = (load as? Load.Ok)?.value?.days ?: return
     if (days.isEmpty()) return
     var open by rememberSaveable { mutableStateOf(false) }
     Column(

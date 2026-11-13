@@ -89,7 +89,7 @@ fun summarize(fc: Forecast, now: LocalDateTime = fc.currentTime ?: LocalDateTime
     return parts.take(3).joinToString("، ") + "."
 }
 
-enum class Sky { DAY, NIGHT, DUSK, CLOUDY, RAIN, STORM, FOG, SNOW }
+enum class Sky { DAY, NIGHT, CLOUDY, RAIN, STORM, FOG, SNOW }
 
 /** The kind of sky for the hero background. */
 fun skyKind(fc: Forecast, now: LocalDateTime = fc.currentTime ?: LocalDateTime.now()): Sky {
@@ -100,9 +100,6 @@ fun skyKind(fc: Forecast, now: LocalDateTime = fc.currentTime ?: LocalDateTime.n
         code in 71..77 || code == 85 || code == 86 -> Sky.SNOW
         code == 45 || code == 48 -> Sky.FOG
         code == 3 -> Sky.CLOUDY
-        // Within 40 minutes of sunrise or sunset the sky is warm.
-        listOfNotNull(fc.days.firstOrNull()?.sunrise, fc.days.firstOrNull()?.sunset)
-            .any { abs(Duration.between(it, now).toMinutes()) <= 40 } -> Sky.DUSK
         fc.current.isDay -> Sky.DAY
         else -> Sky.NIGHT
     }

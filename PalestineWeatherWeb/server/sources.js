@@ -14,7 +14,7 @@ export function forecastUrl(lat, lon) {
     '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset' +
     // Rain every 15 minutes for the next 3 hours (the nowcast), and yesterday for comparison.
     '&minutely_15=precipitation&forecast_minutely_15=12&past_minutely_15=0&past_days=1' +
-    '&timezone=auto&forecast_days=7';
+    '&timezone=auto&forecast_days=14';
 }
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);

@@ -35,7 +35,6 @@ object ShareCard {
     private fun skyColors(sky: Sky): IntArray = when (sky) {
         Sky.DAY -> intArrayOf(0xFF2A86C6.toInt(), 0xFF1F74B0.toInt(), 0xFF165A8A.toInt())
         Sky.NIGHT -> intArrayOf(0xFF1C3A5E.toInt(), 0xFF16304F.toInt(), 0xFF0E2038.toInt())
-        Sky.DUSK -> intArrayOf(0xFFD2733E.toInt(), 0xFFA44F27.toInt(), 0xFF5E3550.toInt())
         Sky.CLOUDY -> intArrayOf(0xFF6A8597.toInt(), 0xFF4A6476.toInt(), 0xFF34495A.toInt())
         Sky.FOG -> intArrayOf(0xFF8293A0.toInt(), 0xFF5E707B.toInt(), 0xFF46545E.toInt())
         Sky.RAIN -> intArrayOf(0xFF3F5F78.toInt(), 0xFF2E4A60.toInt(), 0xFF1F3346.toInt())

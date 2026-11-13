@@ -34,10 +34,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import ps.weather.data.Prefs
+import ps.weather.ui.components.wearKind
+import ps.weather.ui.components.WearAvatar
+import ps.weather.data.BulletinRepository
 import ps.weather.ui.components.Toggle
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import ps.weather.ui.arabicDayName
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -104,7 +111,7 @@ import kotlin.math.sin
 
 @Composable
 fun HomeScreen(
-    city: City, prefs: Prefs, onPickCity: () -> Unit, onHourly: () -> Unit, onOpenRoads: () -> Unit,
+    city: City, prefs: Prefs, onPickCity: () -> Unit, onHourly: () -> Unit, onOpenRoads: () -> Unit, onAlerts: () -> Unit,
     onElevation: (Double) -> Unit = {},
     prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
 ) {
@@ -128,6 +135,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
+            Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painterResource(R.drawable.logo), contentDescription = null,
@@ -139,23 +147,34 @@ fun HomeScreen(
                         Icon(PwIcons.Pin, null, tint = Pw.Link, modifier = Modifier.size(20.dp))
                         Text(city.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     }
-                    Text(
-                        listOfNotNull(
-                            if (city.kind == PlaceKind.GPS) "موقعك الحالي" else null,
-                            if (city.isListed) null else city.area,
-                            elevationText(elevation),
-                            arabicDate(LocalDate.now()),
-                        ).joinToString(" · "),
-                        fontSize = 13.sp, color = Pw.Muted,
+                }
+                // The bell opens «التنبيهات السابقة»; a dot marks alerts not seen yet.
+                val unseen = remember(load) { prefs.hasUnseenAlerts() }
+                Box {
+                    RoundIconButton(PwIcons.Bell, if (unseen) "التنبيهات، فيها جديد" else "التنبيهات", onAlerts)
+                    if (unseen) Box(
+                        Modifier.align(Alignment.TopEnd).padding(6.dp).size(10.dp).clip(CircleShape)
+                            .background(Color(0xFFFF5A4E)).border(1.5.dp, Color.White, CircleShape),
                     )
                 }
+                Spacer(Modifier.width(6.dp))
                 (load as? Load.Ok)?.value?.let { fc ->
                     RoundIconButton(PwIcons.Share, "مشاركة الطقس كصورة", onClick = { ShareCard.share(context, city.name, fc) })
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(6.dp))
                 }
                 RoundIconButton(PwIcons.Refresh, "تحديث", refresh)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(6.dp))
                 RoundIconButton(PwIcons.Search, "تغيير المدينة", onPickCity)
+            }
+            Text(
+                listOfNotNull(
+                    if (city.kind == PlaceKind.GPS) "موقعك الحالي" else null,
+                    if (city.isListed) null else city.area,
+                    elevationText(elevation),
+                    arabicDate(LocalDate.now()),
+                ).joinToString(" · "),
+                fontSize = 13.sp, color = Pw.Muted, modifier = Modifier.padding(top = 6.dp),
+            )
             }
         }
         item {
@@ -177,7 +196,6 @@ private fun HomeContent(
     val heroColor = when (skyKind(fc)) {
         Sky.DAY -> Pw.Brand
         Sky.NIGHT -> Color(0xFF16304F)
-        Sky.DUSK -> Color(0xFFA44F27)
         Sky.CLOUDY -> Color(0xFF4A6476)
         Sky.FOG -> Color(0xFF5E707B)
         Sky.RAIN -> Color(0xFF2E4A60)
@@ -243,7 +261,7 @@ val HOME_SECTIONS = listOf(
     "roads" to "أحوال الطرق",
     "sky" to "الشمس والقمر",
     "details" to "الرطوبة والأشعة والهواء",
-    "week" to "توقعات 7 أيام",
+    "week" to "توقعات 14 يوماً",
 )
 
 /** The saved order, with any section added since put back at its default place. */
@@ -266,7 +284,23 @@ private fun HoursSection(fc: Forecast, onHourly: () -> Unit) {
             )
         }
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(fc.hours.drop(now).take(24)) { h ->
+            // The next 24 hours, with the new day's name just before its 12 at night.
+            val next = fc.hours.drop(now).take(24)
+            val entries: List<Any> = next.flatMapIndexed { i, h -> if (i > 0 && h.time.hour == 0) listOf(h.time.toLocalDate(), h) else listOf(h) }
+            items(entries) { e ->
+                if (e is LocalDate) {
+                    Box(
+                        Modifier.width(44.dp).height(118.dp).clip(RoundedCornerShape(16.dp)).background(Pw.BrandTint),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            arabicDayName(e), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Pw.Link, maxLines = 1,
+                            softWrap = false, modifier = Modifier.rotate(-90f).requiredWidth(110.dp), textAlign = TextAlign.Center,
+                        )
+                    }
+                    return@items
+                }
+                val h = e as ps.weather.data.HourPoint
                 val isNow = h == fc.hours.getOrNull(now)
                 Column(
                     Modifier.width(56.dp).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Panel else Pw.Card).padding(vertical = 10.dp),
@@ -288,11 +322,12 @@ private fun HoursSection(fc: Forecast, onHourly: () -> Unit) {
 @Composable
 private fun TodaySection(fc: Forecast, prayer: PrayerDay?, nowTime: LocalDateTime) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // "شو نلبس؟", the next prayer's weather and the farming season
-        val late = nowTime.hour >= 15
-        clothingAdvice(if (late) fc.days.getOrNull(1) else fc.days.firstOrNull())?.let {
-            MiniCard(PwIcons.Thermometer, if (late) "شو نلبس بكرا؟" else "شو نلبس اليوم؟", it)
-        }
+        // «شو نلبس بكرا؟»: the day's bulletin advice (ours until it loads), with a figure dressed for tomorrow.
+        val tomorrow = fc.days.getOrNull(1) ?: fc.days.firstOrNull()
+        val (bulletinLoad, _) = rememberLoad("bulletin") { BulletinRepository.bulletin() }
+        val wearText = (bulletinLoad as? Load.Ok)?.value?.wear ?: clothingAdvice(tomorrow)
+        if (wearText != null) WearCard(tomorrow, wearText)
+        // The next prayer's weather and the farming season
         prayer?.let { prayerWeather(it.times, fc.hours, nowTime) }?.let { pw ->
             val whenText = when {
                 pw.tomorrow -> "غداً"
@@ -328,11 +363,15 @@ private fun WeekSection(fc: Forecast) {
     val lo = fc.days.minOfOrNull { it.min } ?: 0.0
     val hi = fc.days.maxOfOrNull { it.max } ?: 1.0
     val span = (hi - lo).coerceAtLeast(1.0)
+    Text("توقعات ${fc.days.size} يوماً", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(horizontal = 16.dp, vertical = 6.dp)) {
         fc.days.forEachIndexed { i, d ->
             if (i > 0) HorizontalDivider(color = Pw.Line)
-            Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(relativeDayName(d.date), fontWeight = FontWeight.SemiBold, fontSize = 14.sp, modifier = Modifier.width(64.dp))
+            Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(Modifier.width(64.dp)) {
+                    Text(relativeDayName(d.date), fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1)
+                    Text("${d.date.dayOfMonth}/${d.date.monthValue}", fontSize = 11.sp, color = Pw.Muted)
+                }
                 WeatherIcon(d.code, size = 22.dp)
                 Text(if (d.precipProbMax >= 10) "${d.precipProbMax}%" else "", fontSize = 12.sp, color = Pw.Blue, modifier = Modifier.width(36.dp))
                 Text(deg(d.min), fontSize = 14.sp, color = Pw.Muted)
@@ -498,6 +537,27 @@ private fun DustCard(d: DustAlert) {
             Text(d.title, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }
         Text(d.text, fontSize = 14.sp, lineHeight = 24.sp)
+    }
+}
+
+/** «شو نلبس بكرا؟» with its avatar. */
+@Composable
+private fun WearCard(day: DayPoint?, text: String) {
+    val (kind, rain) = wearKind(day)
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Pw.Card)
+            .border(1.dp, Pw.Line, RoundedCornerShape(18.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        WearAvatar(kind, rain, 76.dp)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(PwIcons.Thermometer, null, tint = Pw.Link, modifier = Modifier.size(18.dp))
+                Text("شو نلبس بكرا؟", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+            Text(text, fontSize = 14.sp, color = Pw.Muted, lineHeight = 23.sp)
+        }
     }
 }
 

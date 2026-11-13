@@ -763,3 +763,19 @@ html:root .dir.closed { background: rgba(255, 90, 78, 0.16); color: var(--road-c
 html:root .cp.open { border-inline-start-color: var(--road-open); }
 html:root .cp.busy { border-inline-start-color: var(--road-busy); }
 html:root .cp.closed { border-inline-start-color: var(--road-closed); }
+
+/* 14 days: the date under each day's name, since names repeat */
+.day .name small.dm { display: block; font-size: 11px; font-weight: 400; color: var(--muted); line-height: 1.2; }
+.day { min-height: 54px; }
+.hour-day { flex: 0 0 40px; border-radius: 16px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; }
+.hour-day span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 700; color: var(--link); white-space: nowrap; }
+
+/* «شو نلبس بكرا؟» with its avatar */
+.mini.wear .wear-row { display: flex; align-items: center; gap: 12px; }
+.wear-avatar { flex-shrink: 0; animation: avatar-bob 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes avatar-bob { 50% { transform: translateY(-3px) rotate(-2deg); } }
+@media (prefers-reduced-motion: reduce) { .wear-avatar { animation: none; } }
+
+/* Home: the place's details on their own line under the header, so four buttons fit beside the name */
+.home-sub { margin-top: -10px; }
+@media (max-width: 420px) { .header .icon-btn { width: 40px; height: 40px; } .header { gap: 8px; } }

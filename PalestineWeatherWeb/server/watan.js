@@ -36,7 +36,28 @@ export function parseBulletin(html) {
     else if (line) days.push({ day: null, text: line });
   }
   if (!days.length) throw new Error('bulletin is empty');
-  return { days, source: BULLETIN_URL };
+  return { days, wear: parseWear(html), source: BULLETIN_URL };
+}
+
+/** «شو نلبس بكرا؟» from the same home page: the advice text, or null. */
+export function parseWear(html) {
+  const block = String(html).match(/class="text-wear-tomorrow">([\s\S]*?)<\/p>/)?.[1];
+  const t = text(block ?? '').replace(/\s+/g, ' ').replace(/[.\u2026]+$/u, '').trim();
+  return t || null;
+}
+
+/** The bulletin's day as an ISO date ("الثلاثاء 10/11/2026" → "2026-11-10"), or null. */
+export function bulletinDate(day) {
+  const m = String(day ?? '').match(/(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : null;
+}
+
+/** Drops the days that are over: a day stays until its own date has passed in Palestine. */
+export function currentDays(days, todayIso) {
+  return (days ?? []).filter((d) => {
+    const iso = bulletinDate(d.day);
+    return !iso || iso >= todayIso;
+  });
 }
 
 /** A report's tag, or null when the tag only names the site itself (no source is shown). */

@@ -11,6 +11,8 @@ enum class AlertType(val label: String) {
     HEAT("حر"),
     WIND("رياح وغبار"),
     QUAKE("زلازل"),
+    /** The 7:00 summary; it has its own switch, so it is not among the alert switches. */
+    MORNING("الملخص الصباحي"),
 }
 
 enum class AlertLevel(val label: String) { INFO("للعلم"), WARN("تحذير"), HIGH("خطر") }
@@ -132,6 +134,12 @@ class Prefs(context: Context) {
         sp.edit().putString("alerts", arr.toString()).apply()
         return true
     }
+
+    /** When the person last opened «التنبيهات السابقة»: newer alerts light the bell's dot. */
+    var alertsSeenAt: Long
+        get() = sp.getLong("alerts_seen", 0L)
+        set(v) = sp.edit().putLong("alerts_seen", v).apply()
+    fun hasUnseenAlerts(): Boolean = alerts().any { it.time > alertsSeenAt }
 
     fun clearAlerts() = sp.edit().putString("alerts", "[]").apply()
 }

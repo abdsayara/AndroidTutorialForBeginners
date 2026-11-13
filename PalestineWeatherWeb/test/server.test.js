@@ -38,7 +38,7 @@ test('every API route answers with data', async () => {
 test('exact coordinates, villages, search and reverse geocoding', async () => {
   const f = await get('/api/forecast?lat=31.96&lon=35.198');
   assert.equal(f.status, 200);
-  assert.equal(f.body.data.days.length, 7);
+  assert.equal(f.body.data.days.length, 14);
   assert.equal((await get('/api/prayer?lat=31.96&lon=35.198&method=5')).status, 200);
   assert.equal((await get('/api/forecast?lat=40&lon=35')).status, 400);
   assert.equal((await get('/api/forecast?lat=abc&lon=35')).status, 400);
@@ -54,8 +54,8 @@ test('exact coordinates, villages, search and reverse geocoding', async () => {
 
 test('forecast shape', async () => {
   const { body } = await get('/api/forecast?city=jericho');
-  assert.equal(body.data.days.length, 7);
-  assert.equal(body.data.hours.length, 168);
+  assert.equal(body.data.days.length, 14);
+  assert.equal(body.data.hours.length, 24 * 14);
   assert.equal(typeof body.data.current.temp, 'number');
 });
 

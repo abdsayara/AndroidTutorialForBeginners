@@ -69,10 +69,6 @@ fun SkyBackground(sky: Sky, modifier: Modifier = Modifier) {
                 glow(Offset(size.width * 0.88f, -size.height * 0.02f), size.width * 0.75f, Color(0xFFFAAE3C), 0.30f + 0.14f * breathe.value)
                 clouds(drift.value, 0.09f)
             }
-            Sky.DUSK -> {
-                glow(Offset(size.width * 0.15f, size.height * 1.04f), size.width * 0.95f, Color(0xFFFAAE3C), 0.32f + 0.14f * breathe.value)
-                clouds(drift.value, 0.07f)
-            }
             Sky.CLOUDY, Sky.FOG -> clouds(drift.value, 0.16f, many = true)
             Sky.NIGHT -> specks.forEach { s ->
                 val a = 0.35f + 0.65f * (0.5f + 0.5f * sin(2 * PI.toFloat() * (twinkle.value + s.phase)))

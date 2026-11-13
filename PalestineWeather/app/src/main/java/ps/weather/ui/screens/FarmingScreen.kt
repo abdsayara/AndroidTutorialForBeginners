@@ -155,7 +155,7 @@ private fun AlertToggles(prefs: Prefs) {
             }
             Toggle(rainSoon, "المطر قادم") { rainSoon = it; prefs.rainSoonEnabled = it }
         }
-        AlertType.entries.forEach { type ->
+        AlertType.entries.filter { it != AlertType.MORNING }.forEach { type ->
             var on by remember { mutableStateOf(prefs.alertEnabled(type)) }
             HorizontalDivider(color = Pw.Line)
             Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {

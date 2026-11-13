@@ -54,7 +54,8 @@ test('summarize names the rain to come and the change from yesterday', () => {
 test('skyKind picks the background from the weather and the hour', () => {
   assert.equal(skyKind(fc()), 'day');
   assert.equal(skyKind(fc({ current: { time: '2026-11-10T22:00', code: 1, isDay: false } })), 'night');
-  assert.equal(skyKind(fc({ current: { time: '2026-11-10T16:40', code: 0, isDay: true } })), 'dusk');
+  // No dusk sky: near sunset it is still day until the sun is down.
+  assert.equal(skyKind(fc({ current: { time: '2026-11-10T16:40', code: 0, isDay: true } })), 'day');
   assert.equal(skyKind(fc({ current: { time: '2026-11-10T13:00', code: 63, isDay: true } })), 'rain');
   assert.equal(skyKind(fc({ current: { time: '2026-11-10T13:00', code: 95 } })), 'storm');
   assert.equal(skyKind(fc({ current: { time: '2026-11-10T13:00', code: 3 } })), 'cloudy');

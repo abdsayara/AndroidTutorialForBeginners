@@ -10,6 +10,7 @@ import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
 import * as R from './roads.js';
 import * as W from './watan.js';
+import * as WU from './wunderground.js';
 import { PALHUB_URL, parsePalhub } from './palhub.js';
 import { telegramConfigured, readChats } from './telegram.js';
 import { demoFetch } from './demo.js';
@@ -58,7 +59,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/forecast': async (q) => {
       const c = requirePlace(q);
-      return cache.get(`forecast2_${c.id}`, 900, async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon))));
+      return cache.get(`forecast3_${c.id}`, 900, async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon))));
     },
 
     '/api/air': async (q) => {
@@ -99,7 +100,8 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     // «طقس الوطن» (p-weather.ps): detailed bulletin, daily reports and its weather stations.
     '/api/bulletin': async () => {
       const r = await cache.get('watan_bulletin', 1800, async () => W.parseBulletin(await cache.text(W.BULLETIN_URL)));
-      return { ...r, cdnSeconds: 900 };
+      // A day's bulletin goes away once that day is over, even from a cached copy.
+      return { ...r, data: { ...r.data, days: W.currentDays(r.data.days, S.palestineDate()) }, cdnSeconds: 600 };
     },
 
     '/api/reports': async () => {
@@ -127,7 +129,21 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
           } catch (err) {
             return { ...station, now: null, error: err.message };
           }
-        }));
+        })).then(async (watan) => {
+          // Weather Underground stations, when we have our own key for their API.
+          const key = process.env.WU_API_KEY;
+          const wu = await Promise.all(WU.WU_STATIONS.map(async (s) => {
+            const station = { id: `wu-${s.id}`, name: s.name, sticker: null };
+            if (!key) return { ...station, now: null, error: 'no WU_API_KEY' };
+            try {
+              const [cur, day] = await Promise.all([cache.json(WU.currentUrl(s.id, key)), cache.json(WU.todayUrl(s.id, key)).catch(() => ({}))]);
+              return { ...station, now: WU.parseWu(cur, day) };
+            } catch (err) {
+              return { ...station, now: null, error: err.message };
+            }
+          }));
+          return [...watan, ...wu];
+        });
       });
       return { ...r, cdnSeconds: 120 };
     },

@@ -94,8 +94,8 @@ object WeatherRepository {
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset" +
             // Rain every 15 minutes for the next 3 hours (the nowcast), and yesterday for comparison.
             "&minutely_15=precipitation&forecast_minutely_15=12&past_minutely_15=0&past_days=1" +
-            "&timezone=auto&forecast_days=7"
-        return Http.get(url, "forecast2_${lat}_$lon").map { parseForecast(JSONObject(it)) }
+            "&timezone=auto&forecast_days=14"
+        return Http.get(url, "forecast3_${lat}_$lon").map { parseForecast(JSONObject(it)) }
     }
 
     /** European AQI, or null when unavailable. */

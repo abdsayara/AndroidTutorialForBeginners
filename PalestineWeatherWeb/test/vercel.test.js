@@ -39,7 +39,7 @@ test('the single Vercel function routes /api?__path=<name>', async () => {
   try {
     const r = await fetch(`${base}/api?__path=forecast&city=gaza`);
     assert.equal(r.status, 200);
-    assert.equal((await r.json()).data.days.length, 7);
+    assert.equal((await r.json()).data.days.length, 14);
     assert.equal((await fetch(`${base}/api?__path=nope`)).status, 404);
     assert.equal((await fetch(`${base}/api/index?__path=places`)).status, 200);
   } finally {

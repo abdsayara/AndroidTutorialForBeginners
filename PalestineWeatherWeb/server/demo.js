@@ -28,7 +28,7 @@ function forecastFor(lat, lon, now) {
   const start = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()));
   const t0 = baseTemp(lat, lon);
   const hourly = { time: [], temperature_2m: [], precipitation_probability: [], precipitation: [], weather_code: [], wind_speed_10m: [], is_day: [] };
-  for (let i = 0; i < 168; i++) {
+  for (let i = 0; i < 24 * 14; i++) {
     const t = new Date(start.getTime() + i * 3600000);
     const h = t.getUTCHours();
     const day = Math.floor(i / 24);
@@ -43,7 +43,7 @@ function forecastFor(lat, lon, now) {
     hourly.is_day.push(h >= 6 && h < 18 ? 1 : 0);
   }
   const daily = { time: [], weather_code: [], temperature_2m_max: [], temperature_2m_min: [], precipitation_probability_max: [], precipitation_sum: [], wind_speed_10m_max: [], uv_index_max: [], sunrise: [], sunset: [] };
-  for (let d = 0; d < 7; d++) {
+  for (let d = 0; d < 14; d++) {
     const sl = hourly.temperature_2m.slice(d * 24, d * 24 + 24);
     const pr = hourly.precipitation_probability.slice(d * 24, d * 24 + 24);
     const date = isoDay(new Date(start.getTime() + d * 86400000));
@@ -62,7 +62,7 @@ function forecastFor(lat, lon, now) {
   // Yesterday (past_days=1): a little warmer, so the summary has a change to report.
   const yesterday = isoDay(new Date(start.getTime() - 86400000));
   for (const [k, v] of Object.entries({ time: yesterday, temperature_2m_max: daily.temperature_2m_max[0] + 4, temperature_2m_min: daily.temperature_2m_min[0] + 2 })) daily[k].unshift(v);
-  for (const k of Object.keys(daily)) if (daily[k].length === 7) daily[k].unshift(daily[k][0]);
+  for (const k of Object.keys(daily)) if (daily[k].length === 14) daily[k].unshift(daily[k][0]);
   // The next 3 hours in 15-minute steps: a short shower starting in about half an hour.
   const q = new Date(Math.floor(local.getTime() / 900000) * 900000);
   const shower = [0, 0, 0.3, 0.9, 0.4, 0, 0, 0, 0, 0, 0, 0];

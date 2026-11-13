@@ -200,6 +200,8 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
 @Composable
 fun AlertsScreen(prefs: Prefs, onBack: () -> Unit) {
     var all by remember { mutableStateOf(prefs.alerts()) }
+    // Opening the history marks everything in it as seen (the home bell's dot goes out).
+    LaunchedEffect(Unit) { prefs.alertsSeenAt = System.currentTimeMillis() }
     var filter by rememberSaveable { mutableStateOf<AlertType?>(null) }
     val list = all.filter { filter == null || it.type == filter }
     val dateFmt = DateTimeFormatter.ofPattern("d/M", Locale.US)
@@ -256,6 +258,7 @@ private fun AlertCard(a: AlertRecord) {
         AlertType.HEAT -> Color(0xFFFBE7DF) to Color(0xFF8C2F12)
         AlertType.WIND -> Color(0xFFF3ECDD) to Color(0xFF6A4B12)
         AlertType.QUAKE -> Color(0xFFF1E6F3) to Color(0xFF5E2A6B)
+        AlertType.MORNING -> Color(0xFFFFF1D6) to Color(0xFF7A4B00)
     }
     val (lvlBg, lvlFg) = when (a.level) {
         AlertLevel.INFO -> Color(0xFFEEF1EE) to Color(0xFF3A4A40)
@@ -268,6 +271,7 @@ private fun AlertCard(a: AlertRecord) {
         AlertType.HEAT -> PwIcons.Thermometer
         AlertType.WIND -> PwIcons.Wind
         AlertType.QUAKE -> PwIcons.Wave
+        AlertType.MORNING -> PwIcons.Bell
     }
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Pw.Card).padding(14.dp),

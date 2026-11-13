@@ -59,7 +59,6 @@ class WeatherWidget : AppWidgetProvider() {
                     when (skyKind(fc)) {
                         Sky.DAY -> R.drawable.widget_bg_day
                         Sky.NIGHT -> R.drawable.widget_bg_night
-                        Sky.DUSK -> R.drawable.widget_bg_dusk
                         Sky.RAIN, Sky.STORM -> R.drawable.widget_bg_rain
                         Sky.CLOUDY, Sky.FOG, Sky.SNOW -> R.drawable.widget_bg_cloudy
                     },

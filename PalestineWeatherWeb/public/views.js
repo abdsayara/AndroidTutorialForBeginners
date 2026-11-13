@@ -4,7 +4,8 @@ import * as F from './format.js';
 import { esc } from './format.js';
 import { icon, starFilled, weatherIcon } from './icons.js';
 import { OUTER, REGION_LINES, LAKES } from './shape.js';
-import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard, sunDay, moonPhase } from './insights.js';
+import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard, sunDay, moonPhase, wearKind } from './insights.js';
+import { wearAvatar } from './avatar.js';
 
 // ---------------------------------------------------------------- helpers
 
@@ -72,7 +73,11 @@ function todayCards(fc, prayer, nowIso) {
   const pw = prayerWeather(prayer?.times, fc.hours, nowIso);
   const season = seasonCard(fc.days, nowIso, F.dayName);
   const cards = [];
-  if (wear) cards.push(`<div class="mini"><div class="mini-h">${icon('thermo', 18)} ${late ? 'شو نلبس بكرا؟' : 'شو نلبس اليوم؟'}</div><p>${esc(wear)}</p></div>`);
+  // «شو نلبس بكرا؟»: the advice of the day's bulletin when it loads (see loadBulletin), ours until then,
+  // with a figure dressed for tomorrow.
+  const tomorrow = fc.days[1] ?? fc.days[0];
+  const tomorrowWear = clothingAdvice(tomorrow) ?? wear;
+  if (tomorrowWear) cards.push(`<div class="mini wear"><div class="wear-row">${wearAvatar(wearKind(tomorrow), 84)}<div class="grow"><div class="mini-h">${icon('thermo', 18)} شو نلبس بكرا؟</div><p id="wear-text">${esc(tomorrowWear)}</p></div></div></div>`);
   if (pw) {
     const when = pw.tomorrow ? 'غداً' : pw.minutes < 15 ? `بعد ${pw.minutes} دقائق` : pw.minutes < 180 ? `بعد ${minutesText(Math.round(pw.minutes / 15) * 15)}` : `الساعة ${F.clock(pw.time)}`;
     const wx = pw.hour ? `، والطقس وقتها ${F.weatherText(pw.hour.code)} ${F.deg(pw.hour.temp)}` : '';
@@ -128,7 +133,7 @@ const HOME_SECTIONS = [
   ['roads', 'أحوال الطرق'],
   ['sky', 'الشمس والقمر'],
   ['details', 'الرطوبة والأشعة والهواء'],
-  ['week', 'توقعات 7 أيام'],
+  ['week', 'توقعات 14 يوماً'],
 ];
 const HOME_NAMES = Object.fromEntries(HOME_SECTIONS);
 
@@ -153,7 +158,8 @@ function homeBody(fc, air, prayer) {
   const hi = Math.max(...fc.days.map((d) => d.max));
   const span = Math.max(1, hi - lo);
 
-  const hours = fc.hours.slice(nowIdx, nowIdx + 24).map((h, i) => `
+  // The next 24 hours, with the new day's name just before its 12 at night.
+  const hours = fc.hours.slice(nowIdx, nowIdx + 24).map((h, i) => `${i > 0 && h.time.slice(11, 13) === '00' ? `<div class="hour-day" aria-label="${F.dayName(h.time.slice(0, 10))}"><span>${F.dayName(h.time.slice(0, 10))}</span></div>` : ''}
     <div class="hour ${i === 0 ? 'now' : ''}">
       <span>${i === 0 ? 'الآن' : F.hourLabel(h.time)}</span>
       ${weatherIcon(h.code, { isDay: h.isDay, size: 22, cloudColor: i === 0 ? '#fff' : 'var(--muted)' })}
@@ -168,7 +174,7 @@ function homeBody(fc, air, prayer) {
   };
   const days = fc.days.map((d, i) => `
     <div class="day">
-      <span class="name">${F.relativeDay(d.date)}</span>
+      <span class="name">${F.relativeDay(d.date)}<small class="dm">${F.ltr(`${Number(d.date.slice(8, 10))}/${Number(d.date.slice(5, 7))}`)}</small></span>
       ${weatherIcon(d.code, { size: 22 })}
       <span class="prob">${d.precipProbMax >= 10 ? `${d.precipProbMax}%` : ''}</span>
       <span class="muted">${F.deg(d.min)}</span>
@@ -200,7 +206,7 @@ function homeBody(fc, air, prayer) {
       <div class="tile"><div class="label">الأشعة فوق البنفسجية</div><div class="value">${F.round(today.uvMax)} · ${F.uvText(today.uvMax)}</div></div>
       <div class="tile"><div class="label">جودة الهواء</div><div class="value">${aqi != null ? `${aqi} · ${F.aqiText(aqi)}` : '—'}</div></div>
     </section>`,
-    week: `<section class="card flush list" aria-label="توقعات 7 أيام">${days}</section>`,
+    week: `<section aria-labelledby="h-week"><h2 id="h-week">توقعات 14 يوماً</h2><div class="card flush list" style="margin-top:8px">${days}</div></section>`,
   };
   const hidden = new Set(settings.homeHidden);
 
@@ -267,12 +273,14 @@ async function home(el, ctx, cancelled) {
   const city = ctx.city;
   const subtitle = (elev) => [city.kind === 'gps' ? 'موقعك الحالي' : null, city.region ? null : city.area, elev, F.arabicDate()].filter(Boolean).join(' · ');
   el.innerHTML = `<div class="page">
-    ${header(city.name, subtitle(null), {
+    ${header(city.name, null, {
       logo: true,
-      actions: `<button class="icon-btn" data-action="share" aria-label="مشاركة الطقس كصورة">${icon('share')}</button>
+      actions: `<a class="icon-btn" href="/alerts" data-link aria-label="التنبيهات">${icon('bell')}</a>
+                <button class="icon-btn" data-action="share" aria-label="مشاركة الطقس كصورة">${icon('share')}</button>
                 <button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
     })}
+    <div class="subtitle home-sub">${esc(subtitle(null))}</div>
     <div id="slot"></div>
   </div>`;
   const slot = el.querySelector('#slot');
@@ -699,8 +707,19 @@ async function loadBulletin(box, cancelled) {
   if (!box) return;
   try {
     const { data } = await api('/api/bulletin');
-    if (cancelled() || !data.days.length) return;
-    const [first, ...rest] = data.days;
+    if (cancelled()) return;
+    if (data.wear) {
+      const w = document.getElementById('wear-text');
+      if (w) w.textContent = data.wear;
+    }
+    // Days that are over go away, even from a copy cached before midnight.
+    const today = F.todayIso();
+    const days = data.days.filter((d) => {
+      const m = String(d.day ?? '').match(/(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/);
+      return !m || `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` >= today;
+    });
+    if (!days.length) return;
+    const [first, ...rest] = days;
     const day = (d) => `<div class="b-day">${d.day ? `<div class="b-label">${esc(d.day)}</div>` : ''}<p>${esc(d.text).replace(/\n/g, '<br>')}</p></div>`;
     box.innerHTML = `
       <h2 id="h-bulletin">النشرة التفصيلية</h2>
@@ -894,7 +913,7 @@ async function roads(el, ctx, cancelled) {
       [['', 'كل الحالات'], ['closed', 'المغلق'], ['busy', 'الأزمات'], ['open', 'السالك']]
         .map(([k, v]) => pill(v, `data-action="status" data-s="${k}"`, status === k)).join('');
 
-    // Grouped by city, worst first inside each city.
+    // Grouped by city, the newest report first inside each city (no news last).
     const groups = new Map();
     for (const c of shown) {
       const k = c.city ?? 'أخرى';
@@ -904,7 +923,7 @@ async function roads(el, ctx, cancelled) {
     slot.querySelector('#list').innerHTML = shown.length ? [...groups].map(([name, list]) => `
       <section class="cp-group">
         <h2>${esc(name)} <span class="muted tiny">(${list.length})</span></h2>
-        <div class="card flush list">${list.sort((a, b) => ROAD_ORDER[b.status] - ROAD_ORDER[a.status] || a.name.localeCompare(b.name, 'ar')).map(row).join('')}</div>
+        <div class="card flush list">${list.sort((a, b) => (b.at ? Date.parse(b.at) : 0) - (a.at ? Date.parse(a.at) : 0) || a.name.localeCompare(b.name, 'ar')).map(row).join('')}</div>
       </section>`).join('') : '<div class="empty">لا توجد حواجز مطابقة</div>';
 
     const posts = data.feed ?? [];

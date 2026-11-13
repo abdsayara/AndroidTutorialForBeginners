@@ -114,3 +114,23 @@ test('parseArticle reads the report and cleans its body', () => {
   assert.match(a.html, /رابط/);
   assert.throws(() => W.parseArticle('<html></html>', 1), /not found/);
 });
+
+test('currentDays drops the days that are over; parseWear reads the clothing advice', () => {
+  const days = [{ day: 'الثلاثاء 10/11/2026', text: 'a' }, { day: 'الأربعاء 11/11/2026', text: 'b' }, { day: null, text: 'c' }];
+  assert.deepEqual(W.currentDays(days, '2026-11-11').map((d) => d.text), ['b', 'c']);
+  assert.equal(W.bulletinDate('الخميس 3/12/2026'), '2026-12-03');
+  assert.equal(W.parseWear('<p class="text-wear-tomorrow">\n<br>\n بين 10-15 نوفمبر 2026: ملابس دافئة صباحاً، مساءً وليلاً....  </p>'), 'بين 10-15 نوفمبر 2026: ملابس دافئة صباحاً، مساءً وليلاً');
+  assert.equal(W.parseWear('<html></html>'), null);
+});
+
+test('parseWu reads a Weather Underground observation in the stations shape', async () => {
+  const WU = await import('../server/wunderground.js');
+  const cur = { observations: [{ obsTimeUtc: '2026-11-13T10:00:00Z', humidity: 61, winddir: 270, pressureTrend: 'steady',
+    metric: { temp: 18.4, heatIndex: 18.4, windChill: 18.1, windSpeed: 9.7, windGust: 14.5, pressure: 1016.9, precipTotal: 0.3 } }] };
+  const day = { summaries: [{ metric: { tempHigh: 21.2, tempLow: 11.6 } }] };
+  const n = WU.parseWu(cur, day);
+  assert.equal(n.temp, 18.4); assert.equal(n.feelsLike, 18.1); assert.equal(n.high, 21.2); assert.equal(n.low, 11.6);
+  assert.equal(n.wind, 9.7); assert.equal(n.pressureTrend, 'ثابت'); assert.equal(n.updated, '2026-11-13T10:00:00Z');
+  assert.throws(() => WU.parseWu({}), /no observation/);
+  assert.match(WU.currentUrl('IDEIRB6', 'k'), /stationId=IDEIRB6&format=json&units=m/);
+});

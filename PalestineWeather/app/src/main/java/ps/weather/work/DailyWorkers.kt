@@ -22,6 +22,9 @@ import ps.weather.MainActivity
 import ps.weather.R
 import ps.weather.data.Http
 import ps.weather.data.Prefs
+import ps.weather.data.AlertType
+import ps.weather.data.AlertRecord
+import ps.weather.data.AlertLevel
 import ps.weather.data.WeatherRepository
 import ps.weather.data.rainNowcast
 import ps.weather.data.summarize
@@ -55,6 +58,10 @@ class RainSoonWorker(context: Context, params: WorkerParameters) : CoroutineWork
         if (startsSoon && quiet) {
             prefs.lastRainSoonAt = System.currentTimeMillis()
             DailyWorkers.post(applicationContext, 7001, "المطر قادم · ${place.name}", nc.text, DailyWorkers.CHANNEL_RAIN)
+            // Kept in «التنبيهات السابقة» too.
+            prefs.addAlert(
+                AlertRecord("rainsoon_${place.id}_${prefs.lastRainSoonAt / 60000}", AlertType.RAIN, AlertLevel.INFO, "المطر قادم", nc.text, place.name, prefs.lastRainSoonAt),
+            )
         }
         return Result.success()
     }
@@ -75,12 +82,10 @@ class MorningWorker(context: Context, params: WorkerParameters) : CoroutineWorke
         val fc = fetched.value
         prefs.lastMorningDate = today
         WeatherWidget.render(applicationContext, place, fc)
-        DailyWorkers.post(
-            applicationContext, 7002,
-            "صباح الخير · ${place.name}",
-            "${deg(fc.current.temp)} الآن، ${weatherText(fc.current.code)}. ${summarize(fc)}",
-            DailyWorkers.CHANNEL_MORNING,
-        )
+        val body = "${deg(fc.current.temp)} الآن، ${weatherText(fc.current.code)}. ${summarize(fc)}"
+        DailyWorkers.post(applicationContext, 7002, "صباح الخير · ${place.name}", body, DailyWorkers.CHANNEL_MORNING)
+        // Kept in «التنبيهات السابقة» too.
+        prefs.addAlert(AlertRecord("morning_$today", AlertType.MORNING, AlertLevel.INFO, "صباح الخير", body, place.name, System.currentTimeMillis()))
         return Result.success()
     }
 }

@@ -62,10 +62,26 @@ object RoadsRepository {
 
 data class BulletinDay(val day: String, val text: String)
 
+/** The detailed bulletin's days, and the «شو نلبس بكرا؟» advice from the same page. */
+data class Bulletin(val days: List<BulletinDay>, val wear: String?)
+
+/** "الثلاثاء 10/11/2026" → that date, or null when the day has no date. */
+fun bulletinDate(day: String): java.time.LocalDate? =
+    Regex("(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})").find(day)?.destructured?.let { (d, m, y) ->
+        runCatching { java.time.LocalDate.of(y.toInt(), m.toInt(), d.toInt()) }.getOrNull()
+    }
+
 object BulletinRepository {
-    suspend fun bulletin(): Fetched<List<BulletinDay>> = Http.get("$API/bulletin", "bulletin").map { body ->
-        JSONObject(body).getJSONObject("data").getJSONArray("days").list { BulletinDay(it.optString("day"), it.optString("text")) }
-            .filter { it.text.isNotBlank() }
+    suspend fun bulletin(): Fetched<Bulletin> = Http.get("$API/bulletin", "bulletin").map { body ->
+        val d = JSONObject(body).getJSONObject("data")
+        val today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Hebron"))
+        Bulletin(
+            d.getJSONArray("days").list { BulletinDay(it.optString("day"), it.optString("text")) }
+                .filter { it.text.isNotBlank() }
+                // A day's bulletin goes away once that day is over, even from the offline copy.
+                .filter { bulletinDate(it.day)?.isBefore(today) != true },
+            d.str("wear"),
+        )
     }
 }
 

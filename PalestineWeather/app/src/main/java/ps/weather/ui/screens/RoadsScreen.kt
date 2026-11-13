@@ -196,11 +196,11 @@ private fun RoadsBody(
     if (shown.isEmpty()) {
         Text("لا حواجز مطابقة", color = Pw.Muted, modifier = Modifier.padding(20.dp))
     }
-    // Grouped by city, the most serious first inside each.
+    // Grouped by city, the newest report first inside each (as on the website).
     shown.groupBy { it.city ?: "أخرى" }.forEach { (name, cps) ->
         Text("$name (${cps.size})", fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(horizontal = 14.dp, vertical = 4.dp)) {
-            cps.sortedByDescending { it.status.rank }.forEachIndexed { i, c ->
+            cps.sortedWith(compareByDescending<Checkpoint> { it.at ?: Instant.EPOCH }.thenBy { it.name }).forEachIndexed { i, c ->
                 if (i > 0) Box(Modifier.fillMaxWidth().heightIn(min = 1.dp, max = 1.dp).background(Pw.Line))
                 CheckpointRow(c)
             }

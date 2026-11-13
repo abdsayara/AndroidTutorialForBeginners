@@ -62,7 +62,6 @@ object Pw {
     fun skyStops(s: Sky = sky): List<Color> = when (s) {
         Sky.DAY -> listOf(Color(0xFF3C8FD0), Color(0xFF1F74B0), Color(0xFF134B76))
         Sky.NIGHT -> listOf(Color(0xFF23446B), Color(0xFF16304F), Color(0xFF0C1B30))
-        Sky.DUSK -> listOf(Color(0xFFE3925A), Color(0xFFA44F27), Color(0xFF4A2B4A))
         Sky.CLOUDY -> listOf(Color(0xFF8299A9), Color(0xFF4A6476), Color(0xFF2F4252))
         Sky.FOG -> listOf(Color(0xFF91A1AC), Color(0xFF5E707B), Color(0xFF3E4C55))
         Sky.RAIN -> listOf(Color(0xFF4D6E86), Color(0xFF2E4A60), Color(0xFF18293A))
