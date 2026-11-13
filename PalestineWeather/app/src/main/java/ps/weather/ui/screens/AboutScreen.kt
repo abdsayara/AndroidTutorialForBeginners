@@ -39,6 +39,7 @@ import ps.weather.ui.theme.Pw
 
 private const val FACEBOOK = "https://www.facebook.com/share/1Ju1vF2hbD/"
 private const val WHATSAPP = "https://wa.me/970569104040"
+private const val WATAN_FACEBOOK = "https://www.facebook.com/share/1CU1Tt9VAc/"
 
 private fun open(context: Context, url: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -73,6 +74,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     "طقس كل مدينة وقرية في فلسطين: توقعات 14 يوماً، صور الأقمار، أحوال الطرق، وتنبيهات المطر والصقيع.",
                     fontSize = 15.sp, lineHeight = 26.sp, textAlign = TextAlign.Center,
                 )
+                AboutButton("صفحة طقس الوطن على فيسبوك", Pw.Link, Color(0xFF17324A)) { open(context, WATAN_FACEBOOK) }
             }
         }
         item {
@@ -82,7 +84,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 Text("NexEra", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("حلول الذكاء الاصطناعي والتدريب", fontSize = 15.sp)
                 AboutButton("صفحتنا على فيسبوك", Pw.Link, Color(0xFF17324A)) { open(context, FACEBOOK) }
-                AboutButton("اتصل بنا على واتساب  00970569104040", Color.White.copy(alpha = 0.16f), Color.White) { open(context, WHATSAPP) }
+                AboutButton("اتصل بنا على واتساب", Color.White.copy(alpha = 0.16f), Color.White) { open(context, WHATSAPP) }
             }
         }
     }

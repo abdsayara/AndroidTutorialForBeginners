@@ -801,6 +801,7 @@ function more(el) {
 
 const FACEBOOK = 'https://www.facebook.com/share/1Ju1vF2hbD/';
 const WHATSAPP = 'https://wa.me/970569104040';
+const WATAN_FACEBOOK = 'https://www.facebook.com/share/1CU1Tt9VAc/';
 
 /** About the app, and the company that builds it. */
 function about(el) {
@@ -809,6 +810,7 @@ function about(el) {
       <div class="ab-h">طقس الوطن</div>
       <div class="muted small">الإصدار 1.0</div>
       <p>طقس كل مدينة وقرية في فلسطين: توقعات 14 يوماً، صور الأقمار، أحوال الطرق، وتنبيهات المطر والصقيع.</p>
+      <div class="ab-btns"><a class="ab-btn main" href="${WATAN_FACEBOOK}" target="_blank" rel="noopener">صفحة طقس الوطن على فيسبوك</a></div>
     </section>
     <section class="card ab-card"><div class="muted small">الشركة المطوّرة</div>
       <img class="ab-logo" src="/nexera.png" width="150" height="150" alt="NexEra">
@@ -816,7 +818,7 @@ function about(el) {
       <p>حلول الذكاء الاصطناعي والتدريب</p>
       <div class="ab-btns">
         <a class="ab-btn main" href="${FACEBOOK}" target="_blank" rel="noopener">صفحتنا على فيسبوك</a>
-        <a class="ab-btn" href="${WHATSAPP}" target="_blank" rel="noopener">اتصل بنا على واتساب <span dir="ltr">${F.ltr('00970569104040')}</span></a>
+        <a class="ab-btn" href="${WHATSAPP}" target="_blank" rel="noopener">اتصل بنا على واتساب</a>
       </div>
     </section>
   </div>`;
