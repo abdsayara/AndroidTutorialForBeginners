@@ -1,6 +1,16 @@
 package ps.weather.ui.components
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.semantics.Role
+import kotlinx.coroutines.launch
+import kotlin.math.PI
+import kotlin.math.sin
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -28,16 +38,26 @@ import ps.weather.data.DayPoint
 enum class WearKind { COLD, COOL, MILD, WARM }
 
 /** The avatar's outfit for a day: by its high, plus an umbrella when rain is likely. Same rule as the website. */
-fun wearKind(day: DayPoint?): Pair<WearKind, Boolean> {
+fun wearKind(day: DayPoint?, night: Boolean = false): Pair<WearKind, Boolean> {
     if (day == null) return WearKind.MILD to false
+    // By day the high decides; at night the low.
+    val t = if (night) day.min else day.max
     val kind = when {
-        day.max < 12 -> WearKind.COLD
-        day.max < 18 -> WearKind.COOL
-        day.max < 26 -> WearKind.MILD
+        t < 12 -> WearKind.COLD
+        t < 18 -> WearKind.COOL
+        t < 26 -> WearKind.MILD
         else -> WearKind.WARM
     }
     return kind to (day.precipProbMax >= 50)
 }
+
+/** What the figure wears, as a short list for the card. */
+fun wearItems(kind: WearKind, rain: Boolean): List<String> = when (kind) {
+    WearKind.COLD -> listOf("معطف", "وشاح", "طاقية صوف", "بنطال", "حذاء مغلق")
+    WearKind.COOL -> listOf("جاكيت", "بنطال", "حذاء")
+    WearKind.MILD -> listOf("كنزة خفيفة", "بنطال", "حذاء")
+    WearKind.WARM -> listOf("تيشيرت", "بنطال خفيف", "قبعة", "نظارة شمسية")
+} + if (rain) listOf("مظلة") else emptyList()
 
 private val SKIN = Color(0xFFF2C29B)
 private val INK = Color(0xFF2B2B2B)
@@ -51,17 +71,34 @@ private val INK = Color(0xFF2B2B2B)
 fun WearAvatar(kind: WearKind, rain: Boolean, size: Dp = 84.dp, modifier: Modifier = Modifier) {
     val t = rememberInfiniteTransition(label = "avatar")
     val bob = t.animateFloat(0f, 1f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "bob")
+    // A wave every few seconds: the hand comes up, waves twice, goes down.
+    val cycle = t.animateFloat(0f, 1f, infiniteRepeatable(tween(4200, easing = LinearEasing)), label = "wave")
+    val jump = remember { Animatable(0f) }
+    val burst = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
     val (top, legs) = when (kind) {
         WearKind.COLD -> Color(0xFFC8453B) to Color(0xFF2E4A6B)
         WearKind.COOL -> Color(0xFF2F6FB5) to Color(0xFF33475E)
         WearKind.MILD -> Color(0xFF2F9E6E) to Color(0xFF3B4F66)
         WearKind.WARM -> Color(0xFFF2B33D) to Color(0xFF5A7FA8)
     }
-    Canvas(modifier.size(size)) {
+    Canvas(
+        modifier.size(size).clickable(role = Role.Button, onClickLabel = "سلّم") {
+            // Tap: a little jump and an eager wave.
+            scope.launch { jump.snapTo(0f); jump.animateTo(1f, tween(220)); jump.animateTo(0f, spring(dampingRatio = 0.35f, stiffness = 300f)) }
+            scope.launch { burst.snapTo(1f); burst.animateTo(0f, tween(1800)) }
+        },
+    ) {
         val k = this.size.minDimension / 120f
-        translate(top = -3f * k * bob.value) {
-            rotate(-2f * bob.value, pivot = Offset(this.size.width / 2, this.size.height)) {
-                scale(k, k, pivot = Offset.Zero) { figure(kind, rain, top, legs) }
+        val c = cycle.value
+        // Raised for the first 45% of the cycle (or while tapped), waving side to side.
+        val up = maxOf(if (c < 0.45f) sin((c / 0.45f) * PI.toFloat()).coerceIn(0f, 1f) * 1.4f else 0f, burst.value * 1.4f).coerceAtMost(1f)
+        val waveAngle = -145f * up + 18f * up * sin(c * 2 * PI.toFloat() * 6f)
+        translate(top = (-3f * bob.value - 14f * jump.value) * k) {
+            scale(k, k, pivot = Offset.Zero) {
+                // With an umbrella in the right hand, the left one waves.
+                if (rain) figure(kind, true, top, legs, armRight = 0f, armLeft = -waveAngle)
+                else figure(kind, false, top, legs, armRight = waveAngle, armLeft = 0f)
             }
         }
     }
@@ -70,7 +107,7 @@ fun WearAvatar(kind: WearKind, rain: Boolean, size: Dp = 84.dp, modifier: Modifi
 private fun DrawScope.rr(x: Float, y: Float, w: Float, h: Float, r: Float, c: Color) =
     drawRoundRect(c, Offset(x, y), Size(w, h), CornerRadius(r, r))
 
-private fun DrawScope.figure(kind: WearKind, rain: Boolean, top: Color, legs: Color) {
+private fun DrawScope.figure(kind: WearKind, rain: Boolean, top: Color, legs: Color, armRight: Float, armLeft: Float) {
     if (rain) {
         val canopy = Path().apply {
             moveTo(22f, 30f); quadraticBezierTo(66f, -8f, 110f, 30f)
@@ -84,13 +121,15 @@ private fun DrawScope.figure(kind: WearKind, rain: Boolean, top: Color, legs: Co
     // Legs and shoes.
     rr(46f, 86f, 11f, 26f, 5f, legs); rr(63f, 86f, 11f, 26f, 5f, legs)
     drawOval(INK, Offset(42f, 109f), Size(16f, 8f)); drawOval(INK, Offset(62f, 109f), Size(16f, 8f))
-    // Arms: short sleeves show the skin.
+    // Arms: short sleeves show the skin; each turns at its shoulder (0° hangs down).
     val short = kind == WearKind.WARM
-    for (x in listOf(28f, 80f)) {
-        rr(x, 60f, 12f, 27f, 6f, if (short) SKIN else top)
-        if (short) rr(x, 58f, 12f, 12f, 5f, top)
+    for ((x, angle) in listOf(28f to armLeft, 80f to armRight)) {
+        rotate(angle, pivot = Offset(x + 6f, 62f)) {
+            rr(x, 60f, 12f, 27f, 6f, if (short) SKIN else top)
+            if (short) rr(x, 58f, 12f, 12f, 5f, top)
+            drawCircle(SKIN, 5.5f, Offset(x + 6f, 88f))
+        }
     }
-    drawCircle(SKIN, 5.5f, Offset(34f, 88f)); drawCircle(SKIN, 5.5f, Offset(86f, 88f))
     rr(38f, 55f, 44f, 37f, 14f, top)
     if (kind == WearKind.COOL || kind == WearKind.COLD) drawLine(Color.White.copy(alpha = 0.55f), Offset(60f, 58f), Offset(60f, 91f), 2f)
     if (kind == WearKind.COLD) { rr(43f, 51f, 34f, 9f, 4.5f, Color(0xFFF2B33D)); rr(65f, 56f, 7f, 20f, 3f, Color(0xFFF2B33D)) }

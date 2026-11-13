@@ -35,6 +35,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import ps.weather.data.Prefs
 import ps.weather.ui.components.wearKind
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import ps.weather.ui.components.wearItems
 import ps.weather.ui.components.WearAvatar
 import ps.weather.data.BulletinRepository
 import ps.weather.ui.components.Toggle
@@ -540,23 +543,47 @@ private fun DustCard(d: DustAlert) {
     }
 }
 
-/** «شو نلبس بكرا؟» with its avatar. */
+/** «شو نلبس بكرا؟»: the avatar dressed for tomorrow (tap it to say hello), day or night, and what it wears. */
 @Composable
 private fun WearCard(day: DayPoint?, text: String) {
-    val (kind, rain) = wearKind(day)
+    var night by rememberSaveable { mutableStateOf(false) }
+    val (kind, rain) = wearKind(day, night)
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Pw.Card)
-            .border(1.dp, Pw.Line, RoundedCornerShape(18.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+            .border(1.dp, Pw.Line, RoundedCornerShape(18.dp)).padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        WearAvatar(kind, rain, 76.dp)
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(PwIcons.Thermometer, null, tint = Pw.Link, modifier = Modifier.size(18.dp))
                 Text("شو نلبس بكرا؟", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             Text(text, fontSize = 14.sp, color = Pw.Muted, lineHeight = 23.sp)
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                wearItems(kind, rain).forEach {
+                    Text(
+                        it, fontSize = 12.sp,
+                        modifier = Modifier.clip(RoundedCornerShape(50)).border(1.dp, Pw.Border, RoundedCornerShape(50))
+                            .padding(horizontal = 10.dp, vertical = 3.dp),
+                    )
+                }
+            }
+        }
+        WearAvatar(kind, rain, 96.dp)
+        // Day or night outfit, like a small switch beside the figure.
+        Column(
+            Modifier.clip(RoundedCornerShape(50)).background(Pw.Card).padding(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            listOf(false to PwIcons.Sun, true to PwIcons.Moon).forEach { (isNight, ic) ->
+                val on = night == isNight
+                Box(
+                    Modifier.size(32.dp).clip(CircleShape).background(if (on) Pw.Selected else Color.Transparent)
+                        .clickable(role = Role.Tab, onClickLabel = if (isNight) "ملابس الليل" else "ملابس النهار") { night = isNight },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(ic, null, tint = if (on) Pw.OnSelected else Pw.Ink, modifier = Modifier.size(18.dp)) }
+            }
         }
     }
 }

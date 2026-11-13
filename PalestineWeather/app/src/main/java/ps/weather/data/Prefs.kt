@@ -141,5 +141,14 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putLong("alerts_seen", v).apply()
     fun hasUnseenAlerts(): Boolean = alerts().any { it.time > alertsSeenAt }
 
+    /** The first-launch welcome has been seen. */
+    var welcomed: Boolean
+        get() = sp.getBoolean("welcomed", false)
+        set(v) = sp.edit().putBoolean("welcomed", v).apply()
+    /** The last sky seen, so the intro opens on it. */
+    var lastSky: String
+        get() = sp.getString("last_sky", "DAY")!!
+        set(v) = sp.edit().putString("last_sky", v).apply()
+
     fun clearAlerts() = sp.edit().putString("alerts", "[]").apply()
 }

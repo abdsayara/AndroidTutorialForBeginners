@@ -137,6 +137,38 @@ async function checkAlerts() {
   } catch { /* offline */ }
 }
 
+// ---------------------------------------------------------------- first visit
+
+/** First visit: a sheet slides up, a hand waves hello, and asks for the person's town. */
+function welcome() {
+  let seen = false;
+  try { seen = localStorage.getItem('pw.welcomed') === '1'; } catch { /* private mode */ }
+  if (seen) return;
+  const close = (then) => {
+    try { localStorage.setItem('pw.welcomed', '1'); } catch { /* private mode */ }
+    box.classList.remove('in');
+    setTimeout(() => { box.remove(); then?.(); }, 300);
+  };
+  const box = document.createElement('div');
+  box.className = 'welcome';
+  box.innerHTML = `<div class="welcome-dim" data-later></div>
+    <section class="welcome-sheet" role="dialog" aria-modal="true" aria-labelledby="w-title">
+      <div class="welcome-grip"></div>
+      <div class="welcome-hand" aria-hidden="true">👋</div>
+      <h2 id="w-title">مرحباً</h2>
+      <p>اختر بلدتك لتكون التوقعات والتنبيهات لمكانك أنت. المختار الآن: ${state.city?.name ?? ''}.</p>
+      <button class="btn primary" data-pick>اختر بلدتك</button>
+      <button class="link-btn" data-later>لاحقاً</button>
+    </section>`;
+  document.body.append(box);
+  requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('in')));
+  box.addEventListener('click', (e) => {
+    if (e.target.closest('[data-pick]')) close(() => navigate('/cities'));
+    else if (e.target.closest('[data-later]')) close();
+  });
+  box.querySelector('[data-pick]').focus();
+}
+
 // ---------------------------------------------------------------- boot
 
 (async function boot() {
@@ -152,6 +184,7 @@ async function checkAlerts() {
   }
   state.city = settings.place ?? state.cities.find((c) => c.id === settings.cityId) ?? state.cities[0];
   await render();
+  welcome();
   checkAlerts();
   setInterval(checkAlerts, 10 * 60 * 1000);
 })();

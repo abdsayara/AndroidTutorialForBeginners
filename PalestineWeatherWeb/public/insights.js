@@ -225,9 +225,21 @@ export function moonPhase(when = new Date()) {
 // ---------------------------------------------------------------- what to wear: the avatar
 
 /** The avatar's outfit for a day: cold / cool / mild / warm, and whether it carries an umbrella. */
-export function wearKind(day) {
+export function wearKind(day, night = false) {
   if (!day) return { kind: 'mild', rain: false };
-  const max = day.max ?? 20;
-  const kind = max < 12 ? 'cold' : max < 18 ? 'cool' : max < 26 ? 'mild' : 'warm';
+  // By day the high decides; at night the low.
+  const t = (night ? day.min : day.max) ?? 20;
+  const kind = t < 12 ? 'cold' : t < 18 ? 'cool' : t < 26 ? 'mild' : 'warm';
   return { kind, rain: (day.precipProbMax ?? 0) >= 50 };
+}
+
+/** What the figure wears, as a short list for the card (same as the app). */
+export function wearItems({ kind, rain }) {
+  const items = {
+    cold: ['معطف', 'وشاح', 'طاقية صوف', 'بنطال', 'حذاء مغلق'],
+    cool: ['جاكيت', 'بنطال', 'حذاء'],
+    mild: ['كنزة خفيفة', 'بنطال', 'حذاء'],
+    warm: ['تيشيرت', 'بنطال خفيف', 'قبعة', 'نظارة شمسية'],
+  }[kind] ?? [];
+  return rain ? [...items, 'مظلة'] : items;
 }

@@ -54,6 +54,8 @@ import ps.weather.data.Http
 import ps.weather.data.Prefs
 import ps.weather.ui.components.PwIcons
 import ps.weather.ui.components.SkyBackground
+import ps.weather.ui.components.WelcomeSheet
+import ps.weather.ui.components.Intro
 import ps.weather.ui.map.MapScreen
 import ps.weather.ui.screens.AlertsScreen
 import ps.weather.ui.screens.CitiesScreen
@@ -83,11 +85,18 @@ class MainActivity : ComponentActivity() {
         DailyWorkers.ensureChannels(this)
         DailyWorkers.schedule(this)
         val openAlerts = intent?.getBooleanExtra("openAlerts", false) == true
+        val firstStart = savedInstanceState == null
+        Pw.sky = runCatching { ps.weather.data.Sky.valueOf(Prefs(this).lastSky) }.getOrDefault(ps.weather.data.Sky.DAY)
         setContent {
             PalestineWeatherTheme {
                 // The whole app is Arabic: force right-to-left whatever the device language.
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                    App(if (openAlerts) Sub.ALERTS else null)
+                    var intro by remember { mutableStateOf(firstStart && !openAlerts) }
+                    Box(Modifier.fillMaxSize()) {
+                        App(if (openAlerts) Sub.ALERTS else null)
+                        // The opening: the logo comes together over the sky.
+                        if (intro) Intro(Pw.sky) { intro = false }
+                    }
                 }
             }
         }
@@ -110,6 +119,8 @@ private fun App(initialSub: Sub?) {
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     var sub by rememberSaveable { mutableStateOf(initialSub) }
     var reportId by rememberSaveable { mutableStateOf(0) }
+    var welcome by remember { mutableStateOf(!prefs.welcomed) }
+    LaunchedEffect(Pw.sky) { prefs.lastSky = Pw.sky.name }
 
     val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     LaunchedEffect(Unit) {
@@ -198,6 +209,12 @@ private fun App(initialSub: Sub?) {
             }
         }
     }
+    // First launch: hello, and pick your town.
+    if (welcome) WelcomeSheet(
+        city.name,
+        onPick = { welcome = false; prefs.welcomed = true; sub = null; tab = Tab.CITIES },
+        onLater = { welcome = false; prefs.welcomed = true },
+    )
     }
     }
 }

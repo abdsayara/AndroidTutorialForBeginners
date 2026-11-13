@@ -4,7 +4,7 @@ import * as F from './format.js';
 import { esc } from './format.js';
 import { icon, starFilled, weatherIcon } from './icons.js';
 import { OUTER, REGION_LINES, LAKES } from './shape.js';
-import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard, sunDay, moonPhase, wearKind } from './insights.js';
+import { minutesText, rainNowcast, summarize, skyKind, dustAlert, clothingAdvice, prayerWeather, seasonCard, sunDay, moonPhase, wearKind, wearItems } from './insights.js';
 import { wearAvatar } from './avatar.js';
 
 // ---------------------------------------------------------------- helpers
@@ -65,6 +65,25 @@ function dustCard(air) {
     </section>` : '';
 }
 
+/** «شو نلبس بكرا؟»: the text, the clothes as chips, the figure (tap it) and a day / night switch. */
+function wearCard(day, text, night) {
+  const w = wearKind(day, night);
+  return `<div class="mini wear" data-night="${night}">
+    <div class="wear-row">
+      <div class="grow">
+        <div class="mini-h">${icon('thermo', 18)} شو نلبس بكرا؟</div>
+        <p id="wear-text">${esc(text)}</p>
+        <div class="wear-items">${wearItems(w).map((x) => `<span>${esc(x)}</span>`).join('')}</div>
+      </div>
+      ${wearAvatar(w, 96)}
+      <div class="wear-dn" role="group" aria-label="ملابس النهار أو الليل">
+        <button data-action="wear-day" aria-pressed="${!night}" aria-label="ملابس النهار">${icon('sun', 18)}</button>
+        <button data-action="wear-night" aria-pressed="${night}" aria-label="ملابس الليل">${icon('moon', 18)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 /** "شو نلبس؟", the next prayer's weather and the farming season, as small cards. */
 function todayCards(fc, prayer, nowIso) {
   const late = Number(String(nowIso).slice(11, 13)) >= 15;
@@ -77,7 +96,7 @@ function todayCards(fc, prayer, nowIso) {
   // with a figure dressed for tomorrow.
   const tomorrow = fc.days[1] ?? fc.days[0];
   const tomorrowWear = clothingAdvice(tomorrow) ?? wear;
-  if (tomorrowWear) cards.push(`<div class="mini wear"><div class="wear-row">${wearAvatar(wearKind(tomorrow), 84)}<div class="grow"><div class="mini-h">${icon('thermo', 18)} شو نلبس بكرا؟</div><p id="wear-text">${esc(tomorrowWear)}</p></div></div></div>`);
+  if (tomorrowWear) cards.push(wearCard(tomorrow, tomorrowWear, false));
   if (pw) {
     const when = pw.tomorrow ? 'غداً' : pw.minutes < 15 ? `بعد ${pw.minutes} دقائق` : pw.minutes < 180 ? `بعد ${minutesText(Math.round(pw.minutes / 15) * 15)}` : `الساعة ${F.clock(pw.time)}`;
     const wx = pw.hour ? `، والطقس وقتها ${F.weatherText(pw.hour.code)} ${F.deg(pw.hour.temp)}` : '';
@@ -269,6 +288,15 @@ async function loadRoadsHome(box, cancelled) {
   } catch { /* the section just stays hidden */ }
 }
 
+function swapWear(btn, night) {
+  const card = btn.closest('.mini.wear');
+  if (!card || !lastForecast) return;
+  const text = card.querySelector('#wear-text')?.textContent ?? '';
+  const day = lastForecast.days[1] ?? lastForecast.days[0];
+  card.outerHTML = wearCard(day, text, night);
+}
+let lastForecast = null;
+
 async function home(el, ctx, cancelled) {
   const city = ctx.city;
   const subtitle = (elev) => [city.kind === 'gps' ? 'موقعك الحالي' : null, city.region ? null : city.area, elev, F.arabicDate()].filter(Boolean).join(' · ');
@@ -288,6 +316,7 @@ async function home(el, ctx, cancelled) {
   let editing = false;
   const draw = () => {
     const [fc, air, prayer] = last;
+    lastForecast = fc.data;
     const y = window.scrollY;
     const sky = skyKind(fc.data, fc.data.current.time);
     document.documentElement.dataset.sky = sky;
@@ -326,6 +355,14 @@ async function home(el, ctx, cancelled) {
   run();
   return actions(el, {
     retry: run,
+    // The figure waves back when tapped; the switch dresses it for the day or the night.
+    wave: (t) => {
+      t.classList.remove('hello');
+      void t.getBoundingClientRect();
+      t.classList.add('hello');
+    },
+    'wear-day': (t) => swapWear(t, false),
+    'wear-night': (t) => swapWear(t, true),
     share: async () => {
       if (!last) return;
       const { openShare } = await import('./share.js');

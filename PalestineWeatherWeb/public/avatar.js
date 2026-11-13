@@ -18,13 +18,15 @@ export function wearAvatar({ kind, rain }, size = 96) {
   // Legs and shoes.
   parts.push(`<rect x="46" y="86" width="11" height="26" rx="5" fill="${o.legs}"/><rect x="63" y="86" width="11" height="26" rx="5" fill="${o.legs}"/>
     <ellipse cx="50" cy="113" rx="8" ry="4" fill="#2B2B2B"/><ellipse cx="70" cy="113" rx="8" ry="4" fill="#2B2B2B"/>`);
-  // Arms (short sleeves show skin), hands, body.
-  for (const x of [28, 80]) {
-    parts.push(`<rect x="${x}" y="60" width="12" height="27" rx="6" fill="${shortSleeves ? SKIN : o.top}"/>`);
-    if (shortSleeves) parts.push(`<rect x="${x}" y="58" width="12" height="12" rx="5" fill="${o.top}"/>`);
+  // Arms (short sleeves show skin) with their hands; each turns at its shoulder. The free hand waves.
+  for (const [x, side] of [[28, 'l'], [80, 'r']]) {
+    const waves = rain ? side === 'l' : side === 'r';
+    parts.push(`<g class="arm${waves ? ' waver' : ''} arm-${side}" style="transform-origin:${x + 6}px 62px">
+      <rect x="${x}" y="60" width="12" height="27" rx="6" fill="${shortSleeves ? SKIN : o.top}"/>
+      ${shortSleeves ? `<rect x="${x}" y="58" width="12" height="12" rx="5" fill="${o.top}"/>` : ''}
+      <circle cx="${x + 6}" cy="88" r="5.5" fill="${SKIN}"/></g>`);
   }
-  parts.push(`<circle cx="34" cy="88" r="5.5" fill="${SKIN}"/><circle cx="86" cy="88" r="5.5" fill="${SKIN}"/>
-    <rect x="38" y="55" width="44" height="37" rx="14" fill="${o.top}"/>`);
+  parts.push(`<rect x="38" y="55" width="44" height="37" rx="14" fill="${o.top}"/>`);
   if (kind === 'cool' || kind === 'cold') parts.push('<path d="M60 58 V91" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>');
   if (kind === 'cold') parts.push('<rect x="43" y="51" width="34" height="9" rx="4.5" fill="#F2B33D"/><rect x="65" y="56" width="7" height="20" rx="3" fill="#F2B33D"/>');
   // Head and face.
@@ -37,5 +39,5 @@ export function wearAvatar({ kind, rain }, size = 96) {
   if (kind === 'cold') parts.push('<path d="M41 33 Q41 15 60 15 Q79 15 79 33 Z" fill="#2F6FB5"/><rect x="40" y="29" width="40" height="7" rx="3.5" fill="#24599A"/><circle cx="60" cy="14" r="4.5" fill="#fff"/>');
   else if (kind === 'warm') parts.push('<path d="M42 30 Q42 18 60 18 Q78 18 78 30 Z" fill="#E8505B"/><rect x="58" y="27" width="30" height="5" rx="2.5" fill="#C93C47"/>');
   else parts.push('<path d="M42 36 Q42 18 60 18 Q78 18 78 36 Q71 27 60 27 Q49 27 42 36Z" fill="#4A3426"/>');
-  return `<svg class="wear-avatar" viewBox="0 0 120 120" width="${size}" height="${size}" aria-hidden="true">${parts.join('')}</svg>`;
+  return `<svg class="wear-avatar${rain ? ' rain' : ''}" viewBox="0 0 120 120" width="${size}" height="${size}" role="button" tabindex="0" aria-label="سلّم" data-action="wave">${parts.join('')}</svg>`;
 }
