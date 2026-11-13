@@ -192,7 +192,6 @@ private fun App(initialSub: Sub?) {
                         onReports = { sub = Sub.REPORTS },
                         // Keep a village / GPS point's height so the cities page can show it too.
                         onElevation = { e -> if (!city.isListed && city.elevation != e) { city = city.copy(elevation = e); prefs.select(city) } },
-                        prayerMethod = prefs.prayerMethod,
                     )
                     Tab.MAP -> MapScreen(city, onOpenCity = ::selectCity)
                     Tab.CITIES -> CitiesScreen(prefs, city, onSelect = ::selectCity)

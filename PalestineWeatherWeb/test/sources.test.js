@@ -54,20 +54,11 @@ test('parseRss strips the source suffix and decodes entities', () => {
   assert.equal(items[0].source, 'الجزيرة');
 });
 
-test('parsePrayer and qibla', () => {
-  const p = S.parsePrayer({ data: {
-    timings: { Fajr: '04:55 (EEST)', Sunrise: '06:13', Dhuhr: '11:52', Asr: '15:13', Maghrib: '17:31', Isha: '18:47' },
-    date: { hijri: { day: '05', month: { ar: 'جمادى الأولى' }, year: '1448' } },
-  } });
-  assert.equal(p.times[0].time, '04:55');
-  assert.equal(p.hijri, '5 جمادى الأولى 1448 هـ');
+test('qibla', () => {
   const q = S.qiblaBearing(31.7683, 35.2137);
   assert.ok(q > 150 && q < 165, `qibla ${q}`);
 });
 
-test('prayerUrl uses the given Palestine date', () => {
-  assert.match(S.prayerUrl(31.7, 35.2, 5, '2026-10-16'), /timings\/16-10-2026\?/);
-});
 
 test('describePlace is relative to the nearest city', () => {
   assert.equal(describePlace(31.7683, 35.2137), 'قرب القدس');

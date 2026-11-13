@@ -53,7 +53,6 @@ import ps.weather.data.AlertRecord
 import ps.weather.data.AlertType
 import ps.weather.data.City
 import ps.weather.data.CurrencyRepository
-import ps.weather.data.PrayerMethod
 import ps.weather.data.PrayerRepository
 import ps.weather.data.Prefs
 import ps.weather.work.AlertWorker
@@ -119,7 +118,7 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 
 @Composable
 fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
-    val (load, refresh) = rememberLoad(city.id) { PrayerRepository.today(city.lat, city.lon, prefs.prayerMethod) }
+    val (load, refresh) = rememberLoad(city.id) { PrayerRepository.today(city.lat, city.lon) }
     var now by remember { mutableStateOf(LocalTime.now()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = LocalTime.now() } }
 

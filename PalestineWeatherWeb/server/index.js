@@ -8,6 +8,7 @@ import { Cache } from './cache.js';
 import { AlertStore, startAlertJob } from './alerts.js';
 import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
+import * as P from './prayer.js';
 import * as R from './roads.js';
 import * as SAT from './satellite.js';
 import * as W from './watan.js';
@@ -80,12 +81,9 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/prayer': async (q) => {
       const c = requirePlace(q);
-      // One way of working the times out for everyone: Umm al-Qura.
-      const method = S.PRAYER_METHOD;
-      const day = S.palestineDate();
-      const r = await cache.get(`prayer_${c.id}_${method}_${day}`, 6 * 3600, async () =>
-        S.parsePrayer(await cache.json(S.prayerUrl(c.lat, c.lon, method, day))));
-      return { ...r, data: { ...r.data, qibla: S.qiblaBearing(c.lat, c.lon) } };
+      // From Dar al-Ifta's perpetual timetable, nothing fetched.
+      const data = { ...P.prayerDay(c.lat, c.lon, S.palestineDate()), qibla: S.qiblaBearing(c.lat, c.lon) };
+      return { data, fetchedAt: Date.now(), stale: false };
     },
 
     '/api/rates': async () => cache.get('rates', 6 * 3600, async () => S.parseRates(await cache.json(S.RATES_URL))),

@@ -72,7 +72,6 @@ import ps.weather.data.DustAlert
 import ps.weather.data.DayPoint
 import ps.weather.data.Forecast
 import ps.weather.data.PrayerDay
-import ps.weather.data.PrayerMethod
 import ps.weather.data.PrayerRepository
 import ps.weather.data.clothingAdvice
 import ps.weather.data.dustAlert
@@ -122,7 +121,6 @@ fun HomeScreen(
     onReport: (Int) -> Unit = {},
     onReports: () -> Unit = {},
     onElevation: (Double) -> Unit = {},
-    prayerMethod: PrayerMethod = PrayerMethod.UMM_AL_QURA,
 ) {
     val context = LocalContext.current
     var order by remember { mutableStateOf(homeOrder(prefs.homeOrder)) }
@@ -135,8 +133,8 @@ fun HomeScreen(
     val elevation = (load as? Load.Ok)?.value?.elevation ?: city.elevation
     LaunchedEffect(elevation) { elevation?.let(onElevation) }
     val air by produceState<AirInfo?>(null, city.id) { value = WeatherRepository.air(city.lat, city.lon) }
-    val prayer by produceState<PrayerDay?>(null, city.id, prayerMethod) {
-        value = runCatching { PrayerRepository.today(city.lat, city.lon, prayerMethod).value }.getOrNull()
+    val prayer by produceState<PrayerDay?>(null, city.id) {
+        value = runCatching { PrayerRepository.today(city.lat, city.lon).value }.getOrNull()
     }
 
     LazyColumn(

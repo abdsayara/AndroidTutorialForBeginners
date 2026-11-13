@@ -182,29 +182,10 @@ export function parseQuakes(o) {
   });
 }
 
-// ---------------------------------------------------------------- Aladhan prayer times
-
-/** The way prayer times are worked out, for everyone: Umm al-Qura (Aladhan's method 4). */
-export const PRAYER_METHOD = 4;
+// ---------------------------------------------------------------- dates, and the qibla
 
 /** Today's date (YYYY-MM-DD) on Palestine's clock, whatever the server's timezone. */
 export const palestineDate = (now = new Date()) => now.toLocaleDateString('en-CA', { timeZone: 'Asia/Hebron' });
-
-export function prayerUrl(lat, lon, method, isoDate = palestineDate()) {
-  const [y, m, d] = isoDate.split('-');
-  return `https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${lat}&longitude=${lon}&method=${method}`;
-}
-
-const PRAYERS = [['Fajr', 'الفجر'], ['Sunrise', 'الشروق'], ['Dhuhr', 'الظهر'], ['Asr', 'العصر'], ['Maghrib', 'المغرب'], ['Isha', 'العشاء']];
-
-export function parsePrayer(o) {
-  const d = o.data;
-  const h = d.date.hijri;
-  return {
-    times: PRAYERS.map(([k, ar]) => ({ name: ar, time: String(d.timings[k]).slice(0, 5) })),
-    hijri: `${String(h.day).replace(/^0/, '')} ${h.month.ar} ${h.year} هـ`,
-  };
-}
 
 /** Bearing to the Kaaba in degrees from true north. */
 export function qiblaBearing(lat, lon) {
