@@ -3,6 +3,7 @@ import { api, settings } from './api.js';
 import { icon } from './icons.js';
 import { views } from './views.js';
 import { mountMap } from './map.js';
+import { mountSky } from './sky.js';
 
 const TABS = [
   { path: '/', label: 'الرئيسية', icon: 'home' },
@@ -172,6 +173,7 @@ function welcome() {
 // ---------------------------------------------------------------- boot
 
 (async function boot() {
+  mountSky();
   try {
     const { data } = await api('/api/cities');
     state.cities = data.cities;

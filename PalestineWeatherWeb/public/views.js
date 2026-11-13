@@ -436,7 +436,7 @@ async function home(el, ctx, cancelled) {
   el.innerHTML = `<div class="page">
     ${header(city.name, null, {
       logo: true,
-      actions: `<a class="icon-btn" href="/alerts" data-link aria-label="التنبيهات">${icon('bell')}</a>
+      actions: `<a class="icon-btn" id="bell" href="/alerts" data-link aria-label="التنبيهات">${icon('bell')}</a>
                 <button class="icon-btn" data-action="share" aria-label="مشاركة الطقس كصورة">${icon('share')}</button>
                 <button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
@@ -459,6 +459,7 @@ async function home(el, ctx, cancelled) {
     slot.innerHTML = staleBanner(fc) + `<div class="page" style="max-width:none">${homeBody(fc.data, air?.data, prayer?.data)}</div>`;
     loadBulletin(slot.querySelector('#bulletin'), cancelled);
     loadRoadsHome(slot.querySelector('#roads-home'), cancelled);
+    markBell(el.querySelector('#bell'), cancelled);
     loadNewsHome(slot.querySelector('#news-home'), cancelled);
     loadSatTile(slot.querySelector('#sat-tile'), cancelled);
     if (editing) {
@@ -907,7 +908,16 @@ async function alerts(el, ctx, cancelled) {
   };
   const run = async () => {
     slot.innerHTML = spinner;
-    try { all = (await api('/api/alerts')).data; if (!cancelled()) draw(); } catch { if (!cancelled()) slot.innerHTML = errorBox(); }
+    try {
+      const r = await api('/api/alerts');
+      all = r.data;
+      if (cancelled()) return;
+      settings.alertsSeenAt = Date.now();
+      draw();
+      // When the list was last read, so the watch is visible (as in the app).
+      const at = new Date(r.fetchedAt ?? Date.now()).toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' });
+      slot.insertAdjacentHTML('afterbegin', `<div class="row tiny muted" style="margin-bottom:8px"><span class="grow">آخر تحديث ${F.ltr(at)}</span><button class="link-btn" data-action="retry">حدّث الآن</button></div>`);
+    } catch { if (!cancelled()) slot.innerHTML = errorBox(); }
   };
   run();
   return actions(el, { f: (t) => { filter = t.dataset.k || null; draw(); }, retry: run });
@@ -944,6 +954,17 @@ async function loadBulletin(box, cancelled) {
       ${rest.length ? `<details><summary>الأيام القادمة (${rest.length})</summary>${rest.map(day).join('')}</details>` : ''}`;
     box.hidden = false;
   } catch { /* the home page works without it */ }
+}
+
+/** A dot on the home page's bell when there are alerts newer than the last look at them. */
+async function markBell(bell, cancelled) {
+  if (!bell) return;
+  try {
+    const list = (await api('/api/alerts')).data ?? [];
+    if (cancelled() || !list.some((a) => a.time > settings.alertsSeenAt)) return;
+    bell.classList.add('has-new');
+    bell.setAttribute('aria-label', 'التنبيهات، فيها جديد');
+  } catch { /* the bell still opens the alerts */ }
 }
 
 /** The two newest reports on the home page, as picture cards. */

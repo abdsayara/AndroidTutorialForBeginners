@@ -36,6 +36,9 @@ export const settings = {
   set homeOrder(v) { write('homeOrder', v); },
   get homeHidden() { return read('homeHidden', []); },
   set homeHidden(v) { write('homeHidden', v); },
+  /** When the alerts page was last opened: newer alerts light the bell's dot. */
+  get alertsSeenAt() { return read('alertsSeenAt', 0); },
+  set alertsSeenAt(v) { write('alertsSeenAt', v); },
   /** The sky of the chosen place, last seen on the home page; it colours every page. */
   get sky() { return read('sky', 'day'); },
   set sky(v) { write('sky', v); },
