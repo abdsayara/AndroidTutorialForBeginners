@@ -82,17 +82,17 @@ object Pw {
 }
 
 /**
- * Readex Pro (SIL Open Font License, res/font), drawn light: each weight the app asks for is
- * rendered one step lighter (normal text is Light, bold is SemiBold), for an airy, thin look.
+ * MiSans Arabic UI (Xiaomi, res/font; see MiSans-LICENSE.txt), drawn light: the font's own
+ * scale runs 150–700, so the weights the app asks for map to its Light … Bold instances.
  */
 @OptIn(ExperimentalTextApi::class)
 val AppFont = FontFamily(
-    listOf(300 to 220, 400 to 300, 500 to 400, 600 to 500, 700 to 600, 800 to 700).map { (asked, drawn) ->
-        Font(R.font.readex_pro, FontWeight(asked), variationSettings = FontVariation.Settings(FontVariation.weight(drawn)))
+    listOf(300 to 250, 400 to 330, 500 to 380, 600 to 450, 700 to 520, 800 to 630).map { (asked, drawn) ->
+        Font(R.font.misans_arabic, FontWeight(asked), variationSettings = FontVariation.Settings(FontVariation.weight(drawn)))
     },
 )
 
-/** Material's type scale, all in Readex Pro. */
+/** Material's type scale, all in MiSans Arabic. */
 private val AppTypography = Typography().let { t ->
     fun TextStyle.r() = copy(fontFamily = AppFont)
     Typography(

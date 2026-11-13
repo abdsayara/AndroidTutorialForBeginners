@@ -1,0 +1,7 @@
+MiSans Arabic UI — © Beijing Xiaomi Mobile Software Co., Ltd.
+
+Used unmodified under the MiSans Fonts Intellectual Property License Agreement
+(https://hyperos.mi.com/font/en/download/): a royalty-free licence to use the fonts,
+including in apps, on condition that the software notes that MiSans Fonts was used
+(the «المزيد» page does), that the fonts are not adapted or redeveloped, and that the
+font files are not separately redistributed or sold.

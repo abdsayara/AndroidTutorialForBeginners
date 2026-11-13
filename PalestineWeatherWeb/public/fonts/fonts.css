@@ -1,0 +1,7 @@
+/* MiSans Arabic UI (Xiaomi), the files as shipped. The page's weights are drawn light:
+   normal text (300) is Regular, and each step up is the next weight. */
+@font-face { font-family: 'MiSans Arabic'; font-weight: 300; font-style: normal; font-display: swap; src: url('/fonts/MiSansArabicUI-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'MiSans Arabic'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/MiSansArabicUI-Medium.woff2') format('woff2'); }
+@font-face { font-family: 'MiSans Arabic'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/MiSansArabicUI-Demibold.woff2') format('woff2'); }
+@font-face { font-family: 'MiSans Arabic'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/MiSansArabicUI-Semibold.woff2') format('woff2'); }
+@font-face { font-family: 'MiSans Arabic'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/MiSansArabicUI-Bold.woff2') format('woff2'); }

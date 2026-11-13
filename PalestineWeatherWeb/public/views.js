@@ -773,7 +773,7 @@ function more(el) {
   ];
   el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label, page]) =>
     `<a href="${href}" ${page ? '' : 'data-link'}><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
-    <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API</div></div>`;
+    <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · الخط MiSans من شاومي</div></div>`;
 }
 
 // ---------------------------------------------------------------- prayer

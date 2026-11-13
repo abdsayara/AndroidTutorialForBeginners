@@ -24,9 +24,9 @@
   --red-tint: #FBE2DD;
   --sun: #FAAE3C; /* the logo's sun rays */
 
-  /* Readex Pro, drawn light (as in the app, res/font): normal text is Light, bold is SemiBold. */
-  --font: 'Readex Pro', system-ui, sans-serif;
-  --font-display: 'Readex Pro', system-ui, sans-serif;
+  /* MiSans Arabic (as in the app, res/font), drawn light; see fonts/fonts.css. */
+  --font: 'MiSans Arabic', system-ui, sans-serif;
+  --font-display: 'MiSans Arabic', system-ui, sans-serif;
   --r-sm: 12px;
   --r-md: 18px;
   --r-lg: 24px;
