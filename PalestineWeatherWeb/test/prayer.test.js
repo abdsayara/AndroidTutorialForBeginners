@@ -20,5 +20,5 @@ test('summer time moves every prayer an hour', () => {
 });
 
 test('the Hijri date reads in Arabic', () => {
-  assert.match(hijriDate('2026-11-14'), /^\\d{1,2} \\S.* 1448 هـ$/);
+  assert.match(hijriDate('2026-11-14'), /^\d{1,2} \S.* 1448 هـ$/);
 });
