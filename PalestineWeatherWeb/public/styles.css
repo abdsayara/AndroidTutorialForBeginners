@@ -893,8 +893,8 @@ button, input, select, textarea { font-weight: inherit; }
 
 /* ---- Home: the two tiles (weather maps, satellite pictures) and the newest reports ---- */
 .tiles2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.tile { position: relative; overflow: hidden; aspect-ratio: 3 / 4; border-radius: 24px; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; text-decoration: none; color: #fff; border: 6px solid rgba(255,255,255,.10); background-size: cover; background-position: center; }
-.tile strong { font-size: 20px; font-weight: 600; line-height: 1.5; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.htile { position: relative; overflow: hidden; aspect-ratio: 3 / 4; border-radius: 24px; padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; text-decoration: none; color: #fff; border: 6px solid rgba(255,255,255,.10); background-size: cover; background-position: center; }
+.htile strong { font-size: 20px; font-weight: 600; line-height: 1.5; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
 .tile-sub { font-size: 13px; color: rgba(255,255,255,.85); text-shadow: 0 1px 4px rgba(0,0,0,.5); }
 .tile-go { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 16px; border-radius: 12px; background: rgba(10,22,40,.62); font-size: 14px; font-weight: 500; }
 .tile-go svg { transform: scaleX(-1); }
@@ -944,8 +944,8 @@ button, input, select, textarea { font-weight: inherit; }
 .sat-opt { display: flex; flex-direction: column; gap: 6px; align-items: center; background: none; border: 0; color: #fff; font: inherit; font-size: 13px; padding: 0; cursor: pointer; }
 .sat-opt img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 14px; border: 2px solid rgba(255,255,255,.25); }
 .sat-opt[aria-pressed="true"] img { border-color: #FFD27A; }
-html:root a.tile, html:root a.news-card, html:root .sat-view a { color: #fff; }
-html:root .tile, html:root .tile strong, html:root .tile-go, html:root .news-card, html:root .news-card strong, html:root .sat-view .icon-btn { color: #fff !important; }
+html:root a.htile, html:root a.news-card, html:root .sat-view a { color: #fff; }
+html:root .htile, html:root .htile strong, html:root .tile-go, html:root .news-card, html:root .news-card strong, html:root .sat-view .icon-btn { color: #fff !important; }
 html[data-page="satellite"] .tabbar, html[data-page="satellite"] .sidebar { display: none; }
 .tile-soon { font-size: 13px; color: rgba(255,255,255,.9); background: rgba(10,22,40,.5); padding: 2px 12px; border-radius: 999px; margin-top: 4px; }
 .sat-dots { display: flex; gap: 4px; margin: 4px 0; direction: ltr; justify-content: flex-end; }

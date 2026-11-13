@@ -258,13 +258,14 @@ function skyCard(today, nowIso, withSun = true) {
 const HOME_SECTIONS = [
   ['hours', 'الساعات القادمة'],
   ['today', 'شو نلبس والصلاة والموسم'],
-  ['maps', 'خرائط الطقس وصور الأقمار'],
-  ['news', 'أخبار الطقس'],
   ['bulletin', 'النشرة الجوية'],
   ['roads', 'أحوال الطرق'],
   ['sky', 'الصلاة والشروق والغروب والقمر'],
   ['details', 'الرطوبة والأشعة والهواء'],
   ['week', 'توقعات 14 يوماً'],
+  // Named anew when they moved below the 14 days, so an order saved before takes the new place.
+  ['tiles', 'خرائط الطقس وصور الأقمار'],
+  ['reports', 'أخبار الطقس'],
 ];
 const HOME_NAMES = Object.fromEntries(HOME_SECTIONS);
 
@@ -329,20 +330,20 @@ function homeBody(fc, air, prayer) {
       <div class="hours" tabindex="0" aria-label="توقعات الساعات القادمة">${hours}</div>
     </section>`,
     today: todayCards(fc, prayer, nowIso),
-    maps: `<section class="tiles2" aria-label="خرائط الطقس وصور الأقمار">
-      <div class="tile tile-maps">
+    tiles: `<section class="tiles2" aria-label="خرائط الطقس وصور الأقمار">
+      <div class="htile tile-maps">
         <span class="tile-art" aria-hidden="true"></span>
         <strong>خرائط الطقس</strong>
         <span class="tile-soon">قريباً..</span>
       </div>
-      <a class="tile tile-sat" id="sat-tile" href="/satellite" data-link>
+      <a class="htile tile-sat" id="sat-tile" href="/satellite" data-link>
         <span class="tile-live">مباشر</span>
         <strong>صور الأقمار</strong>
         <span class="tile-sub">سحب · غبار · ضباب</span>
         <span class="tile-go">${icon('expand', 14)}</span>
       </a>
     </section>`,
-    news: '<section class="card news-home" id="news-home" aria-labelledby="h-news" hidden></section>',
+    reports: '<section class="card news-home" id="news-home" aria-labelledby="h-news" hidden></section>',
     bulletin: '<section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>',
     roads: '<section class="card roads-home" id="roads-home" aria-label="أحوال الطرق" hidden></section>',
     sky: `${prayerSunRow(today, prayer, nowIso)}${skyCard(today, nowIso, false)}`,

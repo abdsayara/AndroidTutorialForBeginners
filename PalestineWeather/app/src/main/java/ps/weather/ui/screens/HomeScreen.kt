@@ -254,8 +254,8 @@ private fun HomeContent(
         when (id) {
             "hours" -> HoursSection(fc, onHourly)
             "today" -> TodaySection(fc, prayer, nowTime)
-            "maps" -> MapTiles(onSatellite)
-            "news" -> NewsHome(onReport, onReports)
+            "tiles" -> MapTiles(onSatellite)
+            "reports" -> NewsHome(onReport, onReports)
             "bulletin" -> BulletinCard()
             "roads" -> RoadsSummaryCard(onOpenRoads)
             "sky" -> if (today != null) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -273,13 +273,14 @@ private fun HomeContent(
 val HOME_SECTIONS = listOf(
     "hours" to "الساعات القادمة",
     "today" to "شو نلبس والصلاة والموسم",
-    "maps" to "خرائط الطقس وصور الأقمار",
-    "news" to "أخبار الطقس",
     "bulletin" to "النشرة التفصيلية",
     "roads" to "أحوال الطرق",
     "sky" to "الصلاة والشروق والغروب والقمر",
     "details" to "الرطوبة والأشعة والهواء",
     "week" to "توقعات 14 يوماً",
+    // Named anew when they moved below the 14 days, so an order saved before takes the new place.
+    "tiles" to "خرائط الطقس وصور الأقمار",
+    "reports" to "أخبار الطقس",
 )
 
 /** The saved order, with any section added since put back at its default place. */
