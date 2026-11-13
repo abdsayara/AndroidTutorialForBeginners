@@ -57,6 +57,7 @@ import ps.weather.ui.components.SkyBackground
 import ps.weather.ui.components.WelcomeSheet
 import ps.weather.ui.components.Intro
 import ps.weather.ui.map.MapScreen
+import ps.weather.ui.screens.AboutScreen
 import ps.weather.ui.screens.AlertsScreen
 import ps.weather.ui.screens.CitiesScreen
 import ps.weather.ui.screens.CurrencyScreen
@@ -177,6 +178,7 @@ private fun App(initialSub: Sub?) {
                 Sub.STATIONS -> StationsScreen(back)
                 Sub.CURRENCY -> CurrencyScreen(back)
                 Sub.SATELLITE -> SatelliteScreen(city, back)
+                Sub.ABOUT -> AboutScreen(back)
                 null -> when (tab) {
                     Tab.HOME -> HomeScreen(
                         city, prefs, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },

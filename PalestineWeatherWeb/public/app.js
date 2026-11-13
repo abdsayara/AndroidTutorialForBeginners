@@ -20,7 +20,7 @@ const MORE = [
   { path: '/stations', label: 'محطات الطقس', icon: 'thermo' },
   { path: '/currency', label: 'أسعار العملات', icon: 'coins' },
 ];
-const TITLES = { ...Object.fromEntries([...TABS, ...MORE].map((t) => [t.path, t.label])), '/report': 'تقرير', '/satellite': 'صور الأقمار' };
+const TITLES = { ...Object.fromEntries([...TABS, ...MORE].map((t) => [t.path, t.label])), '/report': 'تقرير', '/satellite': 'صور الأقمار', '/about': 'عن التطبيق' };
 
 const state = { cities: [], regions: {}, city: null, liveAlerts: false };
 let cleanup = null;

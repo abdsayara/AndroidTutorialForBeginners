@@ -117,17 +117,17 @@ test('areas are Palestinian cities, never occupation councils or districts', () 
     { name: 'ترمسعيا', area: 'رام الله والبيرة' }, 'an OSM governorate wins');
   assert.deepEqual(S.parseReverse({ address: { village: 'ترمسعيا', town: 'مجلس ماتي بنيامين الإقليمي' } }, 32.03, 35.29),
     { name: 'ترمسعيا', area: 'رام الله' }, 'its governorate, not the nearest city (سلفيت)');
-  const found = S.parseSearch([{ results: [{ id: 9, name: 'دورا', latitude: 31.507, longitude: 35.028, admin1: 'منطقة يهودا والسامرة', admin2: 'مجلس جبل الخليل' }] }]);
-  assert.equal(found[0].area, 'الخليل');
+  assert.equal(S.searchPlaces([['دورا', 31.507, 35.028, 't']], 'دورا')[0].area, 'الخليل');
 });
 
-test('parseSearch merges, filters to Palestine and ranks by population', () => {
-  const r = S.parseSearch([
-    { results: [{ id: 1, name: 'سلواد', latitude: 31.9789, longitude: 35.2564, admin2: 'رام الله', population: 7000 }] },
-    { results: [{ id: 2, name: 'الطيبة', latitude: 32.2667, longitude: 35.0103, population: 43000 }, { id: 3, name: 'x', latitude: 31.95, longitude: 35.93 }] },
-    null,
-  ]);
-  assert.deepEqual(r.map((p) => p.name), ['الطيبة', 'سلواد']);
+test('search finds the map\'s places however the name is typed', () => {
+  const places = [['بيت أُمّر', 31.62, 35.1, 't'], ['الطيبة', 32.27, 35.01, 'c'], ['دير الغصون', 32.35, 35.08, 'v'], ['طيبة بني صعب', 32.2, 35.0, 'v'], ['أبو ديس', 31.76, 35.26, 't']];
+  assert.deepEqual(S.searchPlaces(places, 'طيبه').map((p) => p.name), ['الطيبة', 'طيبة بني صعب'], 'ة or ه, with or without ال; names starting with it first');
+  assert.deepEqual(S.searchPlaces(places, 'بيت امر').map((p) => p.name), ['بيت أُمّر'], 'hamza and harakat do not matter');
+  assert.deepEqual(S.searchPlaces(places, 'ابوديس').map((p) => p.name), ['أبو ديس'], 'nor spaces');
+  assert.deepEqual(S.searchPlaces(places, 'غصون').map((p) => p.name), ['دير الغصون'], 'a word inside the name');
+  assert.deepEqual(S.searchPlaces([['بيت أومر', 31.62, 35.1, 't'], ['بيت إمرين', 32.28, 35.2, 'v']], 'بيت امر').map((p) => p.name), ['بيت إمرين', 'بيت أومر'], 'a spelling without the long vowel still finds it');
+  assert.deepEqual(S.searchPlaces(places, 'حيفا'), []);
 });
 
 test('only Arabic names are shown, never Hebrew', () => {
@@ -139,11 +139,6 @@ test('only Arabic names are shown, never Hebrew', () => {
   assert.deepEqual(places.map((p) => p[0]), ['أم الفحم', 'نتسيرت عيليت']);
   assert.deepEqual(S.parseReverse({ address: { village: 'כפר', county: 'נפת חיפה', state: 'מחוז חיפה' } }), { name: null, area: null });
   assert.deepEqual(S.parseReverse({ address: { neighbourhood: 'רמות', city: 'القدس' } }), { name: 'القدس', area: null });
-  const found = S.parseSearch([{ results: [
-    { id: 1, name: 'עפולה', latitude: 32.6, longitude: 35.29, admin1: 'מחוז הצפון' },
-    { id: 2, name: 'عرابة', latitude: 32.85, longitude: 35.33, admin1: 'מחוז הצפון', population: 25000 },
-  ] }]);
-  assert.deepEqual(found.map((p) => [p.name, p.area]), [['عرابة', 'الناصرة']], 'area from our list, not the Hebrew district');
   assert.equal(S.isArabicName('Ramallah'), false);
 });
 

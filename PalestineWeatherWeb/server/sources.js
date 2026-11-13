@@ -366,22 +366,31 @@ export function nearestPlaceName(places, lat, lon, maxKm = 1) {
   return best;
 }
 
-/** Search villages and towns by name (GeoNames data via Open-Meteo), in Palestine only. */
-export function searchUrls(q) {
-  const base = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=20&language=ar&format=json`;
-  return [`${base}&countryCode=PS`, `${base}&countryCode=IL`];
-}
+/** A name as people type it: no harakat, one alef, ة as ه, ى as ي, and no «ال» or spaces. */
+export const searchKey = (name) => String(name ?? '')
+  .replace(/[\u064b-\u0652\u0670\u0640]/g, '')
+  .replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+  .replace(/(^|\s)ال/g, '$1').replace(/[\s\-'’`.]+/g, '');
 
-export function parseSearch(responses) {
-  const seen = new Set();
-  const out = [];
-  for (const o of responses) {
-    for (const r of o?.results ?? []) {
-      if (!insidePalestine(r.latitude, r.longitude) || seen.has(r.id) || !isArabicName(r.name)) continue;
-      seen.add(r.id);
-      // GeoNames' admin areas follow Israeli districts; use the nearest Palestinian city instead.
-      out.push({ name: r.name, lat: +r.latitude.toFixed(4), lon: +r.longitude.toFixed(4), area: palestinianArea(r.latitude, r.longitude), elevation: num(r.elevation), population: r.population ?? 0 });
-    }
+/**
+ * Search the towns and villages on the map by name, so whatever the map shows can be found.
+ * Names that start with the words typed come first, then names that contain them; within
+ * each, cities before towns before villages. Names spelled a little differently come last.
+ */
+export function searchPlaces(places, term) {
+  const q = searchKey(term);
+  if (!q) return [];
+  const rank = { c: 0, t: 1, v: 2 };
+  const hits = [];
+  // A looser second look, without the long vowels: «بيت امر» finds «بيت أومر».
+  const loose = (k) => k.replace(/[اوي]/g, '');
+  const q2 = loose(q);
+  for (const [name, lat, lon, kind] of places ?? []) {
+    const key = searchKey(name);
+    const at = key.indexOf(q);
+    if (at >= 0) hits.push({ name, lat, lon, kind, order: (at === 0 ? 0 : 10) + (rank[kind] ?? 2) });
+    else if (q2.length >= 3 && loose(key).startsWith(q2)) hits.push({ name, lat, lon, kind, order: 20 + (rank[kind] ?? 2) });
   }
-  return out.sort((a, b) => b.population - a.population).slice(0, 20);
+  return hits.sort((a, b) => a.order - b.order || a.name.length - b.name.length).slice(0, 30)
+    .map(({ name, lat, lon }) => ({ name, lat, lon, area: palestinianArea(lat, lon), elevation: null, population: 0 }));
 }

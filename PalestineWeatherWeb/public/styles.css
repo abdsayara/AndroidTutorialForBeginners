@@ -951,3 +951,17 @@ html[data-page="satellite"] .tabbar, html[data-page="satellite"] .sidebar { disp
 .sat-dots { display: flex; gap: 4px; margin: 4px 0; direction: ltr; justify-content: flex-end; }
 .sat-dots i { width: 14px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.3); }
 .sat-dots i.on { background: #FFD27A; }
+
+/* ---- About the app and its maker ---- */
+.dev-line { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; border-radius: 18px; background: rgba(255,255,255,.10); text-decoration: none; font-size: 14px; }
+html:root a.dev-line, html:root a.dev-line b { color: #fff !important; }
+.dev-line img { border-radius: 9px; background: #fff; }
+.dev-line b { font-weight: 600; }
+.ab-card { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.ab-card p { margin: 0; }
+.ab-h { font-size: 20px; font-weight: 600; }
+.ab-logo { border-radius: 26px; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+.ab-btns { display: grid; gap: 10px; width: 100%; margin-top: 6px; }
+.ab-btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px; background: rgba(255,255,255,.16); text-decoration: none; font-weight: 500; }
+html:root a.ab-btn { color: #fff !important; }
+html:root a.ab-btn.main { background: #FFD27A; color: #17324A !important; }

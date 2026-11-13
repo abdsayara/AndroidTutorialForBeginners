@@ -74,7 +74,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-enum class Sub { FARMING, HOURLY, PRAYER, ALERTS, REPORTS, REPORT, STATIONS, CURRENCY, SATELLITE }
+enum class Sub { FARMING, HOURLY, PRAYER, ALERTS, REPORTS, REPORT, STATIONS, CURRENCY, SATELLITE, ABOUT }
 
 // ---------------------------------------------------------------- "More" hub
 
@@ -88,10 +88,12 @@ fun MoreScreen(onOpen: (Sub) -> Unit) {
         Triple(Sub.REPORTS, PwIcons.News, "التقارير اليومية"),
         Triple(Sub.STATIONS, PwIcons.Thermometer, "محطات الطقس"),
         Triple(Sub.CURRENCY, PwIcons.Coins, "أسعار العملات"),
+        Triple(Sub.ABOUT, PwIcons.Info, "عن التطبيق والشركة المطوّرة"),
     )
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text("المزيد", fontSize = 24.sp, fontWeight = FontWeight.Bold) }
         items(entries) { (sub, icon, label) -> MenuRow(icon, label) { onOpen(sub) } }
+        item { DeveloperLine { onOpen(Sub.ABOUT) } }
     }
 }
 

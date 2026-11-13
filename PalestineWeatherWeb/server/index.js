@@ -51,10 +51,10 @@ function requirePlace(q) {
 
 /** Route table: path → (query, cache) → {data, fetchedAt, stale} | plain object. */
 export function makeRoutes(cache, alerts, { demo = false } = {}) {
-  // Villages, towns and cities ship with the site (scripts/build-places.mjs, from GeoNames):
+  // Villages, towns and cities ship with the site (scripts/build-places.py, from lists of Arab towns and villages):
   // the live Overpass servers proved too unreliable to depend on.
   const fetchPlaces = async () => JSON.parse(await readFile(new URL('./data/places.json', import.meta.url), 'utf8'));
-  const placesList = async () => (await cache.get('places', 7 * 86400, fetchPlaces)).data;
+  const placesList = async () => (await cache.get('places2', 7 * 86400, fetchPlaces)).data;
   return {
     '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo, liveAlerts: !!alerts.live } }),
 
@@ -198,7 +198,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     // Villages, towns and cities from OpenStreetMap; changes rarely, so cache for a week.
     '/api/places': async () => {
-      const r = await cache.get('places', 7 * 86400, fetchPlaces);
+      const r = await cache.get('places2', 7 * 86400, fetchPlaces);
       return { ...r, cdnSeconds: 86400 };
     },
 
@@ -221,12 +221,9 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/search': async (q) => {
       const term = (q.get('q') ?? '').trim();
       if (term.length < 2 || term.length > 60) throw new HttpError(400, 'query must be 2–60 characters');
-      const r = await cache.get(`search_${term}`, 86400, async () => {
-        const answers = await Promise.all(S.searchUrls(term).map((u) => cache.json(u).catch(() => null)));
-        if (answers.every((a) => a == null)) throw new Error('search unavailable');
-        return S.parseSearch(answers);
-      });
-      return { ...r, cdnSeconds: 86400 };
+      // From the map's own list, so every village the map shows can be found (and nothing else).
+      const data = S.searchPlaces(await placesList(), term);
+      return { data, fetchedAt: Date.now(), stale: false, cdnSeconds: 3600 };
     },
   };
 }

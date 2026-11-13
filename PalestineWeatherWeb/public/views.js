@@ -789,10 +789,37 @@ function more(el) {
     ['/stations', 'thermo', 'محطات الطقس'],
     ['/currency', 'coins', 'أسعار العملات'],
     ['/welcome', 'star', 'تعرّف على طقس الوطن', true],
+    ['/about', 'info', 'عن التطبيق والشركة المطوّرة'],
   ];
   el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label, page]) =>
     `<a href="${href}" ${page ? '' : 'data-link'}><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
+    <a class="dev-line" href="/about" data-link><img src="/nexera.png" width="34" height="34" alt=""><span>تطوير <b>NexEra</b> · حلول الذكاء الاصطناعي والتدريب</span></a>
 </div>`;
+}
+
+// ---------------------------------------------------------------- about
+
+const FACEBOOK = 'https://www.facebook.com/share/1Ju1vF2hbD/';
+const WHATSAPP = 'https://wa.me/970569104040';
+
+/** About the app, and the company that builds it. */
+function about(el) {
+  el.innerHTML = `<div class="page">${header('عن التطبيق', '', { back: true })}
+    <section class="card ab-card"><img class="ab-app" src="/logo.svg" width="96" height="73" alt="">
+      <div class="ab-h">طقس الوطن</div>
+      <div class="muted small">الإصدار 1.0</div>
+      <p>طقس كل مدينة وقرية في فلسطين: توقعات 14 يوماً، صور الأقمار، أحوال الطرق، وتنبيهات المطر والصقيع.</p>
+    </section>
+    <section class="card ab-card"><div class="muted small">الشركة المطوّرة</div>
+      <img class="ab-logo" src="/nexera.png" width="150" height="150" alt="NexEra">
+      <div class="ab-h" dir="ltr">NexEra</div>
+      <p>حلول الذكاء الاصطناعي والتدريب</p>
+      <div class="ab-btns">
+        <a class="ab-btn main" href="${FACEBOOK}" target="_blank" rel="noopener">صفحتنا على فيسبوك</a>
+        <a class="ab-btn" href="${WHATSAPP}" target="_blank" rel="noopener">اتصل بنا على واتساب <span dir="ltr">${F.ltr('00970569104040')}</span></a>
+      </div>
+    </section>
+  </div>`;
 }
 
 // ---------------------------------------------------------------- prayer
@@ -1337,6 +1364,7 @@ export const views = {
   '/alerts': alerts,
   '/reports': reports,
   '/satellite': satellite,
+  '/about': about,
   '/report': report,
   '/stations': stations,
   '/roads': roads,
