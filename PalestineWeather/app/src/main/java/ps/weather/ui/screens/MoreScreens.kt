@@ -37,6 +37,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -244,12 +246,11 @@ fun AlertsScreen(prefs: Prefs, onBack: () -> Unit) {
             }
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                 PillButton("الكل", filter == null) { filter = null }
-                AlertType.entries.take(3).forEach { t -> PillButton(t.label, filter == t) { filter = t } }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                AlertType.entries.drop(3).forEach { t -> PillButton(t.label, filter == t) { filter = t } }
+                // What the owner sends by hand comes first.
+                (listOf(AlertType.EARLY, AlertType.GENERAL) + AlertType.entries.filter { it != AlertType.EARLY && it != AlertType.GENERAL })
+                    .forEach { t -> PillButton(t.label, filter == t) { filter = t } }
             }
         }
         if (list.isEmpty()) item {
@@ -283,6 +284,8 @@ private fun AlertCard(a: AlertRecord) {
         AlertType.HEAT -> Color(0xFFFBE7DF) to Color(0xFF8C2F12)
         AlertType.WIND -> Color(0xFFF3ECDD) to Color(0xFF6A4B12)
         AlertType.QUAKE -> Color(0xFFF1E6F3) to Color(0xFF5E2A6B)
+        AlertType.EARLY -> Color(0xFFFDE2E0) to Color(0xFF8A1C12)
+        AlertType.GENERAL -> Color(0xFFE3ECF7) to Color(0xFF1D3F6B)
         AlertType.MORNING -> Color(0xFFFFF1D6) to Color(0xFF7A4B00)
     }
     val (lvlBg, lvlFg) = when (a.level) {
@@ -296,6 +299,8 @@ private fun AlertCard(a: AlertRecord) {
         AlertType.HEAT -> PwIcons.Thermometer
         AlertType.WIND -> PwIcons.Wind
         AlertType.QUAKE -> PwIcons.Wave
+        AlertType.EARLY -> PwIcons.Bell
+        AlertType.GENERAL -> PwIcons.Info
         AlertType.MORNING -> PwIcons.Bell
     }
     Row(

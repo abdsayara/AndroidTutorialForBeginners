@@ -23,6 +23,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Alerts the owner sends from the Firebase console. -->
+        <service
+            android:name=".push.PushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".widget.WeatherWidget"
             android:exported="false"

@@ -75,6 +75,7 @@ import ps.weather.ui.screens.Sub
 import ps.weather.ui.theme.Pw
 import ps.weather.ui.theme.PalestineWeatherTheme
 import ps.weather.widget.WeatherWidget
+import ps.weather.push.Push
 import ps.weather.work.AlertWorker
 import ps.weather.work.DailyWorkers
 
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
         AlertWorker.schedule(this)
         DailyWorkers.ensureChannels(this)
         DailyWorkers.schedule(this)
+        Push.sync(this)
         val openAlerts = intent?.getBooleanExtra("openAlerts", false) == true
         val firstStart = savedInstanceState == null
         Pw.sky = runCatching { ps.weather.data.Sky.valueOf(Prefs(this).lastSky) }.getOrDefault(ps.weather.data.Sky.DAY)

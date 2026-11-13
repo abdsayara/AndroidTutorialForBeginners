@@ -110,8 +110,13 @@ class AlertWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
         return Result.success()
     }
 
-    private fun notify(a: AlertRecord) {
-        val ctx = applicationContext
+    private fun notify(a: AlertRecord) = show(applicationContext, a)
+
+    companion object {
+        private const val CHANNEL = "weather_alerts"
+
+        /** Shows an alert as a notification that opens «التنبيهات السابقة». */
+        fun show(ctx: Context, a: AlertRecord) {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
@@ -120,20 +125,18 @@ class AlertWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             ctx, 0, Intent(ctx, MainActivity::class.java).putExtra("openAlerts", true),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
+        val text = if (a.cityName.isBlank()) a.body else "${a.cityName} · ${a.body}"
         val n = NotificationCompat.Builder(ctx, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_weather)
             .setContentTitle(a.title)
-            .setContentText("${a.cityName} · ${a.body}")
-            .setStyle(NotificationCompat.BigTextStyle().bigText("${a.cityName} · ${a.body}"))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(if (a.level == AlertLevel.HIGH) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(open)
             .setAutoCancel(true)
             .build()
         runCatching { NotificationManagerCompat.from(ctx).notify(a.key.hashCode(), n) }
-    }
-
-    companion object {
-        private const val CHANNEL = "weather_alerts"
+        }
 
         fun ensureChannel(ctx: Context) {
             val nm = ctx.getSystemService(NotificationManager::class.java)

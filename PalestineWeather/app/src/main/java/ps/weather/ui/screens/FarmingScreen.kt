@@ -1,5 +1,6 @@
 package ps.weather.ui.screens
 
+import ps.weather.push.Push
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -128,12 +129,15 @@ fun FarmingScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
 
 @Composable
 private fun AlertToggles(prefs: Prefs) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val hints = mapOf(
         AlertType.RAIN to "قبل وصول المنخفضات",
         AlertType.FROST to "لحماية المزروعات ليلاً",
         AlertType.HEAT to "حرارة فوق 35°",
         AlertType.WIND to "رياح قوية وغبار",
         AlertType.QUAKE to "هزات بقوة 3 فأكثر",
+        AlertType.EARLY to "إنذارات عاجلة قبل الحالات الخطرة",
+        AlertType.GENERAL to "أخبار وتنويهات عامة",
     )
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Pw.Card).padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text("إشعارات أريد استلامها", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 8.dp))
@@ -163,7 +167,7 @@ private fun AlertToggles(prefs: Prefs) {
                     Text(type.label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     Text(hints[type] ?: "", fontSize = 12.sp, color = Pw.Muted)
                 }
-                Toggle(on, type.label) { on = it; prefs.setAlertEnabled(type, it) }
+                Toggle(on, type.label) { on = it; prefs.setAlertEnabled(type, it); Push.sync(context) }
             }
         }
     }

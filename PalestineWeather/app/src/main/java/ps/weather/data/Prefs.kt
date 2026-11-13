@@ -5,12 +5,16 @@ import android.content.SharedPreferences
 import org.json.JSONArray
 import org.json.JSONObject
 
-enum class AlertType(val label: String) {
-    RAIN("مطر"),
-    FROST("صقيع"),
-    HEAT("حر"),
-    WIND("رياح وغبار"),
-    QUAKE("زلازل"),
+/** [topic] is the Firebase topic a phone follows while that alert's switch is on. */
+enum class AlertType(val label: String, val topic: String? = null) {
+    RAIN("مطر", "rain"),
+    FROST("صقيع", "frost"),
+    HEAT("حر", "heat"),
+    WIND("رياح وغبار", "wind"),
+    QUAKE("زلازل", "quake"),
+    /** Sent by hand from the Firebase console only. */
+    EARLY("إنذار مبكر", "early_warning"),
+    GENERAL("عام", "general"),
     /** The 7:00 summary; it has its own switch, so it is not among the alert switches. */
     MORNING("الملخص الصباحي"),
 }
@@ -131,6 +135,16 @@ class Prefs(context: Context) {
             )
         }
         sp.edit().putString("alerts", arr.toString()).apply()
+        return true
+    }
+
+    /** Takes an alert out of the history (one the owner withdrew). Returns true when it was there. */
+    fun removeAlert(key: String): Boolean {
+        val arr = JSONArray(sp.getString("alerts", "[]"))
+        val kept = JSONArray()
+        for (i in 0 until arr.length()) arr.getJSONObject(i).let { if (it.optString("key") != key) kept.put(it) }
+        if (kept.length() == arr.length()) return false
+        sp.edit().putString("alerts", kept.toString()).apply()
         return true
     }
 
