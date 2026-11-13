@@ -324,6 +324,9 @@ function homeBody(fc, air, prayer) {
       <div class="row tiny muted"><span class="grow">الآن</span><span>بعد ساعتين</span></div>
     </section>` : '';
 
+  // The UV index now (nothing at night), with the day's highest beside it when it differs.
+  const uvNow = c.uv ?? today.uvMax;
+  const uvNote = uvNow == null ? '' : `${F.uvText(uvNow)}${today.uvMax != null && Math.round(today.uvMax) !== Math.round(uvNow) ? ` · أعلى اليوم ${F.round(today.uvMax)}` : ''}`;
   const sections = {
     hours: `<section aria-labelledby="h-hours">
       <div class="row"><h2 id="h-hours" class="grow">الساعات القادمة</h2><a class="link-btn" href="/hourly" data-link>التفاصيل</a></div>
@@ -349,7 +352,7 @@ function homeBody(fc, air, prayer) {
     sky: `${prayerSunRow(today, prayer, nowIso)}${skyCard(today, nowIso, false)}`,
     details: `<section class="grid2 grid3 metrics" aria-label="تفاصيل">
       ${metric('drop', 'الرطوبة', c.humidity != null ? `${c.humidity}%` : '—', humidityText(c.humidity), c.humidity != null ? c.humidity / 100 : null, false)}
-      ${metric('sun', 'الأشعة فوق البنفسجية', F.round(today.uvMax), F.uvText(today.uvMax), today.uvMax != null ? today.uvMax / 11 : null, true)}
+      ${metric('sun', 'الأشعة فوق البنفسجية', F.round(uvNow), uvNote, uvNow != null ? uvNow / 11 : null, true)}
       ${metric('wind', 'جودة الهواء', aqi != null ? String(aqi) : '—', aqi != null ? F.aqiText(aqi) : '', aqi != null ? aqi / 100 : null, true)}
     </section>`,
     week: `<section aria-labelledby="h-week">

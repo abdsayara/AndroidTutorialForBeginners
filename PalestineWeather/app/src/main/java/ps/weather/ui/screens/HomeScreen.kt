@@ -354,6 +354,8 @@ private fun TodaySection(fc: Forecast, prayer: PrayerDay?, nowTime: LocalDateTim
 private fun DetailsSection(fc: Forecast, aqi: Int?) {
     val c = fc.current
     val today = fc.days.firstOrNull()
+    // The UV index now (nothing at night); the day's highest stands in when the source does not say.
+    val uvNow = c.uv ?: today?.uvMax
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             MetricTile(
@@ -362,8 +364,9 @@ private fun DetailsSection(fc: Forecast, aqi: Int?) {
                 c.humidity / 100f, null, Modifier.weight(1f),
             )
             MetricTile(
-                PwIcons.Sun, "الأشعة فوق البنفسجية", today?.let { "${it.uvMax.roundToInt()}" } ?: "—",
-                today?.let { uvText(it.uvMax) }, today?.let { (it.uvMax / 11.0).toFloat() }, SCALE, Modifier.weight(1f),
+                PwIcons.Sun, "الأشعة فوق البنفسجية", uvNow?.let { "${it.roundToInt()}" } ?: "—",
+                uvNow?.let { now -> uvText(now) + (today?.uvMax?.takeIf { it.roundToInt() != now.roundToInt() }?.let { " · أعلى اليوم ${it.roundToInt()}" } ?: "") },
+                uvNow?.let { (it / 11.0).toFloat() }, SCALE, Modifier.weight(1f),
             )
         }
         MetricTile(

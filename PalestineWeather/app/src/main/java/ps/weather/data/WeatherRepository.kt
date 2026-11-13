@@ -14,6 +14,8 @@ data class CurrentWeather(
     val windDirection: Int,
     val code: Int,
     val isDay: Boolean,
+    /** The UV index right now: nothing at night; null when the source does not say. */
+    val uv: Double? = null,
 )
 
 data class HourPoint(
@@ -89,13 +91,13 @@ object WeatherRepository {
 
     suspend fun forecast(lat: Double, lon: Double): Fetched<Forecast> {
         val url = "$FORECAST?latitude=$lat&longitude=$lon" +
-            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m" +
+            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index" +
             "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,is_day" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset" +
             // Rain every 15 minutes for the next 3 hours (the nowcast), and yesterday for comparison.
             "&minutely_15=precipitation&forecast_minutely_15=12&past_minutely_15=0&past_days=1" +
             "&timezone=auto&forecast_days=14"
-        return Http.get(url, "forecast3_${lat}_$lon").map { parseForecast(JSONObject(it)) }
+        return Http.get(url, "forecast4_${lat}_$lon").map { parseForecast(JSONObject(it)) }
     }
 
     /** European AQI, or null when unavailable. */
@@ -195,6 +197,7 @@ object WeatherRepository {
             windDirection = c.optInt("wind_direction_10m", 0),
             code = c.optInt("weather_code", 0),
             isDay = c.optInt("is_day", 1) == 1,
+            uv = if (c.optInt("is_day", 1) != 1) 0.0 else c.optDouble("uv_index").takeIf { !it.isNaN() },
         )
 
         val h = o.getJSONObject("hourly")

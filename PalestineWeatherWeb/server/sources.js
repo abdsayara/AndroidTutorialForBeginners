@@ -9,7 +9,7 @@ const AIR = 'https://air-quality-api.open-meteo.com/v1/air-quality';
 
 export function forecastUrl(lat, lon) {
   return `${FORECAST}?latitude=${lat}&longitude=${lon}` +
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m' +
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index' +
     '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,is_day' +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset' +
     // Rain every 15 minutes for the next 3 hours (the nowcast), and yesterday for comparison.
@@ -50,6 +50,8 @@ function parseForecastLists(o, c, h, d) {
       windDir: num(c.wind_direction_10m),
       code: num(c.weather_code) ?? 0,
       isDay: c.is_day !== 0,
+      // The UV index right now: nothing at night; null when the source does not say (the day's highest stands in).
+      uv: c.is_day === 0 ? 0 : num(c.uv_index),
       time: c.time ?? null,
     },
     hours: (h.time ?? []).map((t, i) => ({

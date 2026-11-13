@@ -61,7 +61,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/forecast': async (q) => {
       const c = requirePlace(q);
-      return cache.get(`forecast3_${c.id}`, 900, async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon))));
+      return cache.get(`forecast4_${c.id}`, 900, async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon))));
     },
 
     '/api/air': async (q) => {
