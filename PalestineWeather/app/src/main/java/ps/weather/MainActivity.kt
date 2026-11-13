@@ -68,6 +68,7 @@ import ps.weather.ui.screens.ReportScreen
 import ps.weather.ui.screens.ReportsScreen
 import ps.weather.ui.screens.RoadsScreen
 import ps.weather.ui.screens.StationsScreen
+import ps.weather.ui.screens.SatelliteScreen
 import ps.weather.ui.screens.PrayerScreen
 import ps.weather.ui.screens.Sub
 import ps.weather.ui.theme.Pw
@@ -175,12 +176,16 @@ private fun App(initialSub: Sub?) {
                 Sub.REPORT -> ReportScreen(reportId) { sub = Sub.REPORTS }
                 Sub.STATIONS -> StationsScreen(back)
                 Sub.CURRENCY -> CurrencyScreen(back)
+                Sub.SATELLITE -> SatelliteScreen(city, back)
                 null -> when (tab) {
                     Tab.HOME -> HomeScreen(
                         city, prefs, onPickCity = { tab = Tab.CITIES }, onHourly = { sub = Sub.HOURLY },
                         onOpenRoads = { tab = Tab.ROADS },
                         onAlerts = { sub = Sub.ALERTS },
                         onPrayer = { sub = Sub.PRAYER },
+                        onSatellite = { sub = Sub.SATELLITE },
+                        onReport = { reportId = it; sub = Sub.REPORT },
+                        onReports = { sub = Sub.REPORTS },
                         // Keep a village / GPS point's height so the cities page can show it too.
                         onElevation = { e -> if (!city.isListed && city.elevation != e) { city = city.copy(elevation = e); prefs.select(city) } },
                         prayerMethod = prefs.prayerMethod,

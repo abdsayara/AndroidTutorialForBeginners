@@ -18,9 +18,9 @@ import ps.weather.ui.theme.Pw
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** A few report pictures kept in memory, sized down so a list of them stays light. */
+/** Report and satellite pictures kept in memory, sized down so they stay light. */
 private object ImageCache {
-    val memory = object : LruCache<String, ImageBitmap>(24 * 1024 * 1024) {
+    val memory = object : LruCache<String, ImageBitmap>(48 * 1024 * 1024) {
         override fun sizeOf(key: String, value: ImageBitmap) = value.width * value.height * 4
     }
 
@@ -40,6 +40,9 @@ private object ImageCache {
         }.getOrNull()
     }
 }
+
+/** A picture from the web as a bitmap, or null when it cannot be fetched. */
+suspend fun fetchImage(url: String, maxSide: Int = 1080): ImageBitmap? = ImageCache.load(url, maxSide)
 
 /** A picture from the web; an empty glass box while it loads or when it cannot be fetched. */
 @Composable

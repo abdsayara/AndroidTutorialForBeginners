@@ -160,3 +160,26 @@ object ServerAlerts {
         }.filterNotNull()
     }
 }
+
+// ---------------------------------------------------------------- live satellite pictures
+
+/** One kind of satellite picture: its thumbnail, and a picture for each time (the last is the newest). */
+data class SatLayer(val id: String, val title: String, val hint: String, val thumb: String, val frames: List<String>)
+
+/** The pictures of the region: the box they cover (west, south, east, north) and the times of the frames. */
+data class Satellite(val bbox: List<Double>, val times: List<Instant>, val layers: List<SatLayer>)
+
+object SatelliteRepository {
+    suspend fun satellite(): Fetched<Satellite> = Http.get("$API/satellite", "satellite").map { body ->
+        val d = JSONObject(body).getJSONObject("data")
+        val bbox = d.getJSONArray("bbox").let { a -> List(a.length()) { a.getDouble(it) } }
+        val times = d.getJSONArray("times").let { a -> List(a.length()) { Instant.parse(a.getString(it)) } }
+        Satellite(
+            bbox, times,
+            d.getJSONArray("layers").list { o ->
+                val f = o.getJSONArray("frames")
+                SatLayer(o.getString("id"), o.optString("title"), o.optString("hint"), o.getString("thumb"), List(f.length()) { f.getString(it) })
+            },
+        )
+    }
+}

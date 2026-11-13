@@ -118,6 +118,9 @@ import kotlin.math.sin
 fun HomeScreen(
     city: City, prefs: Prefs, onPickCity: () -> Unit, onHourly: () -> Unit, onOpenRoads: () -> Unit, onAlerts: () -> Unit,
     onPrayer: () -> Unit = {},
+    onSatellite: () -> Unit = {},
+    onReport: (Int) -> Unit = {},
+    onReports: () -> Unit = {},
     onElevation: (Double) -> Unit = {},
     prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
 ) {
@@ -184,7 +187,7 @@ fun HomeScreen(
             }
         }
         item {
-            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange, onPrayer, prefs) }
+            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange, onPrayer, prefs, onSatellite, onReport, onReports) }
         }
     }
 }
@@ -194,6 +197,7 @@ private fun HomeContent(
     fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourly: () -> Unit, onOpenRoads: () -> Unit,
     order: List<String>, hidden: Set<String>, onChange: (List<String>, Set<String>) -> Unit,
     onPrayer: () -> Unit, prefs: Prefs,
+    onSatellite: () -> Unit, onReport: (Int) -> Unit, onReports: () -> Unit,
 ) {
     val aqi = air?.aqi
     val now = fc.nowIndex
@@ -250,6 +254,8 @@ private fun HomeContent(
         when (id) {
             "hours" -> HoursSection(fc, onHourly)
             "today" -> TodaySection(fc, prayer, nowTime)
+            "maps" -> MapTiles(onSatellite)
+            "news" -> NewsHome(onReport, onReports)
             "bulletin" -> BulletinCard()
             "roads" -> RoadsSummaryCard(onOpenRoads)
             "sky" -> if (today != null) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -267,6 +273,8 @@ private fun HomeContent(
 val HOME_SECTIONS = listOf(
     "hours" to "الساعات القادمة",
     "today" to "شو نلبس والصلاة والموسم",
+    "maps" to "خرائط الطقس وصور الأقمار",
+    "news" to "أخبار الطقس",
     "bulletin" to "النشرة التفصيلية",
     "roads" to "أحوال الطرق",
     "sky" to "الصلاة والشروق والغروب والقمر",

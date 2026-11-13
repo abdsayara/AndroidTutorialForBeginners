@@ -330,12 +330,11 @@ function homeBody(fc, air, prayer) {
     </section>`,
     today: todayCards(fc, prayer, nowIso),
     maps: `<section class="tiles2" aria-label="خرائط الطقس وصور الأقمار">
-      <a class="tile tile-maps" href="/map" data-link>
+      <div class="tile tile-maps">
         <span class="tile-art" aria-hidden="true"></span>
         <strong>خرائط الطقس</strong>
-        <span class="tile-sub">حرارة وأمطار ورياح فلسطين</span>
-        <span class="tile-go">عرض ${icon('back', 14)}</span>
-      </a>
+        <span class="tile-soon">قريباً..</span>
+      </div>
       <a class="tile tile-sat" id="sat-tile" href="/satellite" data-link>
         <span class="tile-live">مباشر</span>
         <strong>صور الأقمار</strong>
@@ -932,7 +931,7 @@ async function loadNewsHome(box, cancelled) {
     box.innerHTML = `<div class="row"><h2 id="h-news" class="grow">أخبار الطقس</h2><a class="link-btn" href="/reports" data-link>كل التقارير</a></div>
       ${items.map((n) => `<a class="news-card" href="/report?id=${n.id}" data-link>
         ${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
-        <span class="news-text"><strong>${esc(n.title)}</strong>${n.date ? `<span class="tiny">${esc(F.arabicDate(n.date))}</span>` : ''}</span>
+        <span class="news-text"><strong>${esc(n.title)}</strong>${n.date ? `<span class="tiny muted">${esc(F.arabicDate(n.date))}</span>` : ''}</span>
       </a>`).join('')}`;
     box.hidden = false;
   } catch { /* the home page works without it */ }
@@ -949,50 +948,98 @@ async function loadSatTile(tile, cancelled) {
   } catch { /* the tile still opens the pictures */ }
 }
 
-/** Live satellite pictures: one layer at a time over the region, with a picker for the others. */
+/** Live satellite pictures: one layer at a time over the region, a picker for the others, and the last two hours in motion. */
 async function satellite(el, ctx, cancelled) {
   el.innerHTML = `<div class="sat-view"><div class="sat-stage" id="sat-stage">${spinner}</div></div>`;
   const stage = el.querySelector('#sat-stage');
   let data = null;
   let current = new URLSearchParams(location.search).get('layer') ?? 'clouds';
   let picking = false;
+  let playing = false;
+  let frame = 0;
+  let timer = null;
+  let loadId = 0;
   const city = ctx.city;
+  const layer = () => data.layers.find((x) => x.id === current) ?? data.layers[0];
+  const clock = (iso) => new Date(iso).toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' });
+  const stop = () => { clearInterval(timer); timer = null; playing = false; loadId++; };
+
+  /** Show one of the pictures and its time, without redrawing the page. */
+  const show = (i) => {
+    frame = i;
+    const img = stage.querySelector('#sat-img');
+    if (img) img.src = layer().frames[i];
+    const t = stage.querySelector('#sat-clock');
+    if (t) t.textContent = clock(data.times[i]);
+    stage.querySelectorAll('.sat-dots i').forEach((d, k) => d.classList.toggle('on', k <= i));
+  };
+
   const draw = () => {
-    const l = data.layers.find((x) => x.id === current) ?? data.layers[0];
+    const l = layer();
     const [w, s, e, n] = data.bbox;
     // Where the chosen place falls on the picture.
     const x = city ? ((city.lon - w) / (e - w)) * 100 : null;
     const y = city ? ((n - city.lat) / (n - s)) * 100 : null;
-    const at = new Date(data.time);
-    const clock = at.toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' });
+    const day = new Date(data.times[frame]).toLocaleDateString('en-CA', { timeZone: 'Asia/Hebron' });
     stage.innerHTML = `<div class="sat-frame">
-        <img src="${esc(l.image)}" alt="${esc(l.title)}" referrerpolicy="no-referrer">
+        <img id="sat-img" src="${esc(l.frames[frame])}" alt="${esc(l.title)}" referrerpolicy="no-referrer">
         ${x != null && x > 0 && x < 100 && y > 0 && y < 100 ? `<span class="sat-pin" style="left:${x}%;top:${y}%" title="${esc(city.name)}"></span>` : ''}
       </div>
       <div class="sat-top"><a class="icon-btn" href="/" data-link aria-label="إغلاق">✕</a><h1>${esc(l.title)}</h1><span style="width:44px"></span></div>
       <div class="sat-bottom">
-        <button class="icon-btn sat-layers" data-action="pick" aria-label="اختر الصورة">${icon('layers', 22)}</button>
-        <div class="sat-time"><b>${F.ltr(clock)}</b> ${esc(F.arabicDate(at.toLocaleDateString('en-CA', { timeZone: 'Asia/Hebron' })))}<div class="tiny">${esc(l.hint)}</div></div>
+        <button class="icon-btn sat-big" data-action="pick" aria-label="اختر الصورة">${icon('layers', 22)}</button>
+        <button class="icon-btn sat-big" data-action="play" id="sat-play" aria-label="${playing ? 'إيقاف' : 'تشغيل حركة آخر ساعتين'}">${icon(playing ? 'pause' : 'play', 22)}</button>
+        <div class="sat-time"><b id="sat-clock">${F.ltr(clock(data.times[frame]))}</b> ${esc(F.arabicDate(day))}
+          <div class="sat-dots" aria-hidden="true">${data.times.map((_, k) => `<i class="${k <= frame ? 'on' : ''}"></i>`).join('')}</div>
+          <div class="tiny" id="sat-hint">${esc(l.hint)}</div></div>
       </div>
       ${picking ? `<div class="sat-sheet" role="dialog" aria-label="اختر الصورة">
         <div class="row"><h2 class="grow">اختر الصورة</h2><button class="icon-btn sm" data-action="pick" aria-label="إغلاق">✕</button></div>
-        <div class="sat-grid">${data.layers.map((x) => `<button class="sat-opt" data-action="layer" data-id="${x.id}" aria-pressed="${x.id === l.id}">
-          <img src="${esc(x.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.title)}</span></button>`).join('')}</div>
+        <div class="sat-grid">${data.layers.map((o) => `<button class="sat-opt" data-action="layer" data-id="${o.id}" aria-pressed="${o.id === l.id}">
+          <img src="${esc(o.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${esc(o.title)}</span></button>`).join('')}</div>
       </div>` : ''}`;
   };
+
+  /** Fetch the two hours' pictures first, so the motion runs smoothly, then loop over them. */
+  const play = async () => {
+    const id = ++loadId;
+    playing = true;
+    draw();
+    const hint = stage.querySelector('#sat-hint');
+    let done = 0;
+    await Promise.all(layer().frames.map((src) => new Promise((ok) => {
+      const im = new Image();
+      im.referrerPolicy = 'no-referrer';
+      im.onload = im.onerror = () => { done++; if (id === loadId && hint) hint.textContent = `جارٍ تحميل الصور ${done} من ${data.times.length}`; ok(); };
+      im.src = src;
+    })));
+    if (id !== loadId || cancelled()) return;
+    if (hint) hint.textContent = 'حركة السحب في آخر ساعتين';
+    let i = 0;
+    show(0);
+    // The newest picture stays a little longer before the loop starts again.
+    timer = setInterval(() => {
+      i = (i + 1) % (data.times.length + 2);
+      show(Math.min(i, data.times.length - 1));
+    }, 550);
+  };
+
   try {
     const r = await api('/api/satellite');
     if (cancelled()) return undefined;
     data = r.data;
+    frame = data.times.length - 1;
     draw();
   } catch {
     if (!cancelled()) stage.innerHTML = errorBox();
   }
-  return actions(el, {
+  const off = actions(el, {
     pick: () => { picking = !picking; draw(); },
-    layer: (t) => { current = t.dataset.id; picking = false; history.replaceState(null, '', `/satellite?layer=${current}`); draw(); },
+    play: () => { if (playing) { stop(); frame = data.times.length - 1; draw(); } else play(); },
+    layer: (t) => { stop(); current = t.dataset.id; picking = false; frame = data.times.length - 1; history.replaceState(null, '', `/satellite?layer=${current}`); draw(); },
     retry: () => location.reload(),
   });
+  return () => { stop(); off(); };
 }
 
 async function reports(el, ctx, cancelled) {

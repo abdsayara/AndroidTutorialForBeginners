@@ -48,6 +48,8 @@ object PwIcons {
     val Pause = icon("pause", "M6 5h4v14H6zM14 5h4v14h-4z", filled = true)
     val Plus = icon("plus", "M12 5v14M5 12h14")
     val Minus = icon("minus", "M5 12h14")
+    val Close = icon("close", "M6 6l12 12M18 6L6 18")
+    val Layers = icon("layers", "M12 3 3 8l9 5 9-5z", "m3 12 9 5 9-5", "m3 16 9 5 9-5")
     val Expand = icon("expand", "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5")
     val Regions = icon("regions", "M4 4h4M12 4h4M20 4v4M20 12v4M20 20h-4M12 20H8M4 20v-4M4 12V8")
     val Locate = icon("locate", circle(12f, 12f, 3f), "M12 2v3M12 19v3M2 12h3M19 12h3")

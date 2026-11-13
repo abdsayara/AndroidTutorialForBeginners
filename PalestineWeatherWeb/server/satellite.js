@@ -39,16 +39,27 @@ export function imageUrl(l, time, width, height, bbox = BBOX) {
   return `${WMS}?${q}`;
 }
 
-/** What the site and the app show: the picture's time, the region, and each layer's picture and thumbnail. */
+/** The pictures of the last two hours, oldest first, one every twenty minutes, ending at [time]. */
+export function frameTimes(time, count = 7, stepMinutes = 20) {
+  const end = new Date(time).getTime();
+  return Array.from({ length: count }, (_, i) => new Date(end - (count - 1 - i) * stepMinutes * 60000).toISOString());
+}
+
+/**
+ * What the site and the app show: the newest picture's time, the region, the times of the
+ * moving pictures, and for each layer its thumbnail and one picture per time (the last is the newest).
+ */
 export function satellite(time) {
   // The home tile and the picker's thumbnails look closer, at the Levant.
   const near = [29, 24, 43, 38];
+  const times = frameTimes(time);
   return {
-    time, bbox: BBOX,
+    time, bbox: BBOX, times,
     layers: LAYERS.map((l) => ({
       id: l.id, title: l.title, hint: l.hint,
       image: imageUrl(l, time, 780, 1020),
       thumb: imageUrl(l, time, 320, 320, near),
+      frames: times.map((t) => imageUrl(l, t, 780, 1020)),
     })),
   };
 }

@@ -74,7 +74,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-enum class Sub { FARMING, HOURLY, PRAYER, ALERTS, REPORTS, REPORT, STATIONS, CURRENCY }
+enum class Sub { FARMING, HOURLY, PRAYER, ALERTS, REPORTS, REPORT, STATIONS, CURRENCY, SATELLITE }
 
 // ---------------------------------------------------------------- "More" hub
 
@@ -95,7 +95,7 @@ fun MoreScreen(onOpen: (Sub) -> Unit) {
         // Credits these data licences require (CC BY 4.0, ODbL, ExchangeRate-API's terms).
         item {
             Text(
-                "بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · الخط MiSans من شاومي",
+                "بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · صور الأقمار © EUMETSAT · الخط MiSans من شاومي",
                 fontSize = 11.sp, color = Pw.Muted,
             )
         }
