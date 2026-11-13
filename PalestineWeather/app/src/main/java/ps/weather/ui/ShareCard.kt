@@ -68,7 +68,7 @@ object ShareCard {
             setBounds((right - 102).toInt(), 88, (right - 10).toInt(), 158)
             draw(cv)
         }
-        cv.drawText("طقس فلسطين", right - 136, 136f, text(40f))
+        cv.drawText("طقس الوطن", right - 136, 136f, text(40f))
 
         // Place and date.
         cv.drawText(placeName, right, 320f, text(84f))

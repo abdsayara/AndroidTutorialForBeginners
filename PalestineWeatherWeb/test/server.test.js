@@ -27,7 +27,7 @@ const get = async (p) => { const r = await fetch(base + p); return { status: r.s
 
 test('every API route answers with data', async () => {
   for (const p of ['/api/cities', '/api/forecast?city=jerusalem', '/api/air?city=gaza', '/api/now', '/api/grid',
-    '/api/quakes?days=7', '/api/prayer?city=nablus&method=5', '/api/rates', '/api/news?topic=climate', '/api/alerts']) {
+    '/api/quakes?days=7', '/api/prayer?city=nablus', '/api/rates', '/api/news?topic=climate', '/api/alerts']) {
     const r = await get(p);
     assert.equal(r.status, 200, p);
     assert.ok(r.body.data, p);
@@ -39,7 +39,7 @@ test('exact coordinates, villages, search and reverse geocoding', async () => {
   const f = await get('/api/forecast?lat=31.96&lon=35.198');
   assert.equal(f.status, 200);
   assert.equal(f.body.data.days.length, 14);
-  assert.equal((await get('/api/prayer?lat=31.96&lon=35.198&method=5')).status, 200);
+  assert.equal((await get('/api/prayer?lat=31.96&lon=35.198')).status, 200);
   assert.equal((await get('/api/forecast?lat=40&lon=35')).status, 400);
   assert.equal((await get('/api/forecast?lat=abc&lon=35')).status, 400);
   const places = await get('/api/places');
@@ -62,7 +62,6 @@ test('forecast shape', async () => {
 test('invalid input is rejected', async () => {
   assert.equal((await get('/api/forecast?city=nowhere')).status, 400);
   assert.equal((await get('/api/quakes?days=3')).status, 400);
-  assert.equal((await get('/api/prayer?city=gaza&method=99')).status, 400);
   assert.equal((await get('/api/news?topic=x')).status, 400);
   assert.equal((await get('/api/nope')).status, 404);
 });
@@ -85,7 +84,7 @@ test('upstream failure without a saved copy is a 502', async () => {
 test('static files and SPA fallback, no path traversal', async () => {
   const idx = await fetch(base + '/map');
   assert.equal(idx.status, 200);
-  assert.match(await idx.text(), /طقس فلسطين/);
+  assert.match(await idx.text(), /طقس الوطن/);
   const js = await fetch(base + '/app.js');
   assert.match(js.headers.get('content-type'), /javascript/);
   assert.equal((await fetch(base + '/missing.js')).status, 404);

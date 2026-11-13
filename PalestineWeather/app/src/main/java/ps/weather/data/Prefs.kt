@@ -68,9 +68,8 @@ class Prefs(context: Context) {
         get() = sp.getStringSet("favorites", setOf("jerusalem", "gaza"))!!
         set(v) = sp.edit().putStringSet("favorites", v).apply()
 
-    var prayerMethod: PrayerMethod
-        get() = runCatching { PrayerMethod.valueOf(sp.getString("prayerMethod", null)!!) }.getOrDefault(PrayerMethod.EGYPT)
-        set(v) = sp.edit().putString("prayerMethod", v.name).apply()
+    /** Prayer times are worked out one way for everyone: Umm al-Qura. */
+    val prayerMethod: PrayerMethod get() = PrayerMethod.UMM_AL_QURA
 
     /** The 7:00 morning notification. */
     var morningEnabled: Boolean

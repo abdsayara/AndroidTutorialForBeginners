@@ -92,13 +92,6 @@ fun MoreScreen(onOpen: (Sub) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Text("المزيد", fontSize = 24.sp, fontWeight = FontWeight.Bold) }
         items(entries) { (sub, icon, label) -> MenuRow(icon, label) { onOpen(sub) } }
-        // Credits these data licences require (CC BY 4.0, ODbL, ExchangeRate-API's terms).
-        item {
-            Text(
-                "بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · صور الأقمار © EUMETSAT · الخط MiSans من شاومي",
-                fontSize = 11.sp, color = Pw.Muted,
-            )
-        }
     }
 }
 
@@ -122,8 +115,7 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 
 @Composable
 fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
-    var method by remember { mutableStateOf(prefs.prayerMethod) }
-    val (load, refresh) = rememberLoad(city.id, method) { PrayerRepository.today(city.lat, city.lon, method) }
+    val (load, refresh) = rememberLoad(city.id) { PrayerRepository.today(city.lat, city.lon, prefs.prayerMethod) }
     var now by remember { mutableStateOf(LocalTime.now()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = LocalTime.now() } }
 
@@ -182,15 +174,6 @@ fun PrayerScreen(city: City, prefs: Prefs, onBack: () -> Unit) {
                         Text("${bearing.toInt()}° من الشمال", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
-            }
-        }
-        item {
-            SectionCard {
-                Text("طريقة الحساب", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                PrayerMethod.entries.forEach { m ->
-                    PillButton(m.label, m == method, Modifier.fillMaxWidth()) { method = m; prefs.prayerMethod = m }
-                }
-                Text("قارن مع تقويم الأوقاف المعتمد في منطقتك.", fontSize = 11.sp, color = Pw.Muted)
             }
         }
     }

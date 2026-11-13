@@ -184,12 +184,8 @@ export function parseQuakes(o) {
 
 // ---------------------------------------------------------------- Aladhan prayer times
 
-export const PRAYER_METHODS = {
-  5: 'الهيئة المصرية العامة للمساحة',
-  3: 'رابطة العالم الإسلامي',
-  4: 'أم القرى — مكة',
-  23: 'وزارة الأوقاف الأردنية',
-};
+/** The way prayer times are worked out, for everyone: Umm al-Qura (Aladhan's method 4). */
+export const PRAYER_METHOD = 4;
 
 /** Today's date (YYYY-MM-DD) on Palestine's clock, whatever the server's timezone. */
 export const palestineDate = (now = new Date()) => now.toLocaleDateString('en-CA', { timeZone: 'Asia/Hebron' });

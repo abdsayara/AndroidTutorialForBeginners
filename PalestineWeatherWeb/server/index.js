@@ -80,12 +80,12 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/prayer': async (q) => {
       const c = requirePlace(q);
-      const method = Number(q.get('method') ?? 5);
-      if (!S.PRAYER_METHODS[method]) throw new HttpError(400, 'unknown method');
+      // One way of working the times out for everyone: Umm al-Qura.
+      const method = S.PRAYER_METHOD;
       const day = S.palestineDate();
       const r = await cache.get(`prayer_${c.id}_${method}_${day}`, 6 * 3600, async () =>
         S.parsePrayer(await cache.json(S.prayerUrl(c.lat, c.lon, method, day))));
-      return { ...r, data: { ...r.data, qibla: S.qiblaBearing(c.lat, c.lon), methods: S.PRAYER_METHODS } };
+      return { ...r, data: { ...r.data, qibla: S.qiblaBearing(c.lat, c.lon) } };
     },
 
     '/api/rates': async () => cache.get('rates', 6 * 3600, async () => S.parseRates(await cache.json(S.RATES_URL))),
@@ -307,5 +307,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await alerts.load();
   if (process.env.ALERTS !== 'off') startAlertJob(cache, alerts);
   createApp({ cache, alerts, demo }).listen(PORT, () =>
-    console.log(`طقس فلسطين: http://localhost:${PORT}${demo ? '  (وضع العرض: بيانات تجريبية)' : ''}`));
+    console.log(`طقس الوطن: http://localhost:${PORT}${demo ? '  (وضع العرض: بيانات تجريبية)' : ''}`));
 }

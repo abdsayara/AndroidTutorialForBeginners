@@ -97,7 +97,7 @@ export async function shareCardBlob(placeName, fc) {
   if (logo) ctx.drawImage(logo, R - 102, 88, 92, 70);
   ctx.fillStyle = '#FFFFFF';
   ctx.font = `600 40px ${DISPLAY}`;
-  ctx.fillText('طقس فلسطين', R - 136, 136);
+  ctx.fillText('طقس الوطن', R - 136, 136);
 
   // Place and date.
   ctx.font = `700 84px ${DISPLAY}`;
@@ -186,7 +186,7 @@ export async function openShare(placeName, fc) {
   dlg.addEventListener('click', async (e) => {
     if (e.target === dlg || e.target.closest('[data-close]')) close();
     else if (e.target.closest('[data-share]')) {
-      try { await navigator.share({ files: [file], title: 'طقس فلسطين', text }); close(); } catch { /* cancelled */ }
+      try { await navigator.share({ files: [file], title: 'طقس الوطن', text }); close(); } catch { /* cancelled */ }
     }
   });
   dlg.addEventListener('cancel', (e) => { e.preventDefault(); close(); });

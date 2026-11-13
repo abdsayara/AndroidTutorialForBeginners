@@ -102,7 +102,7 @@ fun Intro(sky: Sky, onDone: () -> Unit) {
                 }
             }
             Text(
-                "طقس فلسطين", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White,
+                "طقس الوطن", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White,
                 modifier = Modifier.padding(top = 22.dp).alpha(titleIn.value),
             )
             Text(

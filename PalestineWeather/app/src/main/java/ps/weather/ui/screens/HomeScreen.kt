@@ -122,7 +122,7 @@ fun HomeScreen(
     onReport: (Int) -> Unit = {},
     onReports: () -> Unit = {},
     onElevation: (Double) -> Unit = {},
-    prayerMethod: PrayerMethod = PrayerMethod.EGYPT,
+    prayerMethod: PrayerMethod = PrayerMethod.UMM_AL_QURA,
 ) {
     val context = LocalContext.current
     var order by remember { mutableStateOf(homeOrder(prefs.homeOrder)) }

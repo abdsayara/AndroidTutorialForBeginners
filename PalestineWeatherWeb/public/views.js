@@ -474,7 +474,7 @@ async function home(el, ctx, cancelled) {
       const [fc, air, prayer] = await Promise.all([
         api(`/api/forecast?${ctx.placeQuery()}`),
         api(`/api/air?${ctx.placeQuery()}`).catch(() => null),
-        api(`/api/prayer?${ctx.placeQuery()}&method=${settings.prayerMethod}`).catch(() => null),
+        api(`/api/prayer?${ctx.placeQuery()}`).catch(() => null),
       ]);
       if (cancelled()) return;
       const sub = el.querySelector('.subtitle');
@@ -788,18 +788,17 @@ function more(el) {
     ['/reports', 'news', 'التقارير اليومية'],
     ['/stations', 'thermo', 'محطات الطقس'],
     ['/currency', 'coins', 'أسعار العملات'],
-    ['/welcome', 'star', 'تعرّف على طقس فلسطين', true],
+    ['/welcome', 'star', 'تعرّف على طقس الوطن', true],
   ];
   el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label, page]) =>
     `<a href="${href}" ${page ? '' : 'data-link'}><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
-    <div class="source">بيانات الطقس © Open-Meteo (CC BY 4.0) · القرى © GeoNames (CC BY 4.0) · الخرائط © OpenStreetMap · العملات ExchangeRate-API · صور الأقمار © EUMETSAT · الخط MiSans من شاومي</div></div>`;
+</div>`;
 }
 
 // ---------------------------------------------------------------- prayer
 
 async function prayer(el, ctx, cancelled) {
   const city = ctx.city;
-  let method = settings.prayerMethod;
   el.innerHTML = `<div class="page">${header('أوقات الصلاة', `${city.name} · ${F.arabicDate()}`, { back: true })}<div id="slot"></div></div>`;
   const slot = el.querySelector('#slot');
   const nowHm = () => new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -828,17 +827,13 @@ async function prayer(el, ctx, cancelled) {
         <span style="color:var(--brand);transform:rotate(${d.qibla}deg);display:inline-flex" aria-hidden="true">${icon('arrowUp', 36)}</span>
         <div><div class="muted tiny">اتجاه القبلة</div><div class="bold">${Math.round(d.qibla)}° من الشمال</div></div>
       </div></section>
-      <section class="card"><h2>طريقة الحساب</h2>
-        <div class="pills">${Object.entries(d.methods).map(([id, label]) => pill(label, `data-action="method" data-m="${id}"`, Number(id) === method)).join('')}</div>
-        <div class="source">قارن مع تقويم الأوقاف المعتمد في منطقتك.</div>
-      </section>
     </div>`;
   };
-  const run = async () => { data = await load(slot, `/api/prayer?${ctx.placeQuery()}&method=${method}`, view, cancelled); };
+  const run = async () => { data = await load(slot, `/api/prayer?${ctx.placeQuery()}`, view, cancelled); };
   run();
   // Refresh the countdown every 30 s without refetching.
   const timer = setInterval(() => { if (data && !cancelled()) slot.innerHTML = view(data); }, 30_000);
-  const off = actions(el, { retry: run, method: (t) => { method = Number(t.dataset.m); settings.prayerMethod = method; run(); } });
+  const off = actions(el, { retry: run });
   return () => { clearInterval(timer); off(); };
 }
 
@@ -1072,7 +1067,7 @@ async function report(el, ctx, cancelled) {
       <div class="muted tiny">${esc([a.tag, a.date ? F.arabicDate(a.date) : null].filter(Boolean).join(' · '))}</div>
       ${a.image ? `<img class="article-hero" src="${esc(a.image)}" alt="" referrerpolicy="no-referrer">` : ''}
       <div class="article-body">${a.html}</div>
-    </article>`, cancelled).then((a) => { if (a) document.title = `${a.title} — طقس فلسطين`; });
+    </article>`, cancelled).then((a) => { if (a) document.title = `${a.title} — طقس الوطن`; });
   run();
   return actions(el, { retry: run });
 }

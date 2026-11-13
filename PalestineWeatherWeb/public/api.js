@@ -27,8 +27,6 @@ export const settings = {
   set place(v) { write('place', v); },
   get favorites() { return read('favorites', ['jerusalem', 'gaza']); },
   set favorites(v) { write('favorites', v); },
-  get prayerMethod() { return read('prayerMethod', 5); },
-  set prayerMethod(v) { write('prayerMethod', v); },
   alertOn(type) { return read(`alert.${type}`, type !== 'heat'); },
   setAlertOn(type, on) { write(`alert.${type}`, on); },
   get notify() { return read('notify', false); },
