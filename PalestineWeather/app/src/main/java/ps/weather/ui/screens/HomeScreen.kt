@@ -145,32 +145,32 @@ fun HomeScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painterResource(R.drawable.logo), contentDescription = null,
-                    modifier = Modifier.width(54.dp).height(41.dp),
+                    modifier = Modifier.width(42.dp).height(32.dp),
                 )
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(PwIcons.Pin, null, tint = Pw.Link, modifier = Modifier.size(20.dp))
-                        Text(city.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(PwIcons.Pin, null, tint = Pw.Link, modifier = Modifier.size(16.dp))
+                        Text(city.name, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
                 // The bell opens «التنبيهات السابقة»; a dot marks alerts not seen yet.
                 val unseen = remember(load) { prefs.hasUnseenAlerts() }
                 Box {
-                    RoundIconButton(PwIcons.Bell, if (unseen) "التنبيهات، فيها جديد" else "التنبيهات", onAlerts)
+                    RoundIconButton(PwIcons.Bell, if (unseen) "التنبيهات، فيها جديد" else "التنبيهات", onAlerts, size = 40.dp)
                     if (unseen) Box(
                         Modifier.align(Alignment.TopEnd).padding(6.dp).size(10.dp).clip(CircleShape)
                             .background(Color(0xFFFF5A4E)).border(1.5.dp, Color.White, CircleShape),
                     )
                 }
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(4.dp))
                 (load as? Load.Ok)?.value?.let { fc ->
-                    RoundIconButton(PwIcons.Share, "مشاركة الطقس كصورة", onClick = { ShareCard.share(context, city.name, fc) })
-                    Spacer(Modifier.width(6.dp))
+                    RoundIconButton(PwIcons.Share, "مشاركة الطقس كصورة", onClick = { ShareCard.share(context, city.name, fc) }, size = 40.dp)
+                    Spacer(Modifier.width(4.dp))
                 }
-                RoundIconButton(PwIcons.Refresh, "تحديث", refresh)
-                Spacer(Modifier.width(6.dp))
-                RoundIconButton(PwIcons.Search, "تغيير المدينة", onPickCity)
+                RoundIconButton(PwIcons.Refresh, "تحديث", refresh, size = 40.dp)
+                Spacer(Modifier.width(4.dp))
+                RoundIconButton(PwIcons.Search, "تغيير المدينة", onPickCity, size = 40.dp)
             }
             Text(
                 listOfNotNull(

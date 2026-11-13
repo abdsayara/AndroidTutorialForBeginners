@@ -128,12 +128,12 @@ fun ScreenHeader(title: String, subtitle: String? = null, onBack: (() -> Unit)? 
 }
 
 @Composable
-fun RoundIconButton(icon: ImageVector, label: String, onClick: () -> Unit, background: Color = Pw.Card, tint: Color = Pw.Ink) {
+fun RoundIconButton(icon: ImageVector, label: String, onClick: () -> Unit, background: Color = Pw.Card, tint: Color = Pw.Ink, size: Dp = 44.dp) {
     Box(
-        Modifier.size(44.dp).clip(CircleShape).background(background)
+        Modifier.size(size).clip(CircleShape).background(background)
             .clickable(role = Role.Button, onClickLabel = label, onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(22.dp)) }
+    ) { Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(size * 0.5f)) }
 }
 
 @Composable

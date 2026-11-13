@@ -128,7 +128,7 @@ export function mountMap(el, ctx, cancelled) {
     }
   }
 
-  function label(text, x, y, { bg = 'rgba(255,255,255,0.85)', fg = '#12241B', font = '600 11px "Readex Pro", sans-serif', padX = 4, h = 16, radius = 4, align = 'center' } = {}) {
+  function label(text, x, y, { bg = 'rgba(255,255,255,0.85)', fg = '#12241B', font = '600 11px "Rubik", sans-serif', padX = 4, h = 16, radius = 4, align = 'center' } = {}) {
     g.font = font;
     const w = g.measureText(text).width + padX * 2;
     const left = align === 'center' ? x - w / 2 : x;
@@ -209,7 +209,7 @@ export function mountMap(el, ctx, cancelled) {
         g.fillStyle = dark ? 'rgba(255,255,255,0.85)' : big ? '#12241B' : '#5C6B62';
         g.beginPath(); g.arc(x, y, big ? 3 : 2.2, 0, Math.PI * 2); g.fill();
         if (st.zoom >= (big ? 2.8 : 4.5)) {
-          g.font = `${big ? 600 : 500} ${big ? 11 : 10}px "Readex Pro", sans-serif`;
+          g.font = `${big ? 600 : 500} ${big ? 11 : 10}px "Rubik", sans-serif`;
           const w = g.measureText(name).width + 6;
           if (free(x - w - 5, y - 8, w, 16)) label(name, x - w - 5, y, { align: 'start', h: 15, padX: 3, font: g.font, bg: 'rgba(255,255,255,0.78)' });
         }
@@ -226,7 +226,7 @@ export function mountMap(el, ctx, cancelled) {
         const n = st.now?.[c.id];
         const text = !n ? '…' : st.layer === 'wind' ? String(Math.round(n.wind ?? 0)) : (n.temp == null ? '—' : `${Math.round(n.temp)}°`); // canvas: no bidi isolates
         const [bg, fg] = pinColors(st.layer, n);
-        g.font = '700 12px "Readex Pro", sans-serif';
+        g.font = '700 12px "Rubik", sans-serif';
         const w = Math.max(g.measureText(text).width + 14, 34);
         g.fillStyle = bg; g.beginPath(); g.roundRect(x - w / 2, y - 12, w, 24, 12); g.fill();
         g.lineWidth = 2; g.strokeStyle = c.id === st.sel ? '#1F74B0' : 'rgba(18,36,27,0.15)'; g.stroke();
@@ -235,7 +235,7 @@ export function mountMap(el, ctx, cancelled) {
       } else {
         g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill();
         g.fillStyle = '#12241B'; g.beginPath(); g.arc(x, y, 2.5, 0, Math.PI * 2); g.fill();
-        g.font = '600 11px "Readex Pro", sans-serif';
+        g.font = '600 11px "Rubik", sans-serif';
         const w = g.measureText(c.name).width + 8;
         label(c.name, x - 7 - w, y, { align: 'start' });
       }
@@ -254,7 +254,7 @@ export function mountMap(el, ctx, cancelled) {
       g.fillStyle = '#1F74B0';
       g.beginPath(); g.arc(x, y - 16, 9, Math.PI * 0.85, Math.PI * 0.15); g.lineTo(x, y); g.closePath(); g.fill();
       g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y - 16, 3.5, 0, Math.PI * 2); g.fill();
-      label(st.place.name, x, y + 12, { font: '700 12px "Readex Pro", sans-serif', h: 18 });
+      label(st.place.name, x, y + 12, { font: '700 12px "Rubik", sans-serif', h: 18 });
     }
 
     // Scale bar

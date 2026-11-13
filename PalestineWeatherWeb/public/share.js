@@ -7,8 +7,8 @@ import { summarize, skyKind } from './insights.js';
 const W = 1080;
 const H = 1350;
 const SITE = 'palestine-weather.vercel.app';
-const FONT = "'Readex Pro', system-ui, sans-serif";
-const DISPLAY = "'Readex Pro', system-ui, sans-serif";
+const FONT = "'Rubik', system-ui, sans-serif";
+const DISPLAY = "'Rubik', system-ui, sans-serif";
 
 /** Background stops per kind of sky; the same moods as the hero. */
 const SKIES = {

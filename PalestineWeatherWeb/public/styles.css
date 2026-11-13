@@ -24,9 +24,9 @@
   --red-tint: #FBE2DD;
   --sun: #FAAE3C; /* the logo's sun rays */
 
-  /* Readex Pro: a rounded modern Arabic face (as in the app, res/font). */
-  --font: 'Readex Pro', system-ui, sans-serif;
-  --font-display: 'Readex Pro', system-ui, sans-serif;
+  /* Rubik: rounded, geometric digits, a clean Arabic face (as in the app, res/font). */
+  --font: 'Rubik', system-ui, sans-serif;
+  --font-display: 'Rubik', system-ui, sans-serif;
   --r-sm: 12px;
   --r-md: 18px;
   --r-lg: 24px;
@@ -779,7 +779,12 @@ html:root .cp.closed { border-inline-start-color: var(--road-closed); }
 
 /* Home: the place's details on their own line under the header, so four buttons fit beside the name */
 .home-sub { margin-top: -10px; }
-@media (max-width: 420px) { .header .icon-btn { width: 40px; height: 40px; } .header { gap: 8px; } }
+@media (max-width: 420px) {
+  .header .icon-btn { width: 36px; height: 36px; }
+  .header { gap: 6px; }
+  .header-logo { width: 42px; height: auto; }
+  .header h1 { font-size: 21px; }
+}
 
 /* ---- the opening: the logo comes together over the sky (as in the app) ---- */
 .intro { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
@@ -877,3 +882,6 @@ html:root .cp.closed { border-inline-start-color: var(--road-closed); }
 .wk-halves span:first-child { background: rgba(0, 0, 0, .22); }
 .wk-curve { position: absolute; inset: 0; pointer-events: none; }
 .wk-lbl { position: absolute; width: 52px; display: flex; flex-direction: column; align-items: center; font-size: 16px; }
+
+/* A place's name stays on one line: never broken inside a word, cut with … when too long. */
+.header h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }

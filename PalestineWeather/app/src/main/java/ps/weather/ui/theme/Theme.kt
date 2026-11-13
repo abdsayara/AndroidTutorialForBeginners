@@ -81,17 +81,17 @@ object Pw {
     fun background(): Brush = if (glass) Brush.verticalGradient(skyStops()) else Brush.verticalGradient(listOf(Color(0xFFF6F7F5), Color(0xFFF6F7F5)))
 }
 
-/** Readex Pro (SIL Open Font License, res/font): a rounded modern Arabic face, every weight from one variable file. */
+/** Rubik (SIL Open Font License, res/font): rounded, with geometric digits and a clean Arabic face; every weight from one variable file. */
 @OptIn(ExperimentalTextApi::class)
-val Readex = FontFamily(
+val AppFont = FontFamily(
     listOf(300, 400, 500, 600, 700, 800).map { w ->
-        Font(R.font.readex_pro, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+        Font(R.font.rubik, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
     },
 )
 
-/** Material's type scale, all in Readex Pro. */
+/** Material's type scale, all in Rubik. */
 private val AppTypography = Typography().let { t ->
-    fun TextStyle.r() = copy(fontFamily = Readex)
+    fun TextStyle.r() = copy(fontFamily = AppFont)
     Typography(
         displayLarge = t.displayLarge.r(), displayMedium = t.displayMedium.r(), displaySmall = t.displaySmall.r(),
         headlineLarge = t.headlineLarge.r(), headlineMedium = t.headlineMedium.r(), headlineSmall = t.headlineSmall.r(),
