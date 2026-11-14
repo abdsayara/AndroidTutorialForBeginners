@@ -1,6 +1,7 @@
 // App shell: routing, navigation, and browser notifications for new alerts.
 import { api, settings } from './api.js';
 import { icon } from './icons.js';
+import { esc } from './format.js';
 import { views } from './views.js';
 import { mountMap } from './map.js';
 import { mountSky } from './sky.js';
@@ -157,7 +158,7 @@ function welcome() {
       <div class="welcome-grip"></div>
       <div class="welcome-hand" aria-hidden="true">👋</div>
       <h2 id="w-title">مرحباً</h2>
-      <p>اختر بلدتك لتكون التوقعات والتنبيهات لمكانك أنت. المختار الآن: ${state.city?.name ?? ''}.</p>
+      <p>اختر بلدتك لتكون التوقعات والتنبيهات لمكانك أنت. المختار الآن: ${esc(state.city?.name ?? '')}.</p>
       <button class="btn primary" data-pick>اختر بلدتك</button>
       <button class="link-btn" data-later>لاحقاً</button>
     </section>`;
@@ -171,6 +172,9 @@ function welcome() {
 }
 
 // ---------------------------------------------------------------- boot
+
+// A picture that fails to load is taken away (pictures marked data-drop).
+document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageElement && e.target.hasAttribute('data-drop')) e.target.remove(); }, true);
 
 (async function boot() {
   mountSky();

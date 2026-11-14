@@ -979,7 +979,7 @@ async function loadNewsHome(box, cancelled) {
     if (cancelled() || !items.length) return;
     box.innerHTML = `<div class="row"><h2 id="h-news" class="grow">أخبار الطقس</h2><a class="link-btn" href="/reports" data-link>كل التقارير</a></div>
       ${items.map((n) => `<a class="news-card" href="/report?id=${n.id}" data-link>
-        ${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+        ${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-drop>` : ''}
         <span class="news-text"><strong>${esc(n.title)}</strong>${n.date ? `<span class="tiny muted">${esc(F.arabicDate(n.date))}</span>` : ''}</span>
       </a>`).join('')}`;
     box.hidden = false;
@@ -1097,7 +1097,7 @@ async function reports(el, ctx, cancelled) {
   const run = () => load(slot, '/api/reports', (items) => `<div class="page" style="max-width:none;gap:10px">
       <div class="reports">${items.map((r) => `
         <a class="report" href="/report?id=${r.id}" data-link>
-          ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+          ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-drop>` : ''}
           <div class="report-body">
             <div class="title">${esc(r.title)}</div>
             ${r.excerpt ? `<div class="muted small">${esc(r.excerpt)}</div>` : ''}

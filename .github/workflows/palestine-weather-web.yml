@@ -7,6 +7,10 @@ on:
       - ".github/workflows/palestine-weather-web.yml"
   workflow_dispatch:
 
+# The build only reads the repository.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

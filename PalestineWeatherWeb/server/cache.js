@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const UA = 'PalestineWeatherWeb/1.0 (+https://palestine-weather.vercel.app)';
@@ -10,7 +10,9 @@ const UA = 'PalestineWeatherWeb/1.0 (+https://palestine-weather.vercel.app)';
  * Concurrent requests for the same key share a single in-flight fetch.
  */
 export class Cache {
-  constructor(dir, fetchImpl = fetch) {
+  /** `maxEntries` bounds the memory and the disk copies, so made-up places cannot fill either. */
+  constructor(dir, fetchImpl = fetch, maxEntries = 4000) {
+    this.maxEntries = maxEntries;
     this.dir = dir;
     this.fetch = fetchImpl;
     this.memory = new Map();
@@ -36,7 +38,14 @@ export class Cache {
       try {
         const data = await load();
         const entry = { data, fetchedAt: Date.now() };
+        this.memory.delete(key);
         this.memory.set(key, entry);
+        // Over the bound: the oldest entry goes, from memory and from disk.
+        while (this.memory.size > this.maxEntries) {
+          const oldest = this.memory.keys().next().value;
+          this.memory.delete(oldest);
+          unlink(this.file(oldest)).catch(() => {});
+        }
         await mkdir(this.dir, { recursive: true });
         await writeFile(this.file(key), JSON.stringify(entry)).catch(() => {});
         return { ...entry, stale: false };

@@ -8,6 +8,7 @@ import { Cache } from './cache.js';
 import { AlertStore, startAlertJob } from './alerts.js';
 import { CITIES, REGIONS, cityById } from './cities.js';
 import * as S from './sources.js';
+import { Budget, RateLimit, SECURITY_HEADERS, clientAddress } from './guard.js';
 import * as P from './prayer.js';
 import * as R from './roads.js';
 import * as SAT from './satellite.js';
@@ -50,8 +51,26 @@ function requirePlace(q) {
   return { id: `p${rl}_${ro}`, lat: rl, lon: ro };
 }
 
+/**
+ * The same place for the weather: a free point is rounded to about a kilometre (finer than
+ * the weather model's own grid), so neighbours share one answer and made-up points cannot
+ * each cost an upstream request.
+ */
+function weatherPlace(c) {
+  if (!String(c.id).startsWith('p')) return c;
+  const lat = +c.lat.toFixed(2);
+  const lon = +c.lon.toFixed(2);
+  return { id: `p${lat}_${lon}`, lat, lon };
+}
+
 /** Route table: path → (query, cache) → {data, fetchedAt, stale} | plain object. */
-export function makeRoutes(cache, alerts, { demo = false } = {}) {
+export function makeRoutes(cache, alerts, { demo = false, budget = new Budget() } = {}) {
+  // Requests for free points or by id cost an upstream call each time they are new: they share
+  // a budget, so the weather sources' allowance cannot be spent by a flood of made-up ones.
+  const costly = (load) => async () => {
+    if (!budget.take()) throw new HttpError(429, 'busy, try again shortly');
+    return load();
+  };
   // Villages, towns and cities ship with the site (scripts/build-places.py, from lists of Arab towns and villages):
   // the live Overpass servers proved too unreliable to depend on.
   const fetchPlaces = async () => JSON.parse(await readFile(new URL('./data/places.json', import.meta.url), 'utf8'));
@@ -60,13 +79,13 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/cities': async () => ({ data: { cities: CITIES, regions: REGIONS, demo, liveAlerts: !!alerts.live } }),
 
     '/api/forecast': async (q) => {
-      const c = requirePlace(q);
-      return cache.get(`forecast4_${c.id}`, 900, async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon))));
+      const c = weatherPlace(requirePlace(q));
+      return cache.get(`forecast4_${c.id}`, 900, costly(async () => S.parseForecast(await cache.json(S.forecastUrl(c.lat, c.lon)))));
     },
 
     '/api/air': async (q) => {
-      const c = requirePlace(q);
-      return cache.get(`air2_${c.id}`, 1800, async () => S.parseAir(await cache.json(S.airUrl(c.lat, c.lon))));
+      const c = weatherPlace(requirePlace(q));
+      return cache.get(`air2_${c.id}`, 1800, costly(async () => S.parseAir(await cache.json(S.airUrl(c.lat, c.lon)))));
     },
 
     '/api/now': async () => cache.get('cities_now', 900, async () => S.parseCitiesNow(await cache.json(S.citiesNowUrl()))),
@@ -117,7 +136,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
     '/api/report': async (q) => {
       const id = Number(q.get('id'));
       if (!Number.isInteger(id) || id <= 0 || id > 1e7) throw new HttpError(400, 'bad report id');
-      const r = await cache.get(`watan_report_${id}`, 86400, async () => W.parseArticle(await cache.text(W.articleUrl(id)), id));
+      const r = await cache.get(`watan_report_${id}`, 86400, costly(async () => W.parseArticle(await cache.text(W.articleUrl(id)), id)));
       return { ...r, cdnSeconds: 3600 };
     },
 
@@ -202,7 +221,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 
     '/api/reverse': async (q) => {
       const p = requirePlace(q);
-      const r = await cache.get(`reverse2_${p.id}`, 30 * 86400, async () => {
+      const r = await cache.get(`reverse2_${p.id}`, 30 * 86400, costly(async () => {
         const out = S.parseReverse(await cache.json(S.reverseUrl(p.lat, p.lon)), p.lat, p.lon);
         if (!out.name) {
           // OSM has some villages only in English (e.g. Ras Al-Joura): take the nearest Arabic
@@ -212,7 +231,7 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
           if (near) return { name: near, area: out.area !== near ? out.area : null };
         }
         return out;
-      });
+      }));
       return { ...r, cdnSeconds: 86400 };
     },
 
@@ -227,7 +246,9 @@ export function makeRoutes(cache, alerts, { demo = false } = {}) {
 }
 
 async function serveStatic(res, urlPath) {
-  const rel = decodeURIComponent(urlPath === '/' ? '/index.html' : urlPath);
+  let rel;
+  try { rel = decodeURIComponent(urlPath === '/' ? '/index.html' : urlPath); } catch { throw new HttpError(400, 'bad request'); }
+  if (rel.includes('\0')) throw new HttpError(400, 'bad request');
   const file = path.normalize(path.join(PUBLIC, rel));
   if (!file.startsWith(PUBLIC + path.sep)) throw new HttpError(403, 'forbidden');
   let target = file;
@@ -244,9 +265,9 @@ async function serveStatic(res, urlPath) {
   }
   const body = await readFile(target);
   res.writeHead(200, {
+    ...SECURITY_HEADERS,
     'Content-Type': MIME[path.extname(target)] ?? 'application/octet-stream',
     'Cache-Control': target.endsWith('.html') ? 'no-cache' : 'public, max-age=300',
-    'X-Content-Type-Options': 'nosniff',
   });
   res.end(body);
 }
@@ -260,22 +281,29 @@ const cdnHeader = (base, seconds) =>
  * `apiCacheControl` lets a CDN cache API answers (Vercel); the standalone server
  * caches upstream data itself, so it defaults to no-store.
  */
-export function createHandler({ cache, alerts, demo = false, apiCacheControl = 'no-store' }) {
-  const routes = makeRoutes(cache, alerts, { demo });
+export function createHandler({ cache, alerts, demo = false, apiCacheControl = 'no-store', rateLimit = new RateLimit(), budget = new Budget() }) {
+  const routes = makeRoutes(cache, alerts, { demo, budget });
   return async (req, res) => {
-    const url = new URL(req.url, 'http://localhost');
-    // On Vercel every /api/<name> is rewritten to the one function as /api?__path=<name>.
-    let pathname = url.pathname;
-    if (/^\/api(\/index(\.js)?)?$/.test(pathname) && url.searchParams.has('__path')) {
-      pathname = `/api/${url.searchParams.get('__path')}`;
-      url.searchParams.delete('__path');
-    }
+    let pathname = '';
+    const who = clientAddress(req);
     try {
+      // A request line that is not a URL is the visitor's mistake, not a crash.
+      let url;
+      try { url = new URL(req.url, 'http://localhost'); } catch { throw new HttpError(400, 'bad request'); }
+      if (String(req.url).length > 2000) throw new HttpError(414, 'address too long');
+      // On Vercel every /api/<name> is rewritten to the one function as /api?__path=<name>.
+      pathname = url.pathname;
+      if (/^\/api(\/index(\.js)?)?$/.test(pathname) && url.searchParams.has('__path')) {
+        pathname = `/api/${url.searchParams.get('__path')}`;
+        url.searchParams.delete('__path');
+      }
       if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
+      const isApi = pathname === '/api' || pathname.startsWith('/api/');
+      if (isApi && !rateLimit.allow(who)) throw new HttpError(429, 'too many requests');
       const route = routes[pathname];
       if (route) {
         const r = await route(url.searchParams);
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
+        res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
       } else if (pathname === '/api' || pathname.startsWith('/api/')) {
         throw new HttpError(404, 'not found');
@@ -285,7 +313,8 @@ export function createHandler({ cache, alerts, demo = false, apiCacheControl = '
     } catch (e) {
       const status = e.status ?? 502;
       if (!e.status) console.warn(`[api] ${pathname}: ${e.message}`);
-      res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+      const wait = status === 429 ? { 'Retry-After': String(e.message === 'too many requests' ? rateLimit.retryAfter(who) : 5) } : {};
+      res.writeHead(status, { ...SECURITY_HEADERS, ...wait, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify({ error: e.status ? e.message : 'upstream unavailable' }));
     }
   };

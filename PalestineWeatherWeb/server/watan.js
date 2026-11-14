@@ -188,12 +188,15 @@ export function sanitize(html) {
         const src = attrs.match(/\ssrc\s*=\s*"([^"]+)"/i)?.[1] ?? attrs.match(/\ssrc\s*=\s*'([^']+)'/i)?.[1];
         const abs = src ? absolute(decode(src)) : null;
         // Only real image files: posts also hold links to image-host pages and broken BBCode.
-        const ok = abs && /^https?:\/\/[^\s\[\]"]+\.(png|jpe?g|gif|webp)(\?[^\s\[\]"]*)?$/i.test(abs);
+        const ok = abs && /^https?:\/\/[^\s\[\]"<>']+\.(png|jpe?g|gif|webp)(\?[^\s\[\]"<>']*)?$/i.test(abs);
         return ok ? `<img src="${abs.replace(/"/g, '%22')}" alt="" loading="lazy">` : '';
       }
       if (!KEEP.has(t)) return '';
       return closing ? `</${t}>` : t === 'br' ? '<br>' : `<${t}>`;
     })
+    // A "<" left over (an unfinished tag such as "<img src=x onerror=…" with no ">") would be
+    // completed by the page's own markup: only the tags written above may stand.
+    .replace(/<(?!\/?(?:p|em|i|u|ul|ol|li|h2|h3|h4|blockquote|table|thead|tbody|tr|td|th)>|br>|img src="[^"<>]*" alt="" loading="lazy">)/g, '&lt;')
     .replace(/�/g, '')
     .replace(/(<br>\s*){3,}/g, '<br><br>')
     .replace(/&nbsp;/g, ' ')

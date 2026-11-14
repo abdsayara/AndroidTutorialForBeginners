@@ -37,7 +37,24 @@ object Http {
         }
     }
 
+    private const val MAX_TEXT = 4 * 1024 * 1024
+
+    /** Reads a response, refusing one larger than [max] bytes: a wrong or hostile answer must not exhaust the phone's memory. */
+    fun readCapped(input: java.io.InputStream, max: Int): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        val buf = ByteArray(16 * 1024)
+        while (true) {
+            val n = input.read(buf)
+            if (n < 0) break
+            if (out.size() + n > max) throw IOException("response too large")
+            out.write(buf, 0, n)
+        }
+        return out.toByteArray()
+    }
+
     private fun download(url: String): String {
+        // Only encrypted connections: the app never talks to a server in the clear.
+        if (!url.startsWith("https://")) throw IOException("not https")
         val conn = URL(url).openConnection() as HttpURLConnection
         try {
             conn.connectTimeout = 10_000
@@ -45,7 +62,7 @@ object Http {
             conn.setRequestProperty("User-Agent", "PalestineWeather/1.0 (Android)")
             val code = conn.responseCode
             if (code !in 200..299) throw IOException("HTTP $code")
-            return conn.inputStream.bufferedReader().use { it.readText() }
+            return String(conn.inputStream.use { readCapped(it, MAX_TEXT) }, Charsets.UTF_8)
         } finally {
             conn.disconnect()
         }

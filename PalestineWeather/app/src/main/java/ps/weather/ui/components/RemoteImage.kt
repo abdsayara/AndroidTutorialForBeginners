@@ -30,7 +30,9 @@ private object ImageCache {
             conn.connectTimeout = 10_000
             conn.readTimeout = 20_000
             conn.setRequestProperty("User-Agent", "PalestineWeather/1.0 (Android)")
-            val bytes = try { conn.inputStream.use { it.readBytes() } } finally { conn.disconnect() }
+            // Pictures come from the web: only over https, and never larger than 12 MB.
+            if (!url.startsWith("https://")) return@runCatching null
+            val bytes = try { conn.inputStream.use { ps.weather.data.Http.readCapped(it, 12 * 1024 * 1024) } } finally { conn.disconnect() }
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
             var sample = 1

@@ -10,10 +10,7 @@
   <link rel="preload" href="/fonts/MiSansArabicUI-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="/styles.css">
-  <script>
-    // The last sky seen on the home page, before the first paint, so pages open on it.
-    try { document.documentElement.dataset.sky = JSON.parse(localStorage.getItem('pw.sky')) || 'day'; } catch { document.documentElement.dataset.sky = 'day'; }
-  </script>
+  <script src="/boot.js"></script>
   <script type="module" src="/app.js"></script>
 </head>
 <body>
@@ -22,20 +19,7 @@
     <div class="intro-title">طقس الوطن</div>
     <div class="intro-sub">الطقس في كل مدينة وقرية فلسطينية</div>
   </div>
-  <script>
-    // The opening, once per visit: the cloud rises, the rays come out one by one, then the name.
-    (function () {
-      var el = document.getElementById('intro');
-      var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var seen = false;
-      try { seen = sessionStorage.getItem('pw.intro') === '1'; sessionStorage.setItem('pw.intro', '1'); } catch (e) {}
-      if (seen || still || location.pathname !== '/') { el.remove(); return; }
-      el.hidden = false;
-      var done = function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 380); };
-      el.addEventListener('click', done);
-      setTimeout(done, 2600);
-    })();
-  </script>
+  <script src="/intro.js"></script>
   <a class="skip" href="#main">تخطَّ إلى المحتوى</a>
   <div class="demo-banner" id="demo-banner" role="note" hidden>وضع العرض: كل البيانات في هذه النسخة تجريبية وليست طقساً حقيقياً.</div>
   <div class="shell">
