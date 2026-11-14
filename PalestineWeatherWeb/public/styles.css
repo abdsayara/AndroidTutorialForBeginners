@@ -780,9 +780,10 @@ html:root .cp.closed { border-inline-start-color: var(--road-closed); }
 /* Home: the place's details on their own line under the header, so four buttons fit beside the name */
 .home-sub { margin-top: -10px; }
 @media (max-width: 420px) {
-  .header .icon-btn { width: 36px; height: 36px; }
-  .header { gap: 6px; }
-  .header-logo { width: 42px; height: auto; }
+  .header .icon-btn { width: 34px; height: 34px; }
+  .header .icon-btn svg { width: 19px; height: 19px; }
+  .header { gap: 5px; }
+  .header-logo { width: 38px; height: auto; }
   .header h1 { font-size: 21px; }
 }
 

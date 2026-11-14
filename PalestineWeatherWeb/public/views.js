@@ -27,6 +27,17 @@ function header(title, subtitle, { back = false, actions = '', logo = false } = 
   </header>`;
 }
 
+const isLight = () => document.documentElement.dataset.theme === 'light';
+/** Switch the light mode on or off, and keep the choice on this browser. Returns the new state. */
+function toggleTheme() {
+  const on = !isLight();
+  if (on) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
+  settings.theme = on ? 'light' : null;
+  return on;
+}
+/** The quick switch in a header: a sun to go light, a moon to go back to the living sky. */
+const themeButton = () => `<button class="icon-btn" data-action="theme" aria-pressed="${isLight()}" aria-label="${isLight() ? 'العودة إلى الوضع الأساسي' : 'الوضع الفاتح'}">${icon(isLight() ? 'moon' : 'sun')}</button>`;
+
 /** Wire delegated `data-action` clicks; returns the cleanup. */
 function actions(el, handlers) {
   const ac = new AbortController();
@@ -439,7 +450,8 @@ async function home(el, ctx, cancelled) {
   el.innerHTML = `<div class="page">
     ${header(city.name, null, {
       logo: true,
-      actions: `<a class="icon-btn" id="bell" href="/alerts" data-link aria-label="التنبيهات">${icon('bell')}</a>
+      actions: `${themeButton()}
+                <a class="icon-btn" id="bell" href="/alerts" data-link aria-label="التنبيهات">${icon('bell')}</a>
                 <button class="icon-btn" data-action="share" aria-label="مشاركة الطقس كصورة">${icon('share')}</button>
                 <button class="icon-btn" data-action="retry" aria-label="تحديث">${icon('refresh')}</button>
                 <a class="icon-btn" href="/cities" data-link aria-label="تغيير المدينة">${icon('search')}</a>`,
@@ -515,6 +527,7 @@ async function home(el, ctx, cancelled) {
       void t.getBoundingClientRect();
       t.classList.add('hello');
     },
+    theme: (t) => { toggleTheme(); t.outerHTML = themeButton(); },
     'week-cols': () => { settings.weekColumns = true; if (last) draw(); },
     'week-list': () => { settings.weekColumns = false; if (last) draw(); },
     'wear-day': (t) => swapWear(t, false),
@@ -796,7 +809,7 @@ function more(el) {
     ['/welcome', 'star', 'تعرّف على طقس الوطن', true],
     ['/about', 'info', 'عن التطبيق والشركة المطوّرة'],
   ];
-  const light = () => document.documentElement.dataset.theme === 'light';
+  const light = isLight;
   el.innerHTML = `<div class="page">${header('المزيد')}
     <div class="theme-row">
       <span class="badge">${icon('sun')}</span>
@@ -809,12 +822,7 @@ function more(el) {
 </div>`;
   return actions(el, {
     // The light mode is the visitor's choice, kept on this browser; off, the living sky is back.
-    theme: (t) => {
-      const on = !light();
-      if (on) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
-      settings.theme = on ? 'light' : null;
-      t.setAttribute('aria-checked', String(on));
-    },
+    theme: (t) => { t.setAttribute('aria-checked', String(toggleTheme())); },
   });
 }
 
