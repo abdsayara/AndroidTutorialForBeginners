@@ -758,8 +758,9 @@ async function farming(el, ctx, cancelled) {
         <h2>ملاءمة الأيام للعمل في الأرض</h2>
         <div class="muted tiny">الأعمال الحقلية: مطر قليل ورياح هادئة وحرارة معتدلة</div>
         <div class="suit">${days.slice(0, 5).map((d) => {
-          const [label, bg, fg] = SUIT[suitability(d)];
-          return `<div style="background:${bg};color:${fg}">${F.relativeDay(d.date)}<b>${label}</b></div>`;
+          const kind = suitability(d);
+          const [label, bg, fg] = SUIT[kind];
+          return `<div class="s-${kind}" style="background:${bg};color:${fg}">${F.relativeDay(d.date)}<b>${label}</b></div>`;
         }).join('')}</div>
       </section>
       <div class="grid2">
@@ -795,10 +796,26 @@ function more(el) {
     ['/welcome', 'star', 'تعرّف على طقس الوطن', true],
     ['/about', 'info', 'عن التطبيق والشركة المطوّرة'],
   ];
-  el.innerHTML = `<div class="page">${header('المزيد')}<nav class="menu">${items.map(([href, ic, label, page]) =>
+  const light = () => document.documentElement.dataset.theme === 'light';
+  el.innerHTML = `<div class="page">${header('المزيد')}
+    <div class="theme-row">
+      <span class="badge">${icon('sun')}</span>
+      <span class="grow"><span class="bold">الوضع الفاتح</span><span class="muted tiny" style="display:block">ألوان فاتحة هادئة بدل السماء المتحركة</span></span>
+      <button class="switch" role="switch" aria-checked="${light()}" data-action="theme" aria-label="الوضع الفاتح"></button>
+    </div>
+    <nav class="menu">${items.map(([href, ic, label, page]) =>
     `<a href="${href}" ${page ? '' : 'data-link'}><span class="badge">${icon(ic)}</span><span class="grow">${label}</span>${icon('forward', 20)}</a>`).join('')}</nav>
     <a class="dev-line" href="/about" data-link><img src="/nexera.png" width="34" height="34" alt=""><span>تطوير <b>NexEra</b> · حلول الذكاء الاصطناعي والتدريب</span></a>
 </div>`;
+  return actions(el, {
+    // The light mode is the visitor's choice, kept on this browser; off, the living sky is back.
+    theme: (t) => {
+      const on = !light();
+      if (on) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
+      settings.theme = on ? 'light' : null;
+      t.setAttribute('aria-checked', String(on));
+    },
+  });
 }
 
 // ---------------------------------------------------------------- about

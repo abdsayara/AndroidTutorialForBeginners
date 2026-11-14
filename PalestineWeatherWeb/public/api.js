@@ -36,6 +36,9 @@ export const settings = {
   set homeOrder(v) { write('homeOrder', v); },
   get homeHidden() { return read('homeHidden', []); },
   set homeHidden(v) { write('homeHidden', v); },
+  /** The light mode: 'light' when the visitor switched it on; otherwise the usual look over the living sky. */
+  get theme() { return read('theme', null); },
+  set theme(v) { write('theme', v); },
   /** When the alerts page was last opened: newer alerts light the bell's dot. */
   get alertsSeenAt() { return read('alertsSeenAt', 0); },
   set alertsSeenAt(v) { write('alertsSeenAt', v); },

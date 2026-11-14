@@ -202,7 +202,8 @@ export function mountSky() {
   const frame = (now) => {
     raf = requestAnimationFrame(frame);
     // About thirty pictures a second is smooth enough here, and easier on a phone.
-    if (now - last < 32) return;
+    // The light mode has its own quiet background: nothing to draw.
+    if (now - last < 32 || document.documentElement.dataset.theme === 'light') return;
     last = now;
     drawSky(g, w, h, kind(), now, false);
   };
