@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -256,10 +257,7 @@ private fun HomeContent(
             "reports" -> NewsHome(onReport, onReports)
             "bulletin" -> BulletinCard()
             "roads" -> RoadsSummaryCard(onOpenRoads)
-            "sky" -> if (today != null) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                PrayerSunRow(today, prayer, onPrayer)
-                SkyCard(today, nowTime, withSun = false)
-            }
+            "sky" -> if (today != null) PrayerSunRow(today, prayer, onPrayer)
             "details" -> DetailsSection(fc, aqi)
             "week" -> WeekSection(fc, prefs)
         }
@@ -273,8 +271,8 @@ val HOME_SECTIONS = listOf(
     "today" to "شو نلبس والصلاة والموسم",
     "bulletin" to "النشرة التفصيلية",
     "roads" to "أحوال الطرق",
-    "sky" to "الصلاة والشروق والغروب والقمر",
-    "details" to "الرطوبة والأشعة والهواء",
+    "sky" to "الصلاة والشروق والغروب",
+    "details" to "الرطوبة والأشعة والهواء والقمر",
     "week" to "توقعات 14 يوماً",
     // Named anew when they moved below the 14 days, so an order saved before takes the new place.
     "tiles" to "خرائط الطقس وصور الأقمار",
@@ -288,6 +286,9 @@ fun homeOrder(saved: List<String>): List<String> {
     ids.forEachIndexed { i, id -> if (id !in out) out.add(minOf(i, out.size), id) }
     return out
 }
+
+/** Every box in the coming hours is this tall, the day's name among them too. */
+private val HOUR_HEIGHT = 124.dp
 
 @Composable
 private fun HoursSection(fc: Forecast, onHourly: () -> Unit) {
@@ -306,12 +307,14 @@ private fun HoursSection(fc: Forecast, onHourly: () -> Unit) {
             val entries: List<Any> = next.flatMapIndexed { i, h -> if (i > 0 && h.time.hour == 0) listOf(h.time.toLocalDate(), h) else listOf(h) }
             items(entries) { e ->
                 if (e is LocalDate) {
+                    // The new day stands out: warm gold, as tall as the hours beside it.
                     Box(
-                        Modifier.width(44.dp).height(118.dp).clip(RoundedCornerShape(16.dp)).background(Pw.BrandTint),
+                        Modifier.width(44.dp).height(HOUR_HEIGHT).clip(RoundedCornerShape(16.dp))
+                            .background(Brush.verticalGradient(listOf(Color(0xFFFFD27A), Color(0xFFF2A93B)))),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            arabicDayName(e), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Pw.Link, maxLines = 1,
+                            arabicDayName(e), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3A2400), maxLines = 1,
                             softWrap = false, modifier = Modifier.rotate(-90f).requiredWidth(110.dp), textAlign = TextAlign.Center,
                         )
                     }
@@ -320,9 +323,9 @@ private fun HoursSection(fc: Forecast, onHourly: () -> Unit) {
                 val h = e as ps.weather.data.HourPoint
                 val isNow = h == fc.hours.getOrNull(now)
                 Column(
-                    Modifier.width(56.dp).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Panel else Pw.Card).padding(vertical = 10.dp),
+                    Modifier.width(56.dp).height(HOUR_HEIGHT).clip(RoundedCornerShape(16.dp)).background(if (isNow) Pw.Panel else Pw.Card).padding(vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
                 ) {
                     val fg = if (isNow) Color.White else Pw.Ink
                     Text(if (isNow) "الآن" else hourLabel(h.time), fontSize = 12.sp, color = fg)
@@ -357,22 +360,26 @@ private fun DetailsSection(fc: Forecast, aqi: Int?) {
     // The UV index now (nothing at night); the day's highest stands in when the source does not say.
     val uvNow = c.uv ?: today?.uvMax
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             MetricTile(
                 PwIcons.Drop, "الرطوبة", "${c.humidity}%",
                 when { c.humidity < 30 -> "جافة"; c.humidity < 60 -> "مريحة"; c.humidity < 80 -> "رطبة"; else -> "رطبة جداً" },
-                c.humidity / 100f, null, Modifier.weight(1f),
+                c.humidity / 100f, null, Modifier.weight(1f).fillMaxHeight(),
             )
             MetricTile(
                 PwIcons.Sun, "الأشعة فوق البنفسجية", uvNow?.let { "${it.roundToInt()}" } ?: "—",
                 uvNow?.let { now -> uvText(now) + (today?.uvMax?.takeIf { it.roundToInt() != now.roundToInt() }?.let { " · أعلى اليوم ${it.roundToInt()}" } ?: "") },
-                uvNow?.let { (it / 11.0).toFloat() }, SCALE, Modifier.weight(1f),
+                uvNow?.let { (it / 11.0).toFloat() }, SCALE, Modifier.weight(1f).fillMaxHeight(),
             )
         }
-        MetricTile(
-            PwIcons.Wind, "جودة الهواء", aqi?.toString() ?: "—", aqi?.let { aqiText(it) },
-            aqi?.let { it / 100f }, SCALE, Modifier.fillMaxWidth(),
-        )
+        // The moon beside the air, both as tall as each other.
+        Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            MoonTile(Modifier.weight(1f).fillMaxHeight())
+            MetricTile(
+                PwIcons.Wind, "جودة الهواء", aqi?.toString() ?: "—", aqi?.let { aqiText(it) },
+                aqi?.let { it / 100f }, SCALE, Modifier.weight(1f).fillMaxHeight(),
+            )
+        }
     }
 }
 
@@ -497,67 +504,52 @@ private fun MoveButton(label: String, description: String, enabled: Boolean, onC
 }
 
 /** The sun's arc across today's sky (sunrise on the right, where an Arabic line starts) and the moon's phase. */
+/** The moon tonight, as a tile beside the air quality: its disc, its name and how lit it is. */
 @Composable
-private fun SkyCard(today: DayPoint, now: LocalDateTime, withSun: Boolean = true) {
-    val sun = if (withSun) sunDay(today.sunrise, today.sunset, now) else null
+private fun MoonTile(modifier: Modifier = Modifier) {
     val moon = moonPhase()
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier.clip(RoundedCornerShape(18.dp)).background(Pw.Card).border(1.dp, Pw.Line, RoundedCornerShape(18.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        if (sun != null) {
-            val p = sun.progress.coerceIn(0.0, 1.0).toFloat()
-            Canvas(Modifier.fillMaxWidth().height(110.dp)) {
-                val r = minOf(size.width / 2f - 12f, size.height - 14f)
-                val cx = size.width / 2f
-                val cy = size.height - 4f
-                val box = Size(r * 2, r * 2)
-                val tl = Offset(cx - r, cy - r)
-                drawLine(Pw.Line, Offset(0f, cy), Offset(size.width, cy), strokeWidth = 3f)
-                drawArc(Pw.Line, 180f, 180f, false, tl, box, style = Stroke(5f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 12f))))
-                // Canvas angles run clockwise from 3 o'clock: sunrise sits at 0°, going back over the top to 180°.
-                if (p > 0f) drawArc(Pw.Sun, 0f, -180f * p, false, tl, box, style = Stroke(6f, cap = StrokeCap.Round))
-                if (sun.up) {
-                    val a = Math.PI * p
-                    val o = Offset(cx + r * cos(a).toFloat(), cy - r * sin(a).toFloat())
-                    drawCircle(Color.White, 20f, o)
-                    drawCircle(Pw.Sun, 15f, o)
-                }
-            }
-            Row {
-                Text("الشروق ${today.sunrise?.let { clock(it.toLocalTime()) } ?: "—"}", fontSize = 13.sp, color = Pw.Muted, modifier = Modifier.weight(1f))
-                Text("الغروب ${today.sunset?.let { clock(it.toLocalTime()) } ?: "—"}", fontSize = 13.sp, color = Pw.Muted)
-            }
-            Text("طول النهار ${sun.length}", fontSize = 12.sp, color = Pw.Muted, modifier = Modifier.align(Alignment.CenterHorizontally))
-            HorizontalDivider(color = Pw.Line)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(PwIcons.Moon, null, tint = Pw.Muted, modifier = Modifier.size(16.dp))
+            Text("القمر", fontSize = 12.sp, color = Pw.Muted, maxLines = 1)
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Canvas(Modifier.size(52.dp)) {
-                val r = size.minDimension / 2f - 2f
-                val cx = size.width / 2f
-                val cy = size.height / 2f
-                drawCircle(Color(0xFF2B3A4A), r)
-                drawCircle(Color(0xFF8796A6), r, style = Stroke(2f))
-                if (moon.lit > 0.98) drawCircle(Color(0xFFF3EED8), r)
-                else if (moon.lit >= 0.02) {
-                    // The lit limb is half the disc; the terminator is half an ellipse whose width follows the phase.
-                    val right = moon.fraction < 0.5
-                    val rx = r * abs(cos(2 * Math.PI * moon.fraction)).toFloat()
-                    val gibbous = moon.lit > 0.5
-                    val bulgeRight = if (right) !gibbous else gibbous
-                    val path = Path().apply {
-                        moveTo(cx, cy - r)
-                        arcTo(Rect(cx - r, cy - r, cx + r, cy + r), -90f, if (right) 180f else -180f, false)
-                        arcTo(Rect(cx - rx, cy - r, cx + rx, cy + r), 90f, if (bulgeRight) -180f else 180f, false)
-                        close()
-                    }
-                    drawPath(path, Color(0xFFF3EED8))
-                }
-            }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            MoonDisc(moon, Modifier.size(44.dp))
             Column {
-                Text(moon.name, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Text("مضاء ${(moon.lit * 100).roundToInt()}% · عمر القمر ${moon.age.roundToInt()} يوماً", fontSize = 13.sp, color = Pw.Muted)
+                Text(moon.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 20.sp)
+                Text("مضاء ${(moon.lit * 100).roundToInt()}%", fontSize = 12.sp, color = Pw.Muted)
             }
+        }
+        Text("عمر القمر ${moon.age.roundToInt()} يوماً", fontSize = 12.sp, color = Pw.Muted)
+    }
+}
+
+/** The moon's disc: the lit limb is half the disc, the terminator half an ellipse whose width follows the phase. */
+@Composable
+private fun MoonDisc(moon: ps.weather.data.MoonPhase, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val r = size.minDimension / 2f - 2f
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        drawCircle(Color(0xFF2B3A4A), r)
+        drawCircle(Color(0xFF8796A6), r, style = Stroke(2f))
+        if (moon.lit > 0.98) drawCircle(Color(0xFFF3EED8), r)
+        else if (moon.lit >= 0.02) {
+            val right = moon.fraction < 0.5
+            val rx = r * abs(cos(2 * Math.PI * moon.fraction)).toFloat()
+            val gibbous = moon.lit > 0.5
+            val bulgeRight = if (right) !gibbous else gibbous
+            val path = Path().apply {
+                moveTo(cx, cy - r)
+                arcTo(Rect(cx - r, cy - r, cx + r, cy + r), -90f, if (right) 180f else -180f, false)
+                arcTo(Rect(cx - rx, cy - r, cx + rx, cy + r), 90f, if (bulgeRight) -180f else 180f, false)
+                close()
+            }
+            drawPath(path, Color(0xFFF3EED8))
         }
     }
 }

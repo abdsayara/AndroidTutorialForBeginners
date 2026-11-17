@@ -768,8 +768,9 @@ html:root .cp.closed { border-inline-start-color: var(--road-closed); }
 /* 14 days: the date under each day's name, since names repeat */
 .day .name small.dm { display: block; font-size: 11px; font-weight: 300; color: var(--muted); line-height: 1.2; }
 .day { min-height: 54px; }
-.hour-day { flex: 0 0 40px; border-radius: 16px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; }
-.hour-day span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: var(--link); white-space: nowrap; }
+/* The new day stands out in the coming hours: warm gold, as tall as the hours beside it. */
+.hour-day { flex: 0 0 40px; align-self: stretch; border-radius: 16px; background: linear-gradient(180deg, #FFD27A, #F2A93B); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(242, 169, 59, 0.25); }
+.hour-day span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 700; color: #3A2400; white-space: nowrap; }
 
 /* «شو نلبس بكرا؟» with its avatar */
 .mini.wear .wear-row { display: flex; align-items: center; gap: 12px; }
@@ -847,7 +848,7 @@ html:root .cp.closed { border-inline-start-color: var(--road-closed); }
 .metric .m-scale i { position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid rgba(18, 36, 27, .4); transform: translateY(-50%); box-sizing: border-box; }
 .metric .m-fill { background: var(--line); }
 .metric .m-fill i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 3px; background: #9AD2FF; }
-@media (min-width: 640px) { .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 640px) { .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 /* ---- prayer and sun side by side, the days as columns (after the reference design) ---- */
 .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1041,7 +1042,7 @@ html:root[data-theme="light"] .hour { background: rgba(255, 255, 255, 0.6); box-
 html:root[data-theme="light"] .hour.now { background: linear-gradient(170deg, #2F86EA, #1B63C4); border-color: transparent; box-shadow: 0 8px 20px rgba(27, 99, 196, 0.30); }
 html:root[data-theme="light"] .hour.now, html:root[data-theme="light"] .hour.now * { color: #fff; }
 html:root[data-theme="light"] .hour .p { color: var(--blue); }
-html:root[data-theme="light"] .hour-day span { color: var(--muted); }
+html:root[data-theme="light"] .hour-day span { color: #3A2400; }
 
 /* The hero keeps its colour and its white ink: the one strong surface on the page. */
 html:root[data-theme="light"] .hero, html:root[data-theme="light"] .hero[data-sky] {
@@ -1141,3 +1142,7 @@ html:root[data-theme="light"] .suit .s-great { background: #19A866 !important; c
 html:root[data-theme="light"] .suit .s-ok { background: rgba(14, 138, 83, 0.14) !important; color: #0A6B41 !important; }
 html:root[data-theme="light"] .suit .s-rainy { background: rgba(29, 111, 214, 0.12) !important; color: #0F4FA8 !important; }
 html:root[data-theme="light"] .suit .s-harsh { background: rgba(204, 58, 38, 0.12) !important; color: #8E2415 !important; }
+
+/* The moon tile among the details. */
+.moon-tile .moon-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.moon-tile .moon-row svg { flex-shrink: 0; }

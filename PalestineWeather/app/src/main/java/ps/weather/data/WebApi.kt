@@ -183,3 +183,35 @@ object SatelliteRepository {
         )
     }
 }
+
+// ---------------------------------------------------------------- observed pictures for the map
+
+/** One picture of a frame: where it is, how strongly to draw it, and whether it is lightning (lit up). */
+data class MapPicture(val url: String, val alpha: Float, val glow: Boolean)
+
+/**
+ * The pictures behind the map's moving layers (the rain radar, the satellite clouds, the lightning):
+ * the box they cover (west, south, east, north), whether rows follow the web-map projection
+ * (the radar) or plain degrees (the satellite), and one frame per time, oldest first.
+ */
+data class MapImagery(val bbox: List<Double>, val mercator: Boolean, val times: List<Instant>, val frames: List<List<MapPicture>>)
+
+object ImageryRepository {
+    /** The website's address without its /api part, for pictures it passes through. */
+    private val SITE = API.removeSuffix("/api")
+
+    suspend fun imagery(layer: String): Fetched<MapImagery> = Http.get("$API/imagery?layer=$layer", "imagery_$layer").map { body ->
+        val d = JSONObject(body).getJSONObject("data")
+        val bbox = d.getJSONArray("bbox").let { a -> List(a.length()) { a.getDouble(it) } }
+        val times = d.getJSONArray("times").let { a -> List(a.length()) { Instant.parse(a.getString(it)) } }
+        val frames = d.getJSONArray("frames").let { fs ->
+            List(fs.length()) { i ->
+                fs.getJSONArray(i).list { p ->
+                    val url = p.getString("url")
+                    MapPicture(if (url.startsWith("/")) SITE + url else url, p.optDouble("alpha", 1.0).toFloat(), p.optBoolean("glow"))
+                }
+            }
+        }
+        MapImagery(bbox, d.optBoolean("mercator"), times, frames)
+    }
+}

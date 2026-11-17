@@ -25,6 +25,15 @@ export function parseLatestTime(xml) {
   return t && !Number.isNaN(t.getTime()) ? t.toISOString() : null;
 }
 
+/** The newest time of one layer (by its name in the capabilities, e.g. «li_afa»); null when not found. */
+export function parseLayerTime(xml, name) {
+  const at = String(xml).indexOf(`<Name>${name}</Name>`);
+  if (at < 0) return null;
+  const m = /<Dimension name="time"[^>]*default="([^"]+)"/.exec(xml.slice(at, at + 20000));
+  const t = m && new Date(m[1]);
+  return t && !Number.isNaN(t.getTime()) ? t.toISOString() : null;
+}
+
 /** When the capabilities can't be read: the ten-minute slot half an hour ago, which is always there. */
 export function fallbackTime(now = Date.now()) {
   return new Date(Math.floor((now - 30 * 60000) / 600000) * 600000).toISOString();

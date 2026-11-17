@@ -28,13 +28,13 @@ const LAYERS = [
   ['clouds', 'السحب'], ['storms', 'العواصف'], ['quakes', 'الزلازل'],
 ];
 const SUBTITLE = {
-  temp: 'الحرارة الآن · اسحب وكبّر', wind: 'سرعة الرياح (كم/س)', rain: 'رادار الأمطار',
-  clouds: 'حركة السحب', storms: 'احتمال العواصف الرعدية', quakes: 'الهزات الأرضية',
+  temp: 'الحرارة الآن · اسحب وكبّر', wind: 'سرعة الرياح (كم/س)', rain: 'رادار الأمطار المباشر',
+  clouds: 'السحب من القمر الصناعي', storms: 'البرق المرصود من القمر الصناعي', quakes: 'الهزات الأرضية',
 };
 const LEGEND = {
-  rain: [['#3FA34D', 'خفيف'], ['#F2C230', 'متوسط'], ['#D9452B', 'غزير']],
-  clouds: [['#B0BEC5', 'كثافة الغيوم']],
-  storms: [['#F2C230', 'ضعيف'], ['#F08C2E', 'متوسط'], ['#D9452B', 'مرتفع']],
+  rain: [['#0165EF', 'خفيف جداً'], ['#00B02C', 'خفيف'], ['#FEFD19', 'متوسط'], ['#FF7D01', 'غزير'], ['#E10A12', 'غزير جداً']],
+  clouds: [['#E8EEF3', 'سحب'], ['#2E8BE6', 'قمم باردة ممطرة'], ['#9BE15D', 'سحب ركامية عالية']],
+  storms: [['#FFE15A', 'ومضات برق']],
   quakes: [['#D9452B', '3 فأكثر'], ['#C77700', 'أقل من 3']],
 };
 const THEME = {
@@ -44,8 +44,12 @@ const THEME = {
   clouds: { sea: '#1B3A55', land: '#5E7A4E', coast: '#8FA67F', lake: '#2C5878' },
 };
 
-const rainColor = (v) => (v == null || v < 0.1 ? null : v < 1 ? ['63,163,77', 0.55] : v < 4 ? ['242,194,48', 0.65] : ['217,69,43', 0.75]);
-const capeColor = (v) => (v == null || v < 300 ? null : v < 1000 ? ['242,194,48', 0.4] : v < 2000 ? ['240,140,46', 0.55] : ['217,69,43', 0.7]);
+/** The layers drawn from observed pictures (the radar, the satellite), each a series of frames. */
+const IMAGERY = ['rain', 'clouds', 'storms'];
+/** Web-map (Mercator) latitude scale, for the radar picture, which is laid out that way. */
+const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+const fromMercY = (y) => (Math.atan(Math.exp(y)) - Math.PI / 4) * (360 / Math.PI);
+const hebronClock = (iso) => new Date(iso).toLocaleTimeString('en-GB', { timeZone: 'Asia/Hebron', hour: '2-digit', minute: '2-digit' });
 
 function pinColors(layer, n) {
   if (!n) return ['#fff', '#12241B'];
@@ -63,7 +67,7 @@ export function mountMap(el, ctx, cancelled) {
     // A selected village / GPS point (not one of the listed cities), its live values, and the GPS fix.
     place: ctx.city.region ? null : ctx.city, placeNow: null, gps: ctx.city.kind === 'gps' ? ctx.city : null,
     places: null, msg: '',
-    now: null, grid: null, quakes: null, loading: {},
+    now: null, grid: null, quakes: null, loading: {}, img: {},
   };
 
   el.innerHTML = `<div class="page wide">
@@ -106,8 +110,107 @@ export function mountMap(el, ctx, cancelled) {
     }
     return placesCache;
   };
-  // The frame can be fractional while the timeline plays: values blend between hours.
-  const frameIdx = () => (!st.grid ? 0 : st.frame < 0 || st.frame > st.grid.times.length - 1 ? st.grid.nowIndex : st.frame);
+  const isImg = () => IMAGERY.includes(st.layer);
+  /** The current layer's time series: the pictures' frames, or the model grid's hours. */
+  const series = () => (isImg() ? st.img[st.layer] : st.grid);
+  // The frame can be fractional while the timeline plays: pictures and values blend between frames.
+  const frameIdx = () => {
+    const sr = series();
+    if (!sr || !sr.times?.length) return 0;
+    const last = sr.times.length - 1;
+    const now = sr.nowIndex ?? last;
+    return st.frame < 0 || st.frame > last ? now : st.frame;
+  };
+
+  // ---------------------------------------------------------------- observed pictures
+
+  const pics = new Map();
+  /** A picture, loading once; the map redraws when it arrives. */
+  function pic(url) {
+    let im = pics.get(url);
+    if (!im) {
+      im = new Image();
+      im.decoding = 'async';
+      im.onload = () => { if (!cancelled()) draw(); };
+      im.src = url;
+      pics.set(url, im);
+      if (pics.size > 120) pics.delete(pics.keys().next().value);
+    }
+    return im;
+  }
+  let glowCanvas = null;
+  /** Draws a picture that covers `bbox` (west, south, east, north) onto the map. */
+  function drawPicture(im, [w, s, e, n], mercator, alpha, glow) {
+    if (!im.complete || !im.naturalWidth || alpha <= 0) return;
+    const [x0, y0] = toScreen(proj(n, w));
+    const [x1, y1] = toScreen(proj(s, e));
+    let target = g;
+    if (glow) {
+      // Lightning: the flashes are a few pixels each; spread them and light them up so they show.
+      glowCanvas ??= document.createElement('canvas');
+      glowCanvas.width = cv.width; glowCanvas.height = cv.height;
+      target = glowCanvas.getContext('2d');
+      target.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const [dx, dy] of [[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2], [1.5, 1.5], [-1.5, 1.5], [1.5, -1.5], [-1.5, -1.5]]) {
+        target.drawImage(im, x0 + dx, y0 + dy, x1 - x0, y1 - y0);
+      }
+      target.globalCompositeOperation = 'source-in';
+      target.fillStyle = '#FFE15A';
+      target.fillRect(0, 0, W, H);
+      target.globalCompositeOperation = 'source-over';
+      g.save();
+      g.globalAlpha = alpha;
+      g.globalCompositeOperation = 'lighter';
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.drawImage(glowCanvas, 0, 0);
+      g.restore();
+      return;
+    }
+    g.save();
+    g.globalAlpha = alpha;
+    if (!mercator) {
+      g.drawImage(im, x0, y0, x1 - x0, y1 - y0);
+    } else {
+      // The radar picture's rows are evenly spaced in the web-map projection, the map's in latitude:
+      // draw it in thin bands, each placed at its own latitudes.
+      const bands = 48;
+      const top = mercY(n); const bottom = mercY(s);
+      const ih = im.naturalHeight;
+      for (let k = 0; k < bands; k++) {
+        const la = fromMercY(top - ((top - bottom) * k) / bands);
+        const lb = fromMercY(top - ((top - bottom) * (k + 1)) / bands);
+        const ya = toScreen(proj(la, w))[1];
+        const yb = toScreen(proj(lb, w))[1];
+        g.drawImage(im, 0, (ih * k) / bands, im.naturalWidth, ih / bands, x0, ya, x1 - x0, yb - ya + 0.5);
+      }
+    }
+    g.restore();
+  }
+  /** The current frame of the pictures; between two frames, the two blend. */
+  function drawImagery() {
+    const sr = st.img[st.layer];
+    if (!sr?.frames?.length) return;
+    const f = frameIdx();
+    const i = Math.floor(f);
+    const t = f - i;
+    const one = (k, a) => { for (const p of sr.frames[k] ?? []) drawPicture(pic(p.url), sr.bbox, sr.mercator, a * (p.alpha ?? 1), p.glow); };
+    one(i, t > 0 && sr.frames[i + 1] ? 1 - t : 1);
+    if (t > 0 && sr.frames[i + 1]) one(i + 1, t);
+  }
+  async function loadImagery(layer) {
+    const have = st.img[layer];
+    if (have && Date.now() - have.at < 4 * 60_000) return;
+    st.loading.img = true; st.loading.imgError = false; refresh();
+    try {
+      const r = await api(`/api/imagery?layer=${layer}`);
+      if (cancelled()) return;
+      st.img[layer] = { ...r.data, at: Date.now() };
+      // Fetch every frame now, so the timeline plays smoothly.
+      for (const fr of r.data.frames) for (const p of fr) pic(p.url);
+    } catch { st.loading.imgError = true; }
+    st.loading.img = false;
+    if (!cancelled()) refresh();
+  }
   const at = (arr, f) => {
     if (!arr) return null;
     const i = Math.floor(f);
@@ -157,24 +260,17 @@ export function mountMap(el, ctx, cancelled) {
     g.fillStyle = theme.lake;
     SHAPE.lakes.forEach((r) => { path(r, true); g.fill(); });
 
-    // Gridded layers: soft blobs per grid point.
-    if (st.grid && ['rain', 'clouds', 'storms'].includes(st.layer)) {
-      const f = frameIdx();
-      const r = 14 * scale();
-      st.grid.points.forEach(([lat, lon], i) => {
-        let c;
-        if (st.layer === 'rain') c = rainColor(at(st.grid.precip[i], f));
-        else if (st.layer === 'storms') c = capeColor(at(st.grid.cape[i], f));
-        else { const v = at(st.grid.cloud[i], f); c = v == null || v < 3 ? null : ['255,255,255', (v / 100) * 0.8]; }
-        if (!c) return;
-        const [x, y] = toScreen(proj(lat, lon));
-        const grad = g.createRadialGradient(x, y, 0, x, y, r);
-        grad.addColorStop(0, `rgba(${c[0]},${c[1]})`);
-        grad.addColorStop(0.5, `rgba(${c[0]},${c[1] * 0.6})`);
-        grad.addColorStop(1, `rgba(${c[0]},0)`);
-        g.fillStyle = grad;
-        g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
-      });
+    // Observed pictures, then the coast and the regions again over them.
+    if (isImg()) {
+      drawImagery();
+      const dark = st.layer !== 'rain';
+      g.lineJoin = 'round'; g.lineWidth = 1.5; g.strokeStyle = dark ? 'rgba(255,255,255,0.85)' : theme.coast;
+      path(SHAPE.outer, true); g.stroke();
+      if (st.regions) {
+        g.setLineDash([6, 4]); g.lineWidth = 1; g.strokeStyle = dark ? 'rgba(255,255,255,0.6)' : theme.coast;
+        SHAPE.regions.forEach((r) => { path(r, false); g.stroke(); });
+        g.setLineDash([]);
+      }
     }
 
     if (st.layer === 'quakes' && st.quakes) {
@@ -278,7 +374,7 @@ export function mountMap(el, ctx, cancelled) {
     const legend = $('#legend');
     legend.hidden = !lg;
     legend.innerHTML = lg ? lg.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('') : '';
-    const busy = st.layer === 'quakes' ? st.loading.quakes : ['temp', 'wind'].includes(st.layer) ? st.loading.now : st.loading.grid;
+    const busy = st.layer === 'quakes' ? st.loading.quakes : isImg() ? st.loading.img : ['temp', 'wind'].includes(st.layer) ? st.loading.now : st.loading.grid;
     $('#ml').innerHTML = busy ? '<div class="spinner"></div>' : '';
     panel();
   }
@@ -322,15 +418,20 @@ export function mountMap(el, ctx, cancelled) {
         : `<div class="muted small">${st.loading.quakesError ? 'تعذّر تحميل بيانات الزلازل' : st.loading.quakes ? 'جارٍ التحميل…' : 'لا توجد هزات مسجّلة في هذه الفترة'}</div>`}
       </section>`;
     } else {
-      const gd = st.grid;
-      if (!gd) { p.innerHTML = `<section class="card"><div class="muted small">${st.loading.gridError ? 'تعذّر تحميل بيانات الشبكة' : 'جارٍ التحميل…'}</div></section>`; return; }
+      const sr = st.img[st.layer];
+      if (!sr?.frames?.length) {
+        const why = st.loading.img ? 'جارٍ تحميل الصور…' : st.loading.imgError ? 'تعذّر تحميل الصور. حاول بعد قليل.'
+          : st.layer === 'rain' ? 'لا تتوفر صور رادار حديثة الآن.' : 'لا تتوفر صور حديثة الآن.';
+        p.innerHTML = `<section class="card"><div class="muted small">${why}</div></section>`;
+        return;
+      }
       const f = frameIdx();
-      const last = gd.times.length - 1;
-      const pct = (i) => (i / last) * 100;
+      const last = sr.times.length - 1;
+      const minutes = Math.round((new Date(sr.times[last]) - new Date(sr.times[0])) / 60000);
       const note = {
-        rain: 'الأمطار (ملم/ساعة) · ما قبل «الآن» تقدير نموذجي وما بعده توقع',
-        clouds: 'نسبة الغيوم من نموذج الطقس',
-        storms: 'مؤشر CAPE: ملاءمة الجو للعواصف الرعدية — ليس رصداً مباشراً للبرق',
+        rain: 'رادار الأمطار المباشر · صورة كل 5 دقائق · الألوان شدة المطر بالملم في الساعة',
+        clouds: 'صور القمر الصناعي بالأشعة تحت الحمراء · الأبيض سحب، والأزرق والأخضر قمم باردة ممطرة',
+        storms: 'ومضات البرق كما رصدها القمر الصناعي فوق السحب',
       }[st.layer];
       p.innerHTML = `<section class="card">
         <div class="row">
@@ -339,9 +440,8 @@ export function mountMap(el, ctx, cancelled) {
             <div class="tl-label" id="tl-label" aria-live="off">${esc(timeLabel(f))}</div>
             <input type="range" id="tl" min="0" max="${last}" step="0.01" value="${f}" aria-label="الوقت" aria-valuetext="${esc(timeLabel(f))}">
             <div class="tl-ticks" aria-hidden="true">
-              <span style="inset-inline-start:0">قبل ${gd.nowIndex}س</span>
-              <span class="now" style="inset-inline-start:${pct(gd.nowIndex)}%">الآن</span>
-              <span style="inset-inline-end:0">بعد ${last - gd.nowIndex}س</span>
+              <span style="inset-inline-start:0">قبل ${F.ltr(String(minutes))} د</span>
+              <span class="now" style="inset-inline-end:0">آخر صورة</span>
             </div>
           </div>
         </div>
@@ -352,6 +452,14 @@ export function mountMap(el, ctx, cancelled) {
 
   /** "الآن", "بعد 3 س · 5:00", "قبل 2 س · 1:00" for a (fractional) frame. */
   function timeLabel(f) {
+    if (isImg()) {
+      const sr = st.img[st.layer];
+      const last = sr.times.length - 1;
+      const k = Math.round(f);
+      const t = sr.times[k] ?? sr.times[last];
+      const ago = Math.round((new Date(sr.times[last]) - new Date(t)) / 60000);
+      return k >= last ? `آخر صورة · ${hebronClock(t)}` : `قبل ${ago} د · ${hebronClock(t)}`;
+    }
     const gd = st.grid;
     const d = Math.round(f - gd.nowIndex);
     const t = gd.times[Math.round(f)] ?? gd.times[gd.nowIndex];
@@ -359,7 +467,7 @@ export function mountMap(el, ctx, cancelled) {
   }
   function syncTimeline() {
     const tl = $('#tl');
-    if (!tl || !st.grid) return;
+    if (!tl || !series()) return;
     const f = frameIdx();
     tl.value = f;
     const text = timeLabel(f);
@@ -432,9 +540,10 @@ export function mountMap(el, ctx, cancelled) {
     if (cancelled()) return;
     const dt = Math.min(0.1, (ts - (wind.last || ts)) / 1000);
     wind.last = ts;
-    if (st.playing && st.grid) {
-      const last = st.grid.times.length - 1;
-      st.frame = frameIdx() + dt * 1.25;               // about 0.8 s per hour
+    if (st.playing && series()?.times?.length) {
+      const last = series().times.length - 1;
+      // Pictures: about three frames a second; the model's hours: about 0.8 s each.
+      st.frame = frameIdx() + dt * (isImg() ? 3 : 1.25);
       if (st.frame > last) st.frame = 0;
       syncTimeline();
     }
@@ -594,7 +703,7 @@ export function mountMap(el, ctx, cancelled) {
     const t = e.target.closest('[data-action]');
     if (!t) return;
     switch (t.dataset.action) {
-      case 'layer': stop(); st.layer = t.dataset.k; st.frame = -1; break;
+      case 'layer': stop(); st.layer = t.dataset.k; st.frame = -1; if (isImg()) loadImagery(st.layer); break;
       case 'zin': zoomAt(1.4, W / 2, H / 2); break;
       case 'zout': zoomAt(1 / 1.4, W / 2, H / 2); break;
       case 'reset': st.cx = 65; st.cy = 185; st.zoom = 1; break;
@@ -619,7 +728,7 @@ export function mountMap(el, ctx, cancelled) {
       case 'days': st.days = Number(t.dataset.d); st.quake = null; loadQuakes(); return;
       case 'play':
         if (st.playing) stop();
-        else if (st.grid) st.playing = true;
+        else if (series()?.times?.length) { st.frame = isImg() && frameIdx() >= series().times.length - 1 ? 0 : st.frame; st.playing = true; }
         break;
       default: return;
     }

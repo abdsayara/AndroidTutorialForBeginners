@@ -265,14 +265,30 @@ function skyCard(today, nowIso, withSun = true) {
     </section>`;
 }
 
+/** The moon tonight, as a tile beside the air quality (as the app's MoonTile). */
+function moonTile() {
+  const moon = moonPhase(new Date());
+  const r = 22;
+  const right = moon.fraction < 0.5;
+  const gibbous = moon.lit > 0.5;
+  const rx = (r * Math.abs(Math.cos(2 * Math.PI * moon.fraction))).toFixed(2);
+  const lit = moon.lit < 0.02 ? '' : moon.lit > 0.98 ? `<circle cx="30" cy="30" r="${r}" class="moon-lit"/>`
+    : `<path class="moon-lit" d="M30 ${30 - r} A${r} ${r} 0 0 ${right ? 1 : 0} 30 ${30 + r} A${rx} ${r} 0 0 ${right ? (gibbous ? 1 : 0) : (gibbous ? 0 : 1)} 30 ${30 - r}Z"/>`;
+  return `<div class="tile metric moon-tile"><span class="m-emblem" aria-hidden="true">${icon('moon', 92)}</span>
+    <div class="label">${icon('moon', 16)} القمر</div>
+    <div class="moon-row"><svg viewBox="0 0 60 60" width="46" height="46" aria-hidden="true"><circle cx="30" cy="30" r="${r}" class="moon-dark"/>${lit}</svg>
+      <div><div class="m-note">${esc(moon.name)}</div><div class="tiny muted">مضاء ${F.ltr(`${Math.round(moon.lit * 100)}%`)}</div></div></div>
+    <div class="tiny muted">عمر القمر ${Math.round(moon.age)} يوماً</div></div>`;
+}
+
 /** The home sections the person can move or hide, in their default order. */
 const HOME_SECTIONS = [
   ['hours', 'الساعات القادمة'],
   ['today', 'شو نلبس والصلاة والموسم'],
   ['bulletin', 'النشرة الجوية'],
   ['roads', 'أحوال الطرق'],
-  ['sky', 'الصلاة والشروق والغروب والقمر'],
-  ['details', 'الرطوبة والأشعة والهواء'],
+  ['sky', 'الصلاة والشروق والغروب'],
+  ['details', 'الرطوبة والأشعة والهواء والقمر'],
   ['week', 'توقعات 14 يوماً'],
   // Named anew when they moved below the 14 days, so an order saved before takes the new place.
   ['tiles', 'خرائط الطقس وصور الأقمار'],
@@ -360,10 +376,11 @@ function homeBody(fc, air, prayer) {
     reports: '<section class="card news-home" id="news-home" aria-labelledby="h-news" hidden></section>',
     bulletin: '<section class="card bulletin" id="bulletin" aria-labelledby="h-bulletin" hidden></section>',
     roads: '<section class="card roads-home" id="roads-home" aria-label="أحوال الطرق" hidden></section>',
-    sky: `${prayerSunRow(today, prayer, nowIso)}${skyCard(today, nowIso, false)}`,
+    sky: prayerSunRow(today, prayer, nowIso),
     details: `<section class="grid2 grid3 metrics" aria-label="تفاصيل">
       ${metric('drop', 'الرطوبة', c.humidity != null ? `${c.humidity}%` : '—', humidityText(c.humidity), c.humidity != null ? c.humidity / 100 : null, false)}
       ${metric('sun', 'الأشعة فوق البنفسجية', F.round(uvNow), uvNote, uvNow != null ? uvNow / 11 : null, true)}
+      ${moonTile()}
       ${metric('wind', 'جودة الهواء', aqi != null ? String(aqi) : '—', aqi != null ? F.aqiText(aqi) : '', aqi != null ? aqi / 100 : null, true)}
     </section>`,
     week: `<section aria-labelledby="h-week">

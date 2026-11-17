@@ -4,6 +4,14 @@
 // it the station is listed with no readings.
 export const WU_STATIONS = [{ id: 'IDEIRB6', name: 'محطة دير بلوط - سلفيت' }];
 
+/**
+ * Stations we add ourselves beside «طقس الوطن»'s list. Their readings come from Weathercloud
+ * (no key needed), and from Weather Underground (`wu`) when Weathercloud does not answer.
+ */
+export const EXTRA_STATIONS = [
+  { id: '3726519704', kind: 'weathercloud', name: 'محطة الخضر - بيت لحم', wu: 'IBEITY7' },
+];
+
 const API = 'https://api.weather.com/v2/pws';
 const q = (id, key) => `stationId=${encodeURIComponent(id)}&format=json&units=m&numericPrecision=decimal&apiKey=${encodeURIComponent(key)}`;
 export const currentUrl = (id, key) => `${API}/observations/current?${q(id, key)}`;

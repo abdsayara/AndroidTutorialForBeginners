@@ -67,6 +67,15 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.graphics.ImageBitmap
+import ps.weather.data.ImageryRepository
+import ps.weather.data.MapImagery
+import ps.weather.ui.components.fetchImage
+import kotlin.math.atan
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.tan
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -104,10 +113,15 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-enum class MapLayer(val label: String) {
-    TEMP("الحرارة"), WIND("الرياح"), RAIN("الأمطار"),
-    CLOUDS("السحب"), STORMS("العواصف"), QUAKES("الزلازل"),
+/** [imagery] names the observed pictures a layer is drawn from (the website's /api/imagery). */
+enum class MapLayer(val label: String, val imagery: String? = null) {
+    TEMP("الحرارة"), WIND("الرياح"), RAIN("الأمطار", "rain"),
+    CLOUDS("السحب", "clouds"), STORMS("العواصف", "storms"), QUAKES("الزلازل"),
 }
+
+/** Web-map (Mercator) latitude scale, for the radar picture, which is laid out that way. */
+private fun mercY(lat: Double) = ln(tan(Math.PI / 4 + Math.toRadians(lat) / 2))
+private fun fromMercY(y: Double) = Math.toDegrees(2 * atan(exp(y)) - Math.PI / 2)
 
 /** Dark ink for everything drawn on the light land, whatever the theme. */
 private val MAP_INK = Color(0xFF12241B)
@@ -123,8 +137,8 @@ private const val MAX_ZOOM = 40f
 private const val PLACES_ZOOM = 2.2f
 
 @Composable
-fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
-    var layer by rememberSaveable { mutableStateOf(MapLayer.TEMP) }
+fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLayer = MapLayer.TEMP) {
+    var layer by rememberSaveable { mutableStateOf(startLayer) }
     val (citiesLoad, _) = rememberLoad("citiesNow") { WeatherRepository.citiesNow(CITIES) }
     val (gridLoad, _) = rememberLoad("grid") { WeatherRepository.grid() }
     var quakeDays by rememberSaveable { mutableIntStateOf(7) }
@@ -140,23 +154,42 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
     val grid: GridData? = (gridLoad as? Load.Ok)?.value
     val quakes: List<Quake> = (quakeLoad as? Load.Ok)?.value ?: emptyList()
 
-    // The frame is fractional while the timeline plays: values blend between hours.
+    // Observed pictures for the rain radar, the clouds and the lightning: the frames' list, then the pictures.
+    val imageryLoad by androidx.compose.runtime.produceState<Load<MapImagery>>(Load.Loading, layer) {
+        val kind = layer.imagery ?: return@produceState
+        value = Load.Loading
+        value = runCatching { ImageryRepository.imagery(kind) }
+            .fold({ Load.Ok(it.value, it.fromCache, it.savedAt) }, { Load.Error(it.message ?: "") })
+    }
+    val imagery: MapImagery? = if (layer.imagery != null) (imageryLoad as? Load.Ok)?.value else null
+    val pictures = remember(imagery) { androidx.compose.runtime.mutableStateMapOf<String, ImageBitmap>() }
+    LaunchedEffect(imagery) {
+        val im = imagery ?: return@LaunchedEffect
+        // The newest frame first, then the rest, so the map shows something at once.
+        for (fr in im.frames.reversed()) for (p in fr) if (p.url !in pictures) fetchImage(p.url, 1200)?.let { pictures[p.url] = it }
+    }
+
+    // The frame is fractional while the timeline plays: values and pictures blend between frames.
+    val frames = if (layer.imagery != null) imagery?.times?.size ?: 0 else grid?.times?.size ?: 0
+    val nowFrame = if (layer.imagery != null) frames - 1 else grid?.nowIndex ?: 0
     var frame by remember { mutableFloatStateOf(-1f) }
     val frameIdx: Float = when {
-        grid == null -> 0f
-        frame < 0f || frame > grid.times.size - 1 -> grid.nowIndex.toFloat()
+        frames == 0 -> 0f
+        frame < 0f || frame > frames - 1 -> nowFrame.toFloat()
         else -> frame
     }
     var playing by remember { mutableStateOf(false) }
-    LaunchedEffect(playing, grid) {
-        val g = grid ?: return@LaunchedEffect
+    LaunchedEffect(playing, frames, nowFrame) {
+        if (frames < 2) return@LaunchedEffect
+        // Pictures: about three frames a second; the model's hours: about 0.8 s each.
+        val speed = if (layer.imagery != null) 3f else 1.25f
         var last = 0L
         while (playing) {
             withFrameNanos { t ->
                 if (last != 0L) {
                     val dt = ((t - last) / 1e9f).coerceAtMost(0.1f)
-                    val cur = if (frame < 0f || frame > g.times.size - 1) g.nowIndex.toFloat() else frame
-                    frame = (cur + dt * 1.25f).let { if (it > g.times.size - 1) 0f else it } // about 0.8 s per hour
+                    val cur = if (frame < 0f || frame > frames - 1) nowFrame.toFloat() else frame
+                    frame = (cur + dt * speed).let { if (it > frames - 1) 0f else it }
                 }
                 last = t
             }
@@ -307,20 +340,25 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
                 }
                 LAKES.forEach { drawPath(MapProjection.toPath(it, true, tf), lake) }
 
-                // Gridded layers: soft blobs per grid point.
-                if (grid != null && layer in setOf(MapLayer.RAIN, MapLayer.CLOUDS, MapLayer.STORMS)) {
-                    val radius = 14f * scale
-                    for (i in grid.lats.indices) {
-                        val (color, alpha) = when (layer) {
-                            MapLayer.RAIN -> rainColor(grid.precip[i].at(frameIdx))
-                            MapLayer.CLOUDS -> Color.White to (grid.cloud[i].at(frameIdx) / 100.0 * 0.8).toFloat()
-                            else -> capeColor(grid.cape[i].at(frameIdx))
+                // Observed pictures (the radar, the satellite), then the coast and the regions again over them.
+                if (imagery != null && imagery.frames.isNotEmpty()) {
+                    val i0 = frameIdx.toInt().coerceIn(0, imagery.frames.size - 1)
+                    val t = frameIdx - i0
+                    val next = imagery.frames.getOrNull(i0 + 1)
+                    fun drawFrame(k: Int, a: Float) {
+                        for (p in imagery.frames[k]) {
+                            val bmp = pictures[p.url] ?: continue
+                            drawPicture(bmp, imagery.bbox, imagery.mercator, a * p.alpha, p.glow, tf)
                         }
-                        if (alpha.isNaN() || alpha <= 0.02f) continue
-                        val c = toScreen(MapProjection.point(grid.lats[i], grid.lons[i]))
-                        drawCircle(
-                            Brush.radialGradient(listOf(color.copy(alpha = alpha), color.copy(alpha = alpha * 0.6f), Color.Transparent), c, radius),
-                            radius, c,
+                    }
+                    drawFrame(i0, if (t > 0f && next != null) 1f - t else 1f)
+                    if (t > 0f && next != null) drawFrame(i0 + 1, t)
+                    val over = if (layer == MapLayer.RAIN) coast else Color.White.copy(alpha = 0.85f)
+                    drawPath(MapProjection.toPath(OUTER, true, tf), over, style = Stroke(1.5.dp.toPx(), join = StrokeJoin.Round))
+                    if (showRegions) REGIONS.forEach {
+                        drawPath(
+                            MapProjection.toPath(it, false, tf), over.copy(alpha = 0.7f),
+                            style = Stroke(1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 7f))),
                         )
                     }
                 }
@@ -493,7 +531,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
             MapLayer.TEMP, MapLayer.WIND ->
                 CityPanel(selected, if (selected.isListed) cityNow[selected.id] else placeNow) { onOpenCity(selected) }
             MapLayer.RAIN, MapLayer.CLOUDS, MapLayer.STORMS -> TimePanel(
-                layer, grid, frameIdx, playing,
+                layer, imagery, imageryLoad is Load.Error, frameIdx, playing,
                 onPlay = { playing = !playing },
                 onFrame = { playing = false; frame = it },
             )
@@ -502,18 +540,49 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit) {
     }
 }
 
-private fun rainColor(mmPerHour: Double): Pair<Color, Float> = when {
-    mmPerHour.isNaN() || mmPerHour < 0.1 -> Color.Transparent to 0f
-    mmPerHour < 1 -> Color(0xFF3FA34D) to 0.55f
-    mmPerHour < 4 -> Color(0xFFF2C230) to 0.65f
-    else -> Color(0xFFD9452B) to 0.75f
-}
-
-private fun capeColor(cape: Double): Pair<Color, Float> = when {
-    cape.isNaN() || cape < 300 -> Color.Transparent to 0f
-    cape < 1000 -> Color(0xFFF2C230) to 0.4f
-    cape < 2000 -> Color(0xFFF08C2E) to 0.55f
-    else -> Color(0xFFD9452B) to 0.7f
+/**
+ * Draws a picture covering [bbox] (west, south, east, north) onto the map. The radar's rows are
+ * evenly spaced in the web-map projection, the map's in latitude: it goes in thin bands, each at
+ * its own latitudes. Lightning is lit up: tinted gold and spread a little so a flash shows.
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawPicture(
+    bmp: ImageBitmap, bbox: List<Double>, mercator: Boolean, alpha: Float, glow: Boolean, tf: (Offset) -> Offset,
+) {
+    if (alpha <= 0f || bbox.size < 4) return
+    val (w, s, e, n) = bbox
+    val tl = tf(MapProjection.point(n, w))
+    val br = tf(MapProjection.point(s, e))
+    val x0 = tl.x.roundToInt(); val width = (br.x - tl.x).roundToInt().coerceAtLeast(1)
+    if (glow) {
+        val tint = androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFFFE15A), androidx.compose.ui.graphics.BlendMode.SrcIn)
+        val spread = 2.dp.toPx().roundToInt()
+        for ((dx, dy) in listOf(0 to 0, spread to 0, -spread to 0, 0 to spread, 0 to -spread)) {
+            drawImage(
+                bmp, dstOffset = IntOffset(x0 + dx, tl.y.roundToInt() + dy),
+                dstSize = IntSize(width, (br.y - tl.y).roundToInt().coerceAtLeast(1)),
+                alpha = alpha, colorFilter = tint, blendMode = androidx.compose.ui.graphics.BlendMode.Plus,
+            )
+        }
+        return
+    }
+    if (!mercator) {
+        drawImage(bmp, dstOffset = IntOffset(x0, tl.y.roundToInt()), dstSize = IntSize(width, (br.y - tl.y).roundToInt().coerceAtLeast(1)), alpha = alpha)
+        return
+    }
+    val bands = 48
+    val top = mercY(n); val bottom = mercY(s)
+    for (k in 0 until bands) {
+        val la = fromMercY(top - (top - bottom) * k / bands)
+        val lb = fromMercY(top - (top - bottom) * (k + 1) / bands)
+        val ya = tf(MapProjection.point(la, w)).y
+        val yb = tf(MapProjection.point(lb, w)).y
+        val r0 = bmp.height * k / bands
+        val r1 = bmp.height * (k + 1) / bands
+        drawImage(
+            bmp, srcOffset = IntOffset(0, r0), srcSize = IntSize(bmp.width, (r1 - r0).coerceAtLeast(1)),
+            dstOffset = IntOffset(x0, ya.roundToInt()), dstSize = IntSize(width, (yb - ya).roundToInt().coerceAtLeast(1)), alpha = alpha,
+        )
+    }
 }
 
 private fun pinColors(layer: MapLayer, now: CityNow?): Pair<Color, Color> {
@@ -531,9 +600,12 @@ private fun pinColors(layer: MapLayer, now: CityNow?): Pair<Color, Color> {
 @Composable
 private fun Legend(layer: MapLayer, modifier: Modifier) {
     val items: List<Pair<Color, String>> = when (layer) {
-        MapLayer.RAIN -> listOf(Color(0xFF3FA34D) to "خفيف", Color(0xFFF2C230) to "متوسط", Color(0xFFD9452B) to "غزير")
-        MapLayer.CLOUDS -> listOf(Color.White to "كثافة الغيوم")
-        MapLayer.STORMS -> listOf(Color(0xFFF2C230) to "ضعيف", Color(0xFFF08C2E) to "متوسط", Color(0xFFD9452B) to "مرتفع")
+        MapLayer.RAIN -> listOf(
+            Color(0xFF0165EF) to "خفيف جداً", Color(0xFF00B02C) to "خفيف", Color(0xFFFEFD19) to "متوسط",
+            Color(0xFFFF7D01) to "غزير", Color(0xFFE10A12) to "غزير جداً",
+        )
+        MapLayer.CLOUDS -> listOf(Color.White to "سحب", Color(0xFF2E8BE6) to "قمم باردة ممطرة", Color(0xFF9BE15D) to "سحب ركامية عالية")
+        MapLayer.STORMS -> listOf(Color(0xFFFFE15A) to "ومضات برق")
         MapLayer.QUAKES -> listOf(Color(0xFFD9452B) to "3 فأكثر", Pw.Amber to "أقل من 3")
         else -> emptyList()
     }
@@ -598,21 +670,31 @@ private fun CityPanel(city: City, now: CityNow?, onOpen: () -> Unit) {
 @Composable
 private fun TimePanel(
     layer: MapLayer,
-    grid: GridData?,
+    imagery: MapImagery?,
+    failed: Boolean,
     frameIdx: Float,
     playing: Boolean,
     onPlay: () -> Unit,
     onFrame: (Float) -> Unit,
 ) {
-    if (grid == null) {
+    if (imagery == null || imagery.frames.isEmpty()) {
         Text(
-            "جارٍ تحميل البيانات…", color = Pw.Muted, fontSize = 13.sp,
+            when {
+                failed -> "تعذّر تحميل الصور. حاول بعد قليل."
+                imagery == null -> "جارٍ تحميل الصور…"
+                layer == MapLayer.RAIN -> "لا تتوفر صور رادار حديثة الآن."
+                else -> "لا تتوفر صور حديثة الآن."
+            },
+            color = Pw.Muted, fontSize = 13.sp,
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(16.dp),
         )
         return
     }
-    val last = grid.times.size - 1
-    val diff = (frameIdx - grid.nowIndex).roundToInt()
+    val last = imagery.times.size - 1
+    val k = frameIdx.roundToInt().coerceIn(0, last)
+    val clock = DateTimeFormatter.ofPattern("HH:mm", Locale.US).withZone(java.time.ZoneId.of("Asia/Hebron"))
+    val ago = java.time.Duration.between(imagery.times[k], imagery.times[last]).toMinutes()
+    val span = java.time.Duration.between(imagery.times[0], imagery.times[last]).toMinutes()
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Pw.Card).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -620,27 +702,26 @@ private fun TimePanel(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             RoundIconButton(if (playing) PwIcons.Pause else PwIcons.Play, if (playing) "إيقاف" else "تشغيل", onPlay, background = Pw.Brand, tint = Color.White)
             Column(Modifier.weight(1f)) {
-                val hourAt = grid.times.getOrNull(frameIdx.roundToInt())?.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US)) ?: ""
                 Text(
-                    when { diff == 0 -> "الآن · $hourAt"; diff > 0 -> "بعد $diff س · $hourAt"; else -> "قبل ${-diff} س · $hourAt" },
+                    if (k >= last) "آخر صورة · ${clock.format(imagery.times[k])}" else "قبل $ago د · ${clock.format(imagery.times[k])}",
                     fontSize = 14.sp, fontWeight = FontWeight.Bold,
                 )
                 Slider(
-                    value = frameIdx, onValueChange = onFrame, valueRange = 0f..last.toFloat(),
+                    value = frameIdx, onValueChange = onFrame, valueRange = 0f..last.toFloat().coerceAtLeast(0.01f),
                     colors = SliderDefaults.colors(thumbColor = Pw.Brand, activeTrackColor = Pw.Brand, inactiveTrackColor = Pw.Line),
                     modifier = Modifier.semantics { contentDescription = "الوقت" },
                 )
                 Row {
-                    Text("قبل ${grid.nowIndex}س", fontSize = 11.sp, color = Pw.Muted, modifier = Modifier.weight(1f))
-                    Text("بعد ${last - grid.nowIndex}س", fontSize = 11.sp, color = Pw.Muted)
+                    Text("قبل $span د", fontSize = 11.sp, color = Pw.Muted, modifier = Modifier.weight(1f))
+                    Text("آخر صورة", fontSize = 11.sp, color = Pw.Muted)
                 }
             }
         }
         Text(
             when (layer) {
-                MapLayer.RAIN -> "الأمطار (ملم/ساعة) · ما قبل «الآن» تقدير نموذجي وما بعده توقع"
-                MapLayer.CLOUDS -> "نسبة الغيوم"
-                else -> "احتمال العواصف الرعدية (مؤشر CAPE) · مؤشر على ملاءمة الجو للعواصف وليس رصداً مباشراً للبرق"
+                MapLayer.RAIN -> "رادار الأمطار المباشر · صورة كل 5 دقائق · الألوان شدة المطر بالملم في الساعة"
+                MapLayer.CLOUDS -> "صور القمر الصناعي بالأشعة تحت الحمراء · الأبيض سحب، والأزرق والأخضر قمم باردة ممطرة"
+                else -> "ومضات البرق كما رصدها القمر الصناعي فوق السحب"
             },
             fontSize = 12.sp, color = Pw.Muted,
         )
@@ -674,17 +755,6 @@ private fun QuakePanel(days: Int, quakes: List<Quake>, selected: Quake?, onDays:
             }
         }
     }
-}
-
-/** A value between two hourly frames, for a fractional frame. */
-private fun DoubleArray.at(f: Float): Double {
-    if (isEmpty()) return 0.0
-    val i = f.toInt().coerceIn(0, size - 1)
-    val a = this[i]
-    val b = this[(i + 1).coerceAtMost(size - 1)]
-    if (a.isNaN()) return if (b.isNaN()) 0.0 else b
-    if (b.isNaN()) return a
-    return a + (b - a) * (f - i)
 }
 
 /** One wind streak, in map units. */

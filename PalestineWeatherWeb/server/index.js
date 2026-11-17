@@ -12,6 +12,7 @@ import { Budget, RateLimit, SECURITY_HEADERS, clientAddress } from './guard.js';
 import * as P from './prayer.js';
 import * as R from './roads.js';
 import * as SAT from './satellite.js';
+import * as IMG from './imagery.js';
 import * as W from './watan.js';
 import * as WU from './wunderground.js';
 import { PALHUB_URL, parsePalhub } from './palhub.js';
@@ -67,6 +68,7 @@ function weatherPlace(c) {
 export function makeRoutes(cache, alerts, { demo = false, budget = new Budget() } = {}) {
   // Requests for free points or by id cost an upstream call each time they are new: they share
   // a budget, so the weather sources' allowance cannot be spent by a flood of made-up ones.
+  const radarFrames = new Map();
   const costly = (load) => async () => {
     if (!budget.take()) throw new HttpError(429, 'busy, try again shortly');
     return load();
@@ -133,6 +135,39 @@ export function makeRoutes(cache, alerts, { demo = false, budget = new Budget() 
       return { ...r, data: SAT.satellite(r.data), cdnSeconds: 300 };
     },
 
+    // Observed pictures for the map's moving layers: the rain radar, the clouds, the lightning.
+    '/api/imagery': async (q) => {
+      const layer = q.get('layer');
+      if (!['rain', 'clouds', 'storms'].includes(layer)) throw new HttpError(400, 'unknown layer');
+      if (layer === 'rain') {
+        const r = await cache.get('ims_radar', 120, async () => IMG.parseRadar(await cache.json(IMG.IMS_LIST_URL)));
+        return { ...r, data: IMG.imagery('rain', { radar: r.data }), cdnSeconds: 120 };
+      }
+      const r = await cache.get('satellite_layer_times', 300, async () => {
+        const xml = await cache.text(SAT.CAPABILITIES_URL);
+        return { clouds: SAT.parseLayerTime(xml, 'ir105_hrfi'), lightning: SAT.parseLayerTime(xml, 'li_afa') };
+      }).catch(() => ({ data: { clouds: SAT.fallbackTime(), lightning: SAT.fallbackTime() }, fetchedAt: Date.now(), stale: true }));
+      const at = r.data;
+      return { ...r, data: IMG.imagery(layer, { cloudsAt: at.clouds ?? SAT.fallbackTime(), lightningAt: at.lightning ?? SAT.fallbackTime() }), cdnSeconds: 300 };
+    },
+
+    // One radar frame, passed through: a picture name from IMS's list, nothing else.
+    '/api/radar-frame': async (q) => {
+      const file = q.get('f');
+      if (!IMG.isRadarFile(file)) throw new HttpError(400, 'bad frame');
+      const hit = radarFrames.get(file);
+      if (hit) return { binary: hit, type: 'image/png', cdnSeconds: 86400 };
+      if (!budget.take()) throw new HttpError(429, 'busy, try again shortly');
+      const res = await fetch(IMG.radarFileUrl(file), { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw new HttpError(res.status === 404 ? 404 : 502, 'frame not available');
+      const body = Buffer.from(await res.arrayBuffer());
+      if (body.length > 2_000_000 || body.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') throw new HttpError(502, 'not a picture');
+      radarFrames.set(file, body);
+      // A frame never changes: keep the newest few dozen in memory.
+      while (radarFrames.size > 60) radarFrames.delete(radarFrames.keys().next().value);
+      return { binary: body, type: 'image/png', cdnSeconds: 86400 };
+    },
+
     '/api/report': async (q) => {
       const id = Number(q.get('id'));
       if (!Number.isInteger(id) || id <= 0 || id > 1e7) throw new HttpError(400, 'bad report id');
@@ -143,19 +178,33 @@ export function makeRoutes(cache, alerts, { demo = false, budget = new Budget() 
     '/api/stations': async () => {
       const r = await cache.get('watan_stations', 300, async () => {
         // The list of stations changes rarely; their readings every few minutes.
-        const list = (await cache.get('watan_station_list', 86400, async () => W.parseStations(await cache.text(W.STATIONS_URL)))).data;
+        const watanList = (await cache.get('watan_station_list', 86400, async () => W.parseStations(await cache.text(W.STATIONS_URL)))).data;
+        // Our own stations after «طقس الوطن»'s; one its list already carries takes our name and fallback.
+        const ours = (s) => WU.EXTRA_STATIONS.find((x) => x.id === s.id);
+        const list = [
+          ...watanList.map((s) => (ours(s) ? { ...s, ...ours(s), sticker: s.sticker } : s)),
+          ...WU.EXTRA_STATIONS.filter((x) => !watanList.some((s) => s.id === x.id)),
+        ];
+        const key = process.env.WU_API_KEY;
         return Promise.all(list.map(async (s) => {
-          const station = { id: s.id, name: W.stationName(s.name), sticker: s.sticker ?? null };
+          // «طقس الوطن» writes «owner - place»; our own stations carry their name as it is.
+          const station = { id: s.id, name: ours(s) ? s.name : W.stationName(s.name), sticker: s.sticker ?? null };
           try {
             if (s.kind === 'weatherlink') return { ...station, now: W.parseWeatherlink(await cache.json(W.weatherlinkUrl(s.id))) };
             const [values, stats] = await Promise.all(W.weathercloudUrls(s.id).map((u, i) => cache.json(u, W.WEATHERCLOUD_HEADERS).catch((err) => (i ? {} : Promise.reject(err)))));
             return { ...station, now: W.parseWeathercloud(values, stats) };
           } catch (err) {
+            // A station also on Weather Underground: its readings from there when Weathercloud fails.
+            if (s.wu && key) {
+              try {
+                const [cur, day] = await Promise.all([cache.json(WU.currentUrl(s.wu, key)), cache.json(WU.todayUrl(s.wu, key)).catch(() => ({}))]);
+                return { ...station, now: WU.parseWu(cur, day) };
+              } catch { /* fall through to no readings */ }
+            }
             return { ...station, now: null, error: err.message };
           }
         })).then(async (watan) => {
           // Weather Underground stations, when we have our own key for their API.
-          const key = process.env.WU_API_KEY;
           const wu = await Promise.all(WU.WU_STATIONS.map(async (s) => {
             const station = { id: `wu-${s.id}`, name: s.name, sticker: null };
             if (!key) return { ...station, now: null, error: 'no WU_API_KEY' };
@@ -303,6 +352,11 @@ export function createHandler({ cache, alerts, demo = false, apiCacheControl = '
       const route = routes[pathname];
       if (route) {
         const r = await route(url.searchParams);
+        if (r.binary) {
+          res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': r.type, 'Content-Length': String(r.binary.length), 'Cache-Control': cdnHeader(apiCacheControl, r.cdnSeconds) });
+          res.end(req.method === 'HEAD' ? undefined : r.binary);
+          return;
+        }
         res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
       } else if (pathname === '/api' || pathname.startsWith('/api/')) {
