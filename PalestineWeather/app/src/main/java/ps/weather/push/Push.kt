@@ -60,7 +60,11 @@ class PushService : FirebaseMessagingService() {
         }
         val title = s("gcm.notification.title") ?: s("title") ?: return
         val body = s("gcm.notification.body") ?: s("body") ?: ""
-        val type = AlertType.entries.firstOrNull { it.topic == s("type")?.lowercase() } ?: AlertType.GENERAL
+        // Its kind: the `type` in its custom data, else the topic it was sent to (e.g. «/topics/early_warning»).
+        val topic = s("from")?.substringAfterLast('/')?.lowercase()
+        val type = AlertType.entries.firstOrNull { it.topic != null && it.topic == s("type")?.lowercase() }
+            ?: AlertType.entries.firstOrNull { it.topic != null && it.topic == topic }
+            ?: AlertType.GENERAL
         if (!prefs.alertEnabled(type)) return
         val level = when (s("level")?.lowercase()) { "high" -> AlertLevel.HIGH; "info" -> AlertLevel.INFO; "warn" -> AlertLevel.WARN; else -> if (type == AlertType.EARLY) AlertLevel.HIGH else AlertLevel.INFO }
         val record = AlertRecord(Push.key(id), type, level, title, body, "", System.currentTimeMillis())

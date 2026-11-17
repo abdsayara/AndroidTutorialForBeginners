@@ -219,10 +219,25 @@ private fun HomeContent(
     LaunchedEffect(sky) { Pw.sky = sky }
 
     // An early warning sent in the last half hour, above everything, until it is closed.
+    // Read again whenever an alert arrives (also while the page is open) and every half minute, so it comes and goes on time.
     var closedWarning by remember { mutableStateOf(prefs.closedWarning) }
-    prefs.alerts().firstOrNull {
-        it.type == ps.weather.data.AlertType.EARLY && System.currentTimeMillis() - it.time < 30 * 60_000L && it.key != closedWarning
-    }?.let { w ->
+    var alertsSeen by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    val homeContext = androidx.compose.ui.platform.LocalContext.current
+    val alertsListener = remember {
+        android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == "alerts") alertsSeen++ }
+    }
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        val sp = homeContext.applicationContext.getSharedPreferences("pw", android.content.Context.MODE_PRIVATE)
+        sp.registerOnSharedPreferenceChangeListener(alertsListener)
+        onDispose { sp.unregisterOnSharedPreferenceChangeListener(alertsListener) }
+    }
+    LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(30_000); alertsSeen++ } }
+    val warning = remember(alertsSeen, closedWarning) {
+        prefs.alerts().firstOrNull {
+            it.type == ps.weather.data.AlertType.EARLY && System.currentTimeMillis() - it.time < 30 * 60_000L && it.key != closedWarning
+        }
+    }
+    warning?.let { w ->
         EarlyWarningCard(w, onOpen = onAlerts, onClose = { closedWarning = w.key; prefs.closedWarning = w.key })
     }
 
