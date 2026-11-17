@@ -146,6 +146,11 @@ class Prefs(context: Context) {
         return true
     }
 
+    /** The early warning the person closed on the home page: it is not shown again. */
+    var closedWarning: String?
+        get() = sp.getString("closed_warning", null)
+        set(v) = sp.edit().putString("closed_warning", v).apply()
+
     /** When the person last opened «التنبيهات السابقة»: newer alerts light the bell's dot. */
     var alertsSeenAt: Long
         get() = sp.getLong("alerts_seen", 0L)

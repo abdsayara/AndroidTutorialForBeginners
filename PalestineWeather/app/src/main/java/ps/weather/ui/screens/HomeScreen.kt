@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -186,7 +187,7 @@ fun HomeScreen(
             }
         }
         item {
-            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange, onPrayer, prefs, onSatellite, onReport, onReports) }
+            LoadBox(load, refresh) { fc -> HomeContent(fc, air, prayer, onHourly, onOpenRoads, order, hidden, onChange, onPrayer, prefs, onSatellite, onReport, onReports, onAlerts) }
         }
     }
 }
@@ -196,7 +197,7 @@ private fun HomeContent(
     fc: Forecast, air: AirInfo?, prayer: PrayerDay?, onHourly: () -> Unit, onOpenRoads: () -> Unit,
     order: List<String>, hidden: Set<String>, onChange: (List<String>, Set<String>) -> Unit,
     onPrayer: () -> Unit, prefs: Prefs,
-    onSatellite: () -> Unit, onReport: (Int) -> Unit, onReports: () -> Unit,
+    onSatellite: () -> Unit, onReport: (Int) -> Unit, onReports: () -> Unit, onAlerts: () -> Unit,
 ) {
     val aqi = air?.aqi
     val now = fc.nowIndex
@@ -216,6 +217,14 @@ private fun HomeContent(
     // The whole screen takes this place's sky; the hero is glass over it.
     val sky = skyKind(fc)
     LaunchedEffect(sky) { Pw.sky = sky }
+
+    // An early warning sent in the last half hour, above everything, until it is closed.
+    var closedWarning by remember { mutableStateOf(prefs.closedWarning) }
+    prefs.alerts().firstOrNull {
+        it.type == ps.weather.data.AlertType.EARLY && System.currentTimeMillis() - it.time < 30 * 60_000L && it.key != closedWarning
+    }?.let { w ->
+        EarlyWarningCard(w, onOpen = onAlerts, onClose = { closedWarning = w.key; prefs.closedWarning = w.key })
+    }
 
     // Hero
     Column(
@@ -674,5 +683,40 @@ private fun HeroChip(icon: androidx.compose.ui.graphics.vector.ImageVector, text
     ) {
         Icon(icon, null, tint = Color.White, modifier = Modifier.size(16.dp))
         Text(text, color = Color.White, fontSize = 13.sp, maxLines = 1)
+    }
+}
+
+/** An early warning (sent by hand from Firebase), in red over the home page for its first half hour. */
+@Composable
+private fun EarlyWarningCard(a: ps.weather.data.AlertRecord, onOpen: () -> Unit = {}, onClose: () -> Unit = {}) {
+    val mins = ((System.currentTimeMillis() - a.time) / 60_000L).toInt()
+    Box(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFFE5483B), Color(0xFFB3261E))))
+            .border(1.dp, Color(0x66FFFFFF), RoundedCornerShape(22.dp))
+            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = "عرض التنبيهات", onClick = onOpen),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(Modifier.size(34.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) {
+                    Icon(PwIcons.Bell, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+                Column(Modifier.weight(1f)) {
+                    Text("إنذار مبكر · ${if (mins < 1) "الآن" else "منذ $mins د"}", fontSize = 12.sp, color = Color(0xE6FFFFFF), fontWeight = FontWeight.Medium)
+                    Text(a.title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White, lineHeight = 24.sp)
+                }
+                // Close: hides it before its half hour is up.
+                Box(
+                    Modifier.size(32.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x33FFFFFF))
+                        .clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = "إغلاق", onClick = onClose),
+                    contentAlignment = Alignment.Center,
+                ) { Icon(PwIcons.Close, "إغلاق", tint = Color.White, modifier = Modifier.size(16.dp)) }
+            }
+            if (a.body.isNotBlank()) Text(a.body, fontSize = 14.sp, color = Color.White, lineHeight = 22.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("عرض التنبيهات", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                Icon(PwIcons.Back, null, tint = Color.White, modifier = Modifier.size(14.dp).graphicsLayer { scaleX = -1f })
+            }
+        }
     }
 }

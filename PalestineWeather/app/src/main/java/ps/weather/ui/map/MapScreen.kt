@@ -413,8 +413,8 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLaye
                     val pt = toScreen(MapProjection.point(c.lat, c.lon))
                     taken += Rect(pt.x - 24.dp.toPx(), pt.y - 12.dp.toPx(), pt.x + 24.dp.toPx(), pt.y + 32.dp.toPx())
                 }
-                // Over the radar and the satellite, names get a thin halo instead of a box, so they do not hide what is beneath.
-                val overPictures = imagery != null
+                // Names sit on small white boxes, over the pictures too (the owner's choice).
+                val overPictures = false
                 fun nameLabel(lbl: androidx.compose.ui.text.TextLayoutResult, text: String, style: TextStyle, tl: Offset, box: Color) {
                     if (!overPictures) {
                         drawRoundRect(box, tl - Offset(3.dp.toPx(), 0f), Size(lbl.size.width + 6.dp.toPx(), lbl.size.height.toFloat()), CornerRadius(4.dp.toPx()))
