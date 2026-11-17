@@ -510,7 +510,13 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLaye
                 }, background = Pw.Brand, tint = Color.White)
             }
             Legend(layer, Modifier.align(Alignment.TopStart).padding(10.dp))
-            ScaleBar(scale, Modifier.align(Alignment.BottomStart).padding(10.dp))
+            ScaleBar(scale, Modifier.align(Alignment.BottomEnd).padding(10.dp))
+            // The radar comes from IMS: its name on the rain map, bottom right.
+            if (layer == MapLayer.RAIN) Text(
+                "IMS", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MAP_INK,
+                modifier = Modifier.align(Alignment.BottomStart).padding(10.dp).clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xD9FFFFFF)).padding(horizontal = 8.dp, vertical = 2.dp),
+            )
             val loading = when (layer) {
                 MapLayer.TEMP, MapLayer.WIND -> citiesLoad is Load.Loading
                 MapLayer.QUAKES -> quakeLoad is Load.Loading

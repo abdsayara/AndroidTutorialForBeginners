@@ -85,6 +85,7 @@ export function mountMap(el, ctx, cancelled) {
         </div>
         <div class="map-legend" id="legend" hidden></div>
         <div class="scale" id="scale"><div class="bar"></div><span></span></div>
+        <div class="map-credit" id="credit" hidden>IMS</div>
         <div class="map-loading" id="ml"></div>
       </div>
       <div id="panel"></div>
@@ -373,6 +374,8 @@ export function mountMap(el, ctx, cancelled) {
     const lg = LEGEND[st.layer];
     const legend = $('#legend');
     legend.hidden = !lg;
+    // The radar comes from IMS: its name on the rain map.
+    $('#credit').hidden = st.layer !== 'rain';
     legend.innerHTML = lg ? lg.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('') : '';
     const busy = st.layer === 'quakes' ? st.loading.quakes : isImg() ? st.loading.img : ['temp', 'wind'].includes(st.layer) ? st.loading.now : st.loading.grid;
     $('#ml').innerHTML = busy ? '<div class="spinner"></div>' : '';

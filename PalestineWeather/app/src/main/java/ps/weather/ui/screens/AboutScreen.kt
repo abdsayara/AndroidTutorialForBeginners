@@ -41,6 +41,21 @@ private const val FACEBOOK = "https://www.facebook.com/share/1Ju1vF2hbD/"
 private const val WHATSAPP = "https://wa.me/970569104040"
 private const val WATAN_FACEBOOK = "https://www.facebook.com/share/1CU1Tt9VAc/"
 
+/** Where the data comes from (the same list as the website's about page). */
+private val SOURCES = listOf(
+    "الخط" to "MiSans من شاومي",
+    "مواعيد الصلاة" to "دار الإفتاء الفلسطينية",
+    "العملات" to "ExchangeRate-API",
+    "الزلازل" to "USGS",
+    "الخرائط" to "OpenStreetMap",
+    "القرى والبلدات" to "OCHA · PCBS · Wikidata",
+    "محطات إضافية" to "Weathercloud · Weather Underground",
+    "النشرة والتقارير والمحطات" to "طقس الوطن",
+    "صور الأقمار والبرق" to "EUMETSAT",
+    "رادار الأمطار" to "IMS",
+    "التوقعات وجودة الهواء" to "Open-Meteo (CC BY 4.0)",
+)
+
 private fun open(context: Context, url: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 }
@@ -85,6 +100,24 @@ fun AboutScreen(onBack: () -> Unit) {
                 Text("حلول الذكاء الاصطناعي والتدريب", fontSize = 15.sp)
                 AboutButton("صفحتنا على فيسبوك", Pw.Link, Color(0xFF17324A)) { open(context, FACEBOOK) }
                 AboutButton("اتصل بنا على واتساب", Color.White.copy(alpha = 0.16f), Color.White) { open(context, WHATSAPP) }
+            }
+        }
+        item {
+            AboutCard {
+                Text("بيانات الطقس", fontSize = 13.sp, color = Pw.Muted)
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    SOURCES.forEach { (what, who) ->
+                        Text(
+                            androidx.compose.ui.text.buildAnnotatedString {
+                                pushStyle(androidx.compose.ui.text.SpanStyle(color = Pw.Muted, fontWeight = FontWeight.Medium))
+                                append("$what: ")
+                                pop()
+                                append(who)
+                            },
+                            fontSize = 11.5.sp, color = Pw.Muted.copy(alpha = 0.75f), lineHeight = 20.sp,
+                        )
+                    }
+                }
             }
         }
     }

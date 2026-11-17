@@ -849,6 +849,21 @@ const FACEBOOK = 'https://www.facebook.com/share/1Ju1vF2hbD/';
 const WHATSAPP = 'https://wa.me/970569104040';
 const WATAN_FACEBOOK = 'https://www.facebook.com/share/1CU1Tt9VAc/';
 
+/** Where the data comes from, for the about page (the same list as the app's). */
+const SOURCES = [
+  ['الخط', 'MiSans من شاومي'],
+  ['مواعيد الصلاة', 'دار الإفتاء الفلسطينية'],
+  ['العملات', 'ExchangeRate-API'],
+  ['الزلازل', 'USGS'],
+  ['الخرائط', 'OpenStreetMap'],
+  ['القرى والبلدات', 'OCHA · PCBS · Wikidata'],
+  ['محطات إضافية', 'Weathercloud · Weather Underground'],
+  ['النشرة والتقارير والمحطات', 'طقس الوطن'],
+  ['صور الأقمار والبرق', 'EUMETSAT'],
+  ['رادار الأمطار', 'IMS'],
+  ['التوقعات وجودة الهواء', 'Open-Meteo (CC BY 4.0)'],
+];
+
 /** About the app, and the company that builds it. */
 function about(el) {
   el.innerHTML = `<div class="page">${header('عن التطبيق', '', { back: true })}
@@ -866,6 +881,9 @@ function about(el) {
         <a class="ab-btn main" href="${FACEBOOK}" target="_blank" rel="noopener">صفحتنا على فيسبوك</a>
         <a class="ab-btn" href="${WHATSAPP}" target="_blank" rel="noopener">اتصل بنا على واتساب</a>
       </div>
+    </section>
+    <section class="card ab-card src-card"><div class="muted small">بيانات الطقس</div>
+      <div class="src-list">${SOURCES.map(([what, who]) => `<span><b>${what}:</b> <bdi>${who}</bdi></span>`).join('')}</div>
     </section>
   </div>`;
 }
