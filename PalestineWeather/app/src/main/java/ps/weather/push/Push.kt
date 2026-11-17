@@ -62,9 +62,12 @@ class PushService : FirebaseMessagingService() {
         val body = s("gcm.notification.body") ?: s("body") ?: ""
         // Its kind: the `type` in its custom data, else the topic it was sent to (e.g. «/topics/early_warning»).
         val topic = s("from")?.substringAfterLast('/')?.lowercase()
+        // Any field naming the early-warning topic (the console puts it in «from», but not every path keeps it there).
+        val toEarlyTopic = x.keySet().any { k -> x.get(k)?.toString()?.lowercase()?.contains("early_warning") == true }
         val type = AlertType.entries.firstOrNull { it.topic != null && it.topic == s("type")?.lowercase() }
             ?: kindByName(s("type"))
             ?: AlertType.entries.firstOrNull { it.topic != null && it.topic == topic }
+            ?: (if (toEarlyTopic) AlertType.EARLY else null)
             // Sent to everyone (no topic, no type): a title that says «إنذار مبكر» makes it one.
             ?: kindByName(title)
             ?: AlertType.GENERAL
@@ -76,9 +79,15 @@ class PushService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) = Push.sync(applicationContext)
 
-    /** «إنذار مبكر» / «انذار مبكر» (with or without hamza) or «early» in a type or a title: an early warning. */
+    /**
+     * An early warning by its words, however written: «إنذار مبكر», «انذار المبكر», «الإنذار المبكر»,
+     * with or without hamza, harakat or «ال»; or «early» in English.
+     */
     private fun kindByName(text: String?): AlertType? {
-        val t = text?.replace(Regex("[إأآ]"), "ا")?.lowercase() ?: return null
-        return if ("انذار مبكر" in t || t.startsWith("early")) AlertType.EARLY else null
+        val t = text?.lowercase()
+            ?.replace(Regex("[\\u064B-\\u0652\\u0640]"), "")
+            ?.replace(Regex("[إأآٱ]"), "ا")
+            ?: return null
+        return if (("انذار" in t && "مبكر" in t) || "early" in t) AlertType.EARLY else null
     }
 }
