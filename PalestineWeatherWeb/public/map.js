@@ -236,6 +236,18 @@ export function mountMap(el, ctx, cancelled) {
     g.font = font;
     const w = g.measureText(text).width + padX * 2;
     const left = align === 'center' ? x - w / 2 : x;
+    if (isImg()) {
+      // Over the radar and the satellite: no box, only a thin halo round the letters, so the
+      // names do not hide the rain or the clouds beneath them.
+      const dark = st.layer !== 'rain';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineJoin = 'round'; g.lineWidth = 3;
+      g.strokeStyle = dark ? 'rgba(10,20,30,0.75)' : 'rgba(255,255,255,0.85)';
+      g.strokeText(text, left + w / 2, y + 1);
+      g.fillStyle = dark ? '#fff' : fg;
+      g.fillText(text, left + w / 2, y + 1);
+      return w;
+    }
     g.fillStyle = bg;
     g.beginPath(); g.roundRect(left, y - h / 2, w, h, radius); g.fill();
     g.fillStyle = fg;

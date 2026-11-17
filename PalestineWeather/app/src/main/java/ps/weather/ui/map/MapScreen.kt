@@ -413,6 +413,19 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLaye
                     val pt = toScreen(MapProjection.point(c.lat, c.lon))
                     taken += Rect(pt.x - 24.dp.toPx(), pt.y - 12.dp.toPx(), pt.x + 24.dp.toPx(), pt.y + 32.dp.toPx())
                 }
+                // Over the radar and the satellite, names get a thin halo instead of a box, so they do not hide what is beneath.
+                val overPictures = imagery != null
+                fun nameLabel(lbl: androidx.compose.ui.text.TextLayoutResult, text: String, style: TextStyle, tl: Offset, box: Color) {
+                    if (!overPictures) {
+                        drawRoundRect(box, tl - Offset(3.dp.toPx(), 0f), Size(lbl.size.width + 6.dp.toPx(), lbl.size.height.toFloat()), CornerRadius(4.dp.toPx()))
+                        drawText(lbl, topLeft = tl)
+                        return
+                    }
+                    val darkPic = layer != MapLayer.RAIN
+                    val halo = tm.measure(text, style.copy(color = if (darkPic) Color(0xBF0A141E) else Color(0xD9FFFFFF), drawStyle = Stroke(3.dp.toPx(), join = StrokeJoin.Round)))
+                    drawText(halo, topLeft = tl)
+                    drawText(tm.measure(text, style.copy(color = if (darkPic) Color.White else MAP_INK)), topLeft = tl)
+                }
                 if (zoom >= PLACES_ZOOM) {
                     val townStyle = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MAP_INK)
                     val villageStyle = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = MAP_INK)
@@ -427,8 +440,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLaye
                             val lbl = tm.measure(v.name, if (v.isTown) townStyle else villageStyle)
                             val tl = Offset(pt.x + 5.dp.toPx(), pt.y - lbl.size.height / 2f)
                             if (free(Rect(tl, Size(lbl.size.width + 6.dp.toPx(), lbl.size.height.toFloat())))) {
-                                drawRoundRect(Color(0xC7FFFFFF), tl - Offset(3.dp.toPx(), 0f), Size(lbl.size.width + 6.dp.toPx(), lbl.size.height.toFloat()), CornerRadius(4.dp.toPx()))
-                                drawText(lbl, topLeft = tl)
+                                nameLabel(lbl, v.name, if (v.isTown) townStyle else villageStyle, tl, Color(0xC7FFFFFF))
                             }
                         }
                     }
@@ -468,8 +480,7 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLaye
                         drawCircle(Color.White, 4.dp.toPx(), c)
                         drawCircle(MAP_INK, 2.5.dp.toPx(), c)
                         val nameTl = Offset(c.x + 6.dp.toPx(), c.y - name.size.height / 2f)
-                        drawRoundRect(Color(0xD9FFFFFF), nameTl - Offset(3.dp.toPx(), 0f), Size(name.size.width + 6.dp.toPx(), name.size.height.toFloat()), CornerRadius(4.dp.toPx()))
-                        drawText(name, topLeft = nameTl)
+                        nameLabel(name, city.name, nameStyle, nameTl, Color(0xD9FFFFFF))
                     }
                 }
 
@@ -486,10 +497,10 @@ fun MapScreen(initialCity: City, onOpenCity: (City) -> Unit, startLayer: MapLaye
                     drawCircle(Pw.Brand, 8.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
                     drawLine(Pw.Brand, pt - Offset(0f, 8.dp.toPx()), pt, 3.dp.toPx())
                     drawCircle(Color.White, 3.dp.toPx(), pt - Offset(0f, 14.dp.toPx()))
-                    val lbl = tm.measure(selected.name, TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MAP_INK))
+                    val selStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MAP_INK)
+                    val lbl = tm.measure(selected.name, selStyle)
                     val tl = Offset(pt.x - lbl.size.width / 2f, pt.y + 4.dp.toPx())
-                    drawRoundRect(Color(0xEBFFFFFF), tl - Offset(4.dp.toPx(), 0f), Size(lbl.size.width + 8.dp.toPx(), lbl.size.height.toFloat()), CornerRadius(4.dp.toPx()))
-                    drawText(lbl, topLeft = tl)
+                    nameLabel(lbl, selected.name, selStyle, tl, Color(0xEBFFFFFF))
                 }
             }
 
