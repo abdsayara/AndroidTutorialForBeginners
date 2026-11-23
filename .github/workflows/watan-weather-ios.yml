@@ -40,7 +40,10 @@ jobs:
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tail -n 40
 
+      # The simulator sometimes never finishes starting on GitHub's Macs: give up after 20 minutes
+      # rather than holding the Mac for the whole hour.
       - name: Run it on a simulated iPhone and take screenshots
+        timeout-minutes: 20
         run: |
           DEVICE=$(xcrun simctl list devices available | grep -E "^\s+iPhone 1[5-7]( Pro)? \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
           echo "device: $DEVICE"
