@@ -885,6 +885,7 @@ function about(el) {
     <section class="card ab-card src-card"><div class="muted small">بيانات الطقس</div>
       <div class="src-list">${SOURCES.map(([what, who]) => `<span><b>${what}:</b> <bdi>${who}</bdi></span>`).join('')}</div>
     </section>
+    <div class="center"><a class="link-btn" href="/privacy">سياسة الخصوصية</a></div>
   </div>`;
 }
 

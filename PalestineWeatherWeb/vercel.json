@@ -17,6 +17,10 @@
       "destination": "/welcome.html"
     },
     {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
       "source": "/((?!api).*)",
       "destination": "/index.html"
     }

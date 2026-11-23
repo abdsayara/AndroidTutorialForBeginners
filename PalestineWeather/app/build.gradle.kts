@@ -7,19 +7,38 @@ plugins {
 
 android {
     namespace = "ps.weather"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ps.weather"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
+        // Google Play asks new apps to target the newest Android (16).
+        targetSdk = 36
+        // Each build on GitHub numbers itself (the store needs a higher number every upload).
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0) + 100
         versionName = "1.0"
+    }
+
+    // The upload key for Google Play, from the build's secrets (never in the repository).
+    val keystore = System.getenv("UPLOAD_KEYSTORE_FILE")
+    signingConfigs {
+        if (keystore != null && file(keystore).exists()) {
+            create("upload") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("UPLOAD_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("UPLOAD_KEY_ALIAS")
+                keyPassword = System.getenv("UPLOAD_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Smaller and harder to read back: R8 removes and renames what is not used.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
         }
     }
 

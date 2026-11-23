@@ -39,6 +39,7 @@ import ps.weather.ui.theme.Pw
 
 private const val FACEBOOK = "https://www.facebook.com/share/1Ju1vF2hbD/"
 private const val WHATSAPP = "https://wa.me/970569104040"
+private const val PRIVACY = "https://palestine-weather.vercel.app/privacy"
 private const val WATAN_FACEBOOK = "https://www.facebook.com/share/1CU1Tt9VAc/"
 
 /** Where the data comes from (the same list as the website's about page). */
@@ -119,6 +120,12 @@ fun AboutScreen(onBack: () -> Unit) {
                     }
                 }
             }
+        }
+        item {
+            Text(
+                "سياسة الخصوصية", color = Pw.Link, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button) { open(context, PRIVACY) }.padding(12.dp),
+            )
         }
     }
 }
