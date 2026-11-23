@@ -1,0 +1,10 @@
+{
+  "appId": "ps.weather",
+  "appName": "طقس الوطن",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#1F74B0",
+    "scheme": "WatanWeather"
+  }
+}

@@ -321,6 +321,12 @@ async function serveStatic(res, urlPath) {
   res.end(body);
 }
 
+/**
+ * The API's answers are public and read-only: the iPhone app (whose pages are not on this
+ * site) may read them. No cookies or credentials are involved.
+ */
+const OPEN_TO_APPS = { 'Access-Control-Allow-Origin': '*' };
+
 /** Longer CDN caching for slow-changing routes, when the deployment caches at all. */
 const cdnHeader = (base, seconds) =>
   base === 'no-store' || !seconds ? base : `public, s-maxage=${seconds}, stale-while-revalidate=${seconds * 7}`;
@@ -353,11 +359,11 @@ export function createHandler({ cache, alerts, demo = false, apiCacheControl = '
       if (route) {
         const r = await route(url.searchParams);
         if (r.binary) {
-          res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': r.type, 'Content-Length': String(r.binary.length), 'Cache-Control': cdnHeader(apiCacheControl, r.cdnSeconds) });
+          res.writeHead(200, { ...SECURITY_HEADERS, ...OPEN_TO_APPS, 'Content-Type': r.type, 'Content-Length': String(r.binary.length), 'Cache-Control': cdnHeader(apiCacheControl, r.cdnSeconds) });
           res.end(req.method === 'HEAD' ? undefined : r.binary);
           return;
         }
-        res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
+        res.writeHead(200, { ...SECURITY_HEADERS, ...OPEN_TO_APPS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': r.stale ? 'no-store' : cdnHeader(apiCacheControl, r.cdnSeconds) });
         res.end(JSON.stringify({ data: r.data, fetchedAt: r.fetchedAt ?? Date.now(), stale: !!r.stale }));
       } else if (pathname === '/api' || pathname.startsWith('/api/')) {
         throw new HttpError(404, 'not found');

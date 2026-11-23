@@ -1,5 +1,5 @@
 // Interactive map of Palestine: canvas rendering, pan / pinch / wheel zoom, six data layers.
-import { api } from './api.js';
+import { api, apiUrl } from './api.js';
 import * as F from './format.js';
 import { esc } from './format.js';
 import { icon } from './icons.js';
@@ -127,7 +127,8 @@ export function mountMap(el, ctx, cancelled) {
 
   const pics = new Map();
   /** A picture, loading once; the map redraws when it arrives. */
-  function pic(url) {
+  function pic(path) {
+    const url = apiUrl(path);
     let im = pics.get(url);
     if (!im) {
       im = new Image();

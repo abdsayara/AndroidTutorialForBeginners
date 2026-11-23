@@ -1,7 +1,16 @@
 // API client and per-browser settings.
 
+/**
+ * Where the API lives. On the website, the same server (a relative path). Inside the iPhone
+ * app the pages are shipped with the app, so the API is the website's, over the internet.
+ */
+const native = typeof window !== 'undefined' && (window.Capacitor?.isNativePlatform?.() || location.protocol === 'capacitor:');
+export const API_ORIGIN = native ? 'https://palestine-weather.vercel.app' : '';
+/** A path on our API (e.g. «/api/now») as the address to fetch from here. */
+export const apiUrl = (path) => (String(path).startsWith('/api') ? API_ORIGIN + path : path);
+
 export async function api(path) {
-  const res = await fetch(path, { headers: { Accept: 'application/json' } });
+  const res = await fetch(apiUrl(path), { headers: { Accept: 'application/json' } });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
   return body; // { data, fetchedAt, stale }

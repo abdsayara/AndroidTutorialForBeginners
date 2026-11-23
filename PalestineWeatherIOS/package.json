@@ -1,0 +1,16 @@
+{
+  "name": "watan-weather-ios",
+  "private": true,
+  "description": "طقس الوطن للآيفون: الموقع داخل تطبيق أصلي (Capacitor)",
+  "scripts": {
+    "web": "node scripts/copy-web.mjs",
+    "sync": "npm run web && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2"
+  }
+}

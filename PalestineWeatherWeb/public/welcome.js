@@ -1,12 +1,13 @@
 import { weatherIcon } from '/icons.js';
 import { esc } from '/format.js';
+import { apiUrl } from '/api.js';
 
 // Fit the live app into the phone frame.
 const frame = document.querySelector('.device iframe');
 const fit = () => { frame.style.transform = `scale(${frame.parentElement.clientWidth / 390})`; };
 new ResizeObserver(fit).observe(frame.parentElement);
 
-const get = (p) => fetch(p).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+const get = (p) => fetch(apiUrl(p)).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
 
 // The temperature now in the main cities.
 const MAIN = ['jerusalem', 'gaza', 'ramallah', 'nablus', 'hebron', 'jenin', 'bethlehem', 'jericho', 'khanyunis', 'tulkarm', 'haifa', 'jaffa'];

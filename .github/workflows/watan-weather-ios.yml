@@ -1,0 +1,60 @@
+name: Watan Weather iOS
+
+on:
+  push:
+    paths:
+      - "PalestineWeatherIOS/**"
+      - "PalestineWeatherWeb/public/**"
+      - ".github/workflows/watan-weather-ios.yml"
+  workflow_dispatch:
+
+# The build only reads the repository.
+permissions:
+  contents: read
+
+jobs:
+  simulator:
+    # A Mac: iPhone apps are built with Xcode. Until there is an Apple Developer account the app
+    # is built for the iPhone simulator, run there, and photographed, to show it works.
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: PalestineWeatherIOS
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Copy the website into the app
+        run: |
+          npm ci
+          npm run sync
+
+      - name: Build for the iPhone simulator
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tail -n 40
+
+      - name: Run it on a simulated iPhone and take screenshots
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -E "^\s+iPhone 1[5-7]( Pro)? \(" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          echo "device: $DEVICE"
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl install "$DEVICE" build/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl launch "$DEVICE" ps.weather
+          mkdir -p shots
+          sleep 25
+          xcrun simctl io "$DEVICE" screenshot shots/1-home.png
+          sleep 15
+          xcrun simctl io "$DEVICE" screenshot shots/2-home-later.png
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: watan-weather-ios-simulator
+          path: |
+            PalestineWeatherIOS/shots/*.png
