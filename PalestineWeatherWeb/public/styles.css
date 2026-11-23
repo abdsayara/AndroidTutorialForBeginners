@@ -61,7 +61,7 @@ h2 { font-size: 16px; font-weight: 500; }
 
 .shell { display: flex; min-height: 100vh; }
 .sidebar { display: none; }
-main { flex: 1; min-width: 0; padding: 20px 16px calc(64px + 36px + env(safe-area-inset-bottom)); outline: none; }
+main { flex: 1; min-width: 0; padding: calc(20px + env(safe-area-inset-top)) 16px calc(64px + 36px + env(safe-area-inset-bottom)); outline: none; }
 .page { max-width: 760px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
 .page.wide { max-width: 1180px; }
 
