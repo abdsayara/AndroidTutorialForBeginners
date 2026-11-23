@@ -178,15 +178,29 @@ document.addEventListener('error', (e) => { if (e.target instanceof HTMLImageEle
 
 (async function boot() {
   mountSky();
-  try {
-    const { data } = await api('/api/cities');
-    state.cities = data.cities;
-    state.regions = data.regions;
-    state.liveAlerts = !!data.liveAlerts;
-    document.getElementById('demo-banner').hidden = !data.demo;
-  } catch {
-    document.getElementById('main').innerHTML = '<div class="empty">تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد تحميل الصفحة.</div>';
-    return;
+  renderNav();
+  const main = document.getElementById('main');
+  main.innerHTML = '<div class="empty">جارٍ التحميل…</div>';
+  // A weak connection: try again a few times, then say so, with a button to try once more.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const { data } = await api('/api/cities');
+      state.cities = data.cities;
+      state.regions = data.regions;
+      state.liveAlerts = !!data.liveAlerts;
+      document.getElementById('demo-banner').hidden = !data.demo;
+      break;
+    } catch {
+      if (attempt < 3) { await new Promise((ok) => setTimeout(ok, 2000 * attempt)); continue; }
+      main.innerHTML = '<div class="empty">تعذّر الاتصال بالخادم. تحقّق من اتصالك ثم أعد المحاولة.'
+        + '<p><button type="button" class="btn" id="retry">أعد المحاولة</button></p></div>';
+      await new Promise((ok) => {
+        main.querySelector('#retry').addEventListener('click', ok, { once: true });
+        window.addEventListener('online', ok, { once: true });
+      });
+      main.innerHTML = '<div class="empty">جارٍ التحميل…</div>';
+      attempt = 0;
+    }
   }
   state.city = settings.place ?? state.cities.find((c) => c.id === settings.cityId) ?? state.cities[0];
   await render();

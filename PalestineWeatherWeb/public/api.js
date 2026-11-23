@@ -9,8 +9,18 @@ export const API_ORIGIN = native ? 'https://palestine-weather.vercel.app' : '';
 /** A path on our API (e.g. «/api/now») as the address to fetch from here. */
 export const apiUrl = (path) => (String(path).startsWith('/api') ? API_ORIGIN + path : path);
 
+/** How long to wait for an answer: a weak connection gets an error to show, not an empty page. */
+const WAIT_MS = 20000;
+
 export async function api(path) {
-  const res = await fetch(apiUrl(path), { headers: { Accept: 'application/json' } });
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), WAIT_MS);
+  let res;
+  try {
+    res = await fetch(apiUrl(path), { headers: { Accept: 'application/json' }, signal: stop.signal });
+  } finally {
+    clearTimeout(timer);
+  }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
   return body; // { data, fetchedAt, stale }

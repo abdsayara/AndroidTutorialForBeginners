@@ -51,7 +51,7 @@ jobs:
           mkdir -p shots
           sleep 25
           xcrun simctl io "$DEVICE" screenshot shots/1-home.png
-          sleep 15
+          sleep 45
           xcrun simctl io "$DEVICE" screenshot shots/2-home-later.png
 
       - uses: actions/upload-artifact@v4
