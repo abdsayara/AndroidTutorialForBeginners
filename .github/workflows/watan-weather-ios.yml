@@ -16,7 +16,9 @@ jobs:
   simulator:
     # A Mac: iPhone apps are built with Xcode. Until there is an Apple Developer account the app
     # is built for the iPhone simulator, run there, and photographed, to show it works.
-    runs-on: macos-15
+    # Intel Macs: GitHub often has no free Apple-chip Mac, and the simulator build runs the same on both.
+    runs-on: macos-15-intel
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: PalestineWeatherIOS
